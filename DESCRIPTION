@@ -6,7 +6,7 @@ Authors@R:
     person("Ben C", "Stevenson", email = "ben.stevenson@auckland.ac.nz", role = c("aut", "cre")),
     person("Elizabeth", "Smit", email = "esmi468@aucklanduni.ac.nz", role = "cre"),
     person("Edy", "Setyawan", email = "edy.setyawan@auckland.ac.nz", role = "aut"),
-    person("Mark V", "Erdmann", email = "mverdmann@gmail.com", role = c("aut", "cre")),
+    person("Mark V", "Erdmann", email = "mverdmann@gmail.com", role = c("aut", "cre"))
     )
 Description: What the package does (one paragraph).
 License: MIT + file LICENSE
