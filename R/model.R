@@ -112,3 +112,75 @@ construct.varcov <- function(sds, cors, n.blocks, m, block.only){
   }
   out
 }
+
+#' Fit Morphometric Model
+#'
+#' Fits a linear mixed-effects model to morphometric data accounting for measurement error.
+#'
+#' @param data A data frame containing:
+#'   \itemize{
+#'     \item animal.id: factor indicating which animal the measurement is from
+#'     \item photo.id: factor indicating which photo the measurement is from
+#'     \item dim: factor indicating which dimension is measured
+#'     \item measurement: the observed morphometric measurement
+#'   }
+#' @param method Character, either "ML" for maximum likelihood or "REML" for
+#'   restricted maximum likelihood
+#' @param intercept Logical, whether to include an intercept in fixed effects
+#'
+#' @return An object of class "lme.morph" containing:
+#'   \itemize{
+#'     \item coefficients: Model coefficients
+#'     \item vcov: Variance-covariance matrix
+#'     \item residuals: Model residuals
+#'     \item fitted: Fitted values
+#'   }
+#'
+#' @examples
+#' \dontrun{
+#' # Simulate some data
+#' data <- sim.measurements(n.animals = 10, n.photos = rep(5, 10), m = 3,
+#'                         c(290, 130, 75, 45, 25, 15,
+#'                           0.85, 0.90, 0.95,
+#'                           2.00, 1.50, 1.00,
+#'                           0.40, 0.50, 0.60))
+#'
+#' # Fit the model
+#' fit <- fit.morph(data, method = "REML")
+#' }
+#'
+#' @export
+fit.morph <- function(data, method = "REML", intercept = FALSE){
+  # Ensure input sare factors
+  for (i in c("animal.id", "photo.id", "dim")){
+    if (!is.factor(data[, i])){
+      data[, i] <- factor(data[, i])
+    }
+  }
+
+  # Set up groups
+  gdata <- nlme::groupedData(measurement ~ 1 | animal.id / photo.id, data = data)
+
+  # Set up fixed effects formula
+  if (intercept){
+    fixed.arg <- measurement ~ dim
+  } else {
+    fixed.arg <- measurement ~ 0 + dim
+  }
+
+  # Fit model
+  fit <- nlme::lme(fixed = fixed.arg,
+                   random = ~ 0 + dim | animal.id,
+                   correlation = nlme::corSymm(form = ~ 1 | animal.id / photo.id),
+                   weights = nlme::varIdent(form = ~ 1 | dim),
+                   data = gdata,
+                   control = nlme::lmeControl(maxIter = 10000, msMaxIter = 10000),
+                   method = method)
+
+  # Add additional attributes
+  fit$intercept <- intercept
+  class(fit) <- c("lme.morph", class(fit))
+  fit$vcov <- vcov(fit)
+
+  return(fit)
+}
