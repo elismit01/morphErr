@@ -74,3 +74,41 @@ organise.pars <- function(pars, n.animals, n.photos, m, block.only = FALSE) {
   list(mus = mus, sigma = sigma.mat, xi = xi.mat)
 }
 
+#' Construct Variance-Covariance Matrix
+#'
+#' Takes standard deviations and correlation parameters, and organises
+#' them into a block-diagonal variance-covariance matrix.
+#'
+#' @param sds Numeric vector of standard deviations for each dimension
+#' @param cors Numeric vector of correlation parameters between dimensions
+#' @param n.blocks Integer, number of blocks in the matrix
+#' @param m Integer, number of dimensions measured
+#' @param block.only Logical, if TRUE returns only one block rather than the full matrix
+#'
+#' @return A variance-covariance matrix
+#'
+#' @keywords internal
+#'
+construct.varcov <- function(sds, cors, n.blocks, m, block.only){
+  block <- matrix(0, nrow = m, ncol = m)
+  for (i in 1:m){
+    block[i, i] <- sds[i]^2
+  }
+  k <- 1
+  for (i in 1:(m - 1)){
+    for (j in (i + 1):m){
+      block[i, j] <- block[j, i] <- cors[k]*sds[i]*sds[j]
+      k <- k + 1
+    }
+  }
+  if (block.only){
+    out <- block
+  } else {
+    out <- matrix(0, nrow = m*n.blocks, ncol = m*n.blocks)
+    for (i in 1:n.blocks){
+      out[((i - 1)*m + 1):((i - 1)*m + m),
+          ((i - 1)*m + 1):((i - 1)*m + m)] <- block
+    }
+  }
+  out
+}
