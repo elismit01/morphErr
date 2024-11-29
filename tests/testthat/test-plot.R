@@ -13,6 +13,8 @@ create_test_data <- function() {
   )
 }
 
+# plot.morph()
+
 test_that("plot.morph creates correct plot structure", {
   # Get test data
   test_data <- create_test_data()
@@ -72,6 +74,8 @@ test_that("plot.lme.morph creates basic plots correctly", {
   expect_silent(plot(fit, type = "ratio"))
 })
 
+# plot.lme.morph()
+
 test_that("plot.lme.morph handles line overlays", {
     # Create and fit test data
     test_data <- create_test_data()
@@ -102,5 +106,24 @@ test_that("plot.lme.morph handles adding to existing plots", {
     plot(fit, type = "data", line.type = "pca", add = TRUE, lty = 2),
     "Could not add line to plot: Could not compute valid coefficients"
   )
+})
+
+# plot.ration.pdf()
+
+test_that("plot.ratio.pdf creates valid plots", {
+  # Test data
+  test_data <- create_test_data()
+  fit <- suppressWarnings(fit.morph(test_data))
+
+  # Print model summary for debugging
+  print("Model summary:")
+  print(summary(fit))
+
+  # Print vcov structure
+  print("VCov structure:")
+  print(str(vcov(fit)))
+
+  # Test basic plot creation
+  expect_silent(plot.ratio.pdf(fit, 1, 2))
 })
 

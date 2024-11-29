@@ -9,6 +9,7 @@
 #' @keywords internal
 #' @importFrom graphics plot.new plot.window box axis title points lines par
 #' @importFrom grDevices hcl.colors
+#' @importFrom nlme fixef
 NULL
 
 #' Plot Morphometric Data
@@ -280,7 +281,179 @@ plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
       }
     }
   }
+}
+
+#' Plot Probability Density Function for Morphometric Ratios
+#'
+#' Creates a plot of the probability density function for the ratio
+#' between two dimensions.
+#'
+#' @param x An object of class "lme.morph" returned by fit.morph()
+#' @param dim1,dim2 Integers specifying which dimensions to use
+#'
+#' @return NULL (invisibly). Creates a plot as a side effect.
+#'
+#' @examples
+#' \dontrun{
+#' # Simulate some data
+#' data <- sim.measurements(
+#'   n.animals = 10,
+#'   n.photos = rep(3, 10),
+#'   m = 2,
+#'   pars = c(100, 50, # means
+#'            10, 5, # sDs
+#'            0.7, # correlation
+#'            1, 0.5,# measurement SDs
+#'            0.3)  # measurement correlation
+#' )
+#'
+#' # Fit model and plot ratio PDF
+#' fit <- fit.morph(data)
+#' plot.ratio.pdf(fit, 1, 2)
+#' }
+#'
+#' @keywords internal
+plot.ratio.pdf <- function(x, dim1, dim2) {
+  # Check if x is a valid model fit
+  if (!inherits(x, "lme.morph")) {
+    stop("'x' must be an object of class 'lme.morph'")
+  }
+
+  # Extract fixed effects for means
+  mus <- nlme::fixef(x)
+
+  # Extract variance components from random affects
+  rand_effects <- x$modelStruct$reStruct[[1]]
+  sigmas <- sqrt(diag(as.matrix(rand_effects)))
+  # Get corelation from first off-diagonal element
+  rhos <- as.matrix(rand_effects)[1,2] / (sigmas[1] * sigmas[2])
+
+  # Check dimensions exist
+  m <- length(mus)
+  if (dim1 > m || dim2 > m) {
+    stop("Requested dimensions exceed available dimensions")
+  }
+
+  # Construct correlation matrix
+  sigma.mat <- diag(sigmas^2)
+  sigma.mat[1, 2] <- sigma.mat[2, 1] <- rhos*sigmas[1]*sigmas[2]
+  cor.mat <- cov2cor(sigma.mat)
+
+  # calculating ratio distribution parameters
+  tryCatch({
+    mean.ratio <- mean.rcnorm.approx(mus[dim1], mus[dim2],
+                                     sqrt(sigma.mat[dim1, dim1]),
+                                     sqrt(sigma.mat[dim2, dim2]),
+                                     cor.mat[dim1, dim2])
+    sd.ratio <- sd.rcnorm.approx(mus[dim1], mus[dim2],
+                                 sqrt(sigma.mat[dim1, dim1]),
+                                 sqrt(sigma.mat[dim2, dim2]),
+                                 cor.mat[dim1, dim2])
+
+    # Create plot
+    xx <- seq(mean.ratio - 5*sd.ratio, mean.ratio + 5*sd.ratio,
+              length.out = 1000)
+    yy <- drcnorm.approx(xx, mus[dim1], mus[dim2],
+                         sqrt(sigma.mat[dim1, dim1]),
+                         sqrt(sigma.mat[dim2, dim2]),
+                         cor.mat[dim1, dim2])
+
+    plot(xx, yy, type = "l",
+         xlab = paste0("dim", dim1, "/dim", dim2),
+         ylab = "Probability density")
+
+  }, error = function(e) {
+    stop("Could not compute ratio distribution: ", e$message)
+  })
 
   invisible(NULL)
 }
+
+
+#' Plot Probability Density Function for Morphometric Ratios
+#'
+#' Creates a plot of the probability density function for the ratio
+#' between two dimensions.
+#'
+#' @param x An object of class "lme.morph" returned by fit.morph()
+#' @param dim1,dim2 Integers specifying which dimensions to use
+#'
+#' @return NULL (invisibly). Creates a plot as a side effect.
+#'
+#' @examples
+#' \dontrun{
+#' # Simulate some data
+#' data <- sim.measurements(
+#'   n.animals = 10,
+#'   n.photos = rep(3, 10),
+#'   m = 2,
+#'   pars = c(100, 50, # means
+#'            10, 5, # sDs
+#'            0.7, # correlation
+#'            1, 0.5,# measurement SDs
+#'            0.3)  # measurement correlation
+#' )
+#'
+#' # Fit model and plot ratio PDF
+#' fit <- fit.morph(data)
+#' plot.ratio.pdf(fit, 1, 2)
+#' }
+#'
+#' @keywords internal
+plot.ratio.pdf <- function(x, dim1, dim2) {
+  # Check if x is a valid model fit
+  if (!inherits(x, "lme.morph")) {
+    stop("'x' must be an object of class 'lme.morph'")
+  }
+
+  # Extract fixed effects for means
+  mus <- nlme::fixef(x)
+
+  # Extract variance components from random affects
+  rand_effects <- x$modelStruct$reStruct[[1]]
+  sigmas <- sqrt(diag(as.matrix(rand_effects)))
+  # Get corelation from first off-diagonal element
+  rhos <- as.matrix(rand_effects)[1,2] / (sigmas[1] * sigmas[2])
+
+  # Check dimensions exist
+  m <- length(mus)
+  if (dim1 > m || dim2 > m) {
+    stop("Requested dimensions exceed available dimensions")
+  }
+
+  # Construct correlation matrix
+  sigma.mat <- diag(sigmas^2)
+  sigma.mat[1, 2] <- sigma.mat[2, 1] <- rhos*sigmas[1]*sigmas[2]
+  cor.mat <- cov2cor(sigma.mat)
+
+  # calculating ratio distribution parameters
+  tryCatch({
+    mean.ratio <- mean.rcnorm.approx(mus[dim1], mus[dim2],
+                                     sqrt(sigma.mat[dim1, dim1]),
+                                     sqrt(sigma.mat[dim2, dim2]),
+                                     cor.mat[dim1, dim2])
+    sd.ratio <- sd.rcnorm.approx(mus[dim1], mus[dim2],
+                                 sqrt(sigma.mat[dim1, dim1]),
+                                 sqrt(sigma.mat[dim2, dim2]),
+                                 cor.mat[dim1, dim2])
+
+    # Create plot
+    xx <- seq(mean.ratio - 5*sd.ratio, mean.ratio + 5*sd.ratio,
+              length.out = 1000)
+    yy <- drcnorm.approx(xx, mus[dim1], mus[dim2],
+                         sqrt(sigma.mat[dim1, dim1]),
+                         sqrt(sigma.mat[dim2, dim2]),
+                         cor.mat[dim1, dim2])
+
+    plot(xx, yy, type = "l",
+         xlab = paste0("dim", dim1, "/dim", dim2),
+         ylab = "Probability density")
+
+  }, error = function(e) {
+    stop("Could not compute ratio distribution: ", e$message)
+  })
+
+  invisible(NULL)
+}
+
 
