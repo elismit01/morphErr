@@ -77,3 +77,46 @@ drcnorm.approx <- function(w, mean1, mean2, sd1, sd2, rho) {
     ((sd1^2 - 2*w*c + w^2*sd2^2)^(3/2))
   term1*term2
 }
+
+#' Density Function for the Ratio of Correlated Normal Variables
+#'
+#' @description
+#' Calculates the density for the ratio of two correlated normally distributed
+#' random variables.
+#'
+#' @param w Numeric vector of values where density is to be evaluated
+#' @param mean1 Mean of the numerator variable
+#' @param mean2 Mean of the denominator variable
+#' @param sd1 Standard deviation of the numerator variable
+#' @param sd2 Standard deviation of the denominator variable
+#' @param rho Correlation coefficient between numerator and denominator
+#'
+#' @return A numeric vector of density values corresponding to the input values
+#'
+#' @examples
+#' w <- seq(0.5, 1.5, length.out = 10)
+#' dens <- drcnorm(w, mean1 = 1, mean2 = 1, sd1 = 0.2, sd2 = 0.2, rho = 0.5)
+#'
+#' @export
+drcnorm <- function(w, mean1, mean2, sd1, sd2, rho) {
+  # Input validation
+  if (!is.numeric(c(w, mean1, mean2, sd1, sd2, rho))) {
+    stop("All arguments must be numeric")
+  }
+  if (sd1 <= 0 || sd2 <= 0) {
+    stop("Standard deviations must be positive")
+  }
+  if (abs(rho) >= 1) {
+    stop("Correlation coefficient must be between -1 and 1")
+  }
+
+  a <- (1/(1 - rho^2))^0.5*(mean1/sd1 - rho*mean2/sd2)
+  b <- mean2/sd2
+  tw <- (1/(1 - rho^2))^0.5*(sd2/sd1*w - rho)
+  q <- (b + a*tw)/(1 + tw^2)^0.5
+  phi <- dnorm(q)
+  Phi <- pnorm(q) - 0.5
+  f <- 1/(pi*(1 + tw^2))*exp(-0.5*(a^2 + b^2))*(1 + q/phi*Phi)
+  out <- (sd2/sd1)*(1/(1 - rho^2)^0.5)*f
+  out
+}
