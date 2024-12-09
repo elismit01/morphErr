@@ -7,9 +7,6 @@
 #'
 #' @name simulate
 #' @keywords internal
-#' @importFrom mvtnorm rmvnorm
-#' @importFrom parallel makeCluster stopCluster clusterExport clusterEvalQ
-#' @importFrom pbapply pblapply
 NULL
 
 #' Simulate Morphometric Measurements

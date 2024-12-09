@@ -7,11 +7,6 @@
 #'
 #' @name model
 #' @keywords internal
-#' @importFrom Matrix bdiag
-#' @importFrom mvtnorm dmvnorm rmvnorm
-#' @importFrom RTMB MakeADFun sdreport
-#' @importFrom nlme lme lmeControl
-#' @importFrom lmeInfo Fisher_info extract_varcomp
 NULL
 
 #' Organise Parameter Vector into Components

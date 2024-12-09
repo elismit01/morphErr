@@ -7,9 +7,6 @@
 #'
 #' @name plot
 #' @keywords internal
-#' @importFrom graphics plot.new plot.window box axis title points lines par
-#' @importFrom grDevices hcl.colors
-#' @importFrom nlme fixef
 NULL
 
 #' Plot Morphometric Data

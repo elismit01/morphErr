@@ -3,8 +3,8 @@ Title: Morphometric Analysis with Measurement Error
 Version: 0.0.0.9000
 Authors@R: 
     c(
-    person("Ben C", "Stevenson", email = "ben.stevenson@auckland.ac.nz", role = c("aut")),
-    person("Elizabeth", "Smit", email = "esmi468@aucklanduni.ac.nz", role = c("aut", "cre"))
+    person("Ben C", "Stevenson", email = "ben.stevenson@auckland.ac.nz", role = c("aut", "cre")),
+    person("Elizabeth C", "Smit", email = "esmi468@aucklanduni.ac.nz", role = "aut")
     )
 Description: What the package does (one paragraph).
 License: MIT + file LICENSE
@@ -14,7 +14,6 @@ RoxygenNote: 7.3.2
 Imports: 
     lmeInfo,
     Matrix,
-    msm,
     mvtnorm,
     nlme,
     pbapply,
@@ -22,6 +21,7 @@ Imports:
 Suggests: 
     knitr,
     rmarkdown,
-    testthat
+    testthat (>= 3.0.0)
 URL: https://github.com/elismit01/morphErr
 BugReports: https://github.com/elismit01/morphErr/issues
+Config/testthat/edition: 3
