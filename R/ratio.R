@@ -115,3 +115,94 @@ drcnorm <- function(w, mean1, mean2, sd1, sd2, rho) {
   out <- (sd2/sd1)*(1/(1 - rho^2)^0.5)*f
   out
 }
+
+#' Calculate Mean Ratios Between Dimensions
+#'
+#' @param fit An object of class "lme.morph" returned by fit.morph()
+#' @param vcov Logical; if TRUE, returns variance-covariance matrix
+#'   for ratio estimates. Default is FALSE.
+#'
+#' @return If vcov = FALSE, a matrix with estimates and standard errors.
+#'   If vcov = TRUE, a list with components:
+#'   \item{est}{Vector of ratio estimates}
+#'   \item{varcov}{Variance-covariance matrix}
+#'
+#' @keywords internal
+
+calc.mean.ratios <- function(fit, vcov = FALSE){
+  # Get estimates w/ vcov.lme.morph
+  vcov_obj <- vcov.lme.morph(fit)
+  est <- vcov_obj$est
+  pars.varcov <- vcov_obj$varcov
+
+  # Extract parameters
+  mus <- est[substr(names(est), 1, 2) == "mu"]
+  m <- length(mus)
+
+  # Get variances and build corrrelation matrix
+  sigma.mat <- matrix(0, nrow = m, ncol = m)
+
+  # Fill diagonal w/variances
+  for(i in 1:m) {
+    var_name <- paste0("Tau.animal.id.animal.id.var(dim", i, ")")
+    sigma.mat[i,i] <- est[var_name]
+  }
+
+  # fill off-diagonal w/covariances
+  for(i in 1:(m-1)) {
+    for(j in (i+1):m) {
+      cov_name <- paste0("Tau.animal.id.animal.id.cov(dim", j, ",dim", i, ")")
+      sigma.mat[i,j] <- sigma.mat[j,i] <- est[cov_name]
+    }
+  }
+
+  # Standard deviations and correlations
+  sigmas <- sqrt(diag(sigma.mat))
+  cor.mat <- cov2cor(sigma.mat)
+
+  # Calculate ratios + prepare for ses
+  n.ratios <- 2*choose(m, 2)
+  mean.ratios.est <- numeric(n.ratios)
+  mean.ratios.names <- character(n.ratios)
+  mean.ratios.se <- numeric(n.ratios)
+
+  # Ratios and se using delta methode
+  k <- 1
+  mean.ratios.varcov <- matrix(0, n.ratios, n.ratios)
+
+  for(i in 1:m) {
+    for(j in 1:m) {
+      if(i != j) {
+        # Mean ratio
+        mean.ratios.est[k] <- mean.rcnorm.approx(
+          mean1 = mus[i],
+          mean2 = mus[j],
+          sd1 = sigmas[i],
+          sd2 = sigmas[j],
+          rho = cor.mat[i,j]
+        )
+
+        # Approx se using delta method
+        mean.ratios.se[k] <- sqrt(mus[i]^2/mus[j]^4 * sigma.mat[j,j] +
+                                    1/mus[j]^2 * sigma.mat[i,i] -
+                                    2*mus[i]/mus[j]^3 * sigma.mat[i,j])
+
+        mean.ratios.names[k] <- paste0("mean(dim", i, "/dim", j, ")")
+        k <- k + 1
+      }
+    }
+  }
+
+  # Make variance-covariance matrix for rasios
+  mean.ratios.varcov <- diag(mean.ratios.se^2)
+
+  if(vcov) {
+    list(est = mean.ratios.est, varcov = mean.ratios.varcov)
+  } else {
+    out <- cbind(mean.ratios.est, mean.ratios.se)
+    colnames(out) <- c("Estimate", "Std. Error")
+    rownames(out) <- mean.ratios.names
+    out
+  }
+}
+

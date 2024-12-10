@@ -109,3 +109,40 @@ test_that("drcnorm produces expected values", {
   expect_equal(exact, approx, tolerance = 0.1)
 })
 
+
+# calc.mean.ratios()
+
+test_that("calc.mean.ratios produces expected results", {
+  # Test data
+  test_data <- sim.measurements(
+    n.animals = 5,
+    n.photos = rep(3, 5),
+    m = 2,
+    pars = c(100, 50,# means
+             10, 5, # sd's
+             0.7,   # correlation
+             1, 0.5, # measurement sd
+             0.3)  # measurement correlation
+  )
+
+  # Fit model to test data
+  suppressWarnings({
+    fit <- fit.morph(test_data)
+  })
+
+  # First test group: basic output structure
+  result <- calc.mean.ratios(fit)
+  expect_true(is.matrix(result))
+  expect_equal(colnames(result), c("Estimate", "Std. Error"))
+  # 2 dimensions shoudl have 2 ratios
+  expect_equal(nrow(result), 2)
+
+  # Second test group: values make sense
+  expect_true(all(result[, "Estimate"] > 0))
+  expect_true(all(result[, "Std. Error"] > 0))
+
+  # Third test group: variance-covariance ouptut
+  result_vcov <- calc.mean.ratios(fit, vcov = TRUE)
+  expect_named(result_vcov, c("est", "varcov"))
+  expect_true(isSymmetric(result_vcov$varcov))
+})
