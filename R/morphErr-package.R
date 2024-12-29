@@ -20,5 +20,7 @@
 #' @importFrom grDevices hcl.colors
 #' @importFrom parallel makeCluster stopCluster clusterExport clusterEvalQ
 #' @importFrom pbapply pblapply
+#' @importFrom numDeriv hessian
+#' @importFrom stats nlminb
 ## usethis namespace: end
 NULL
