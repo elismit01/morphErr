@@ -17,7 +17,9 @@ Imports:
     mvtnorm,
     nlme,
     pbapply,
-    RTMB
+    RTMB,
+    numDeriv,
+    stats
 Suggests: 
     knitr,
     rmarkdown,
