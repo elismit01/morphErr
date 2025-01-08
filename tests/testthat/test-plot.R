@@ -13,6 +13,8 @@ create_test_data <- function() {
   )
 }
 
+# -------------------------------------------------------------------------------------------------------
+
 # plot.morph()
 
 test_that("plot.morph creates correct plot structure", {
@@ -74,6 +76,8 @@ test_that("plot.lme.morph creates basic plots correctly", {
   expect_silent(plot(fit, type = "ratio"))
 })
 
+# -------------------------------------------------------------------------------------------------------
+
 # plot.lme.morph()
 
 test_that("plot.lme.morph handles line overlays", {
@@ -107,6 +111,8 @@ test_that("plot.lme.morph handles adding to existing plots", {
     "Could not add line to plot: Could not compute valid coefficients"
   )
 })
+
+# -------------------------------------------------------------------------------------------------------
 
 # plot.ration.pdf()
 

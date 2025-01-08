@@ -28,6 +28,8 @@ test_that("sim.measurements handles inputs correctly", {
   )
 })
 
+# -------------------------------------------------------------------------------------------------------
+
 # sim.morph() tests
 
 test_that("sim.morph runs simulations correctly", {
@@ -75,6 +77,8 @@ test_that("sim.morph runs simulations correctly", {
     "The 'sigmas' argument must have an element for each dimension"
   )
 })
+
+# -------------------------------------------------------------------------------------------------------
 
 # extract.sim.morph() tests
 

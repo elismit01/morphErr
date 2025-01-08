@@ -1,8 +1,8 @@
 #' Prediction Functions for morphErr
 #'
 #' This file contains functions for making predictions from fitted models:
-#' - predict.lme.morph(): Predicts measurements from fitted models
 #' - calc.betas(): Calculates coefficients for predictions
+#' - predict.lme.morph(): Predicts measurements from fitted models
 #'
 #' @name predict
 #' @keywords internal
@@ -149,18 +149,25 @@ predict.lme.morph <- function(object,
 
   type <- match.arg(type)
 
-  # Handel true measurements path
+  # Handle true measurements path
   if (!is.null(true_measurements)) {
     if (!is.data.frame(true_measurements)) {
       stop("true_measurements must be a data frame")
     }
 
     x.dim <- as.numeric(sapply(strsplit(colnames(true_measurements), "dim"), function(x) x[2]))
-    beta.obj <- calc.betas(fit = object, y.dim = y.dim, x.dim = x.dim, vcov = TRUE, type = type)
-    X <- as.matrix(cbind(1, true_measurements))
-    pred.est <- c(X %*% beta.obj$est)
 
-    result <- matrix(c(pred.est, NA), nrow = 1)
+    # Get coefficients (not vcov matrix)
+    betas <- calc.betas(fit = object, y.dim = y.dim, x.dim = x.dim, type = type, vcov = FALSE)
+
+    # Create prediction matrix
+    X <- as.matrix(cbind(1, true_measurements))
+
+    # Calculate prediction and standard error
+    pred.est <- sum(betas[,"Estimate"] * c(1, unlist(true_measurements)))
+    pred.se <- NA  # We'll implement SE calculation later if needed
+
+    result <- matrix(c(pred.est, pred.se), nrow = 1)
     colnames(result) <- c("Estimate", "Std. Error")
     return(result)
   }
@@ -219,7 +226,7 @@ predict.lme.morph <- function(object,
     return(result)
   }
 
-  # If no measurements provided, return pop means
+  # If no measurements provided, return pop means with SE
   vcov.obj <- object$vcov
   est <- vcov.obj$est
   mus <- est[substr(names(est), 1, 2) == "mu"]

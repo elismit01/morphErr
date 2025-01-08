@@ -25,6 +25,8 @@ test_that("mean.rcnorm.approx produces expected results", {
   expect_equal(result_double, 2, tolerance = 0.02)
 })
 
+# -------------------------------------------------------------------------------------------------------
+
 # sd.rcnorm.approx()
 
 test_that("sd.rcnorm.approx produces expected results", {
@@ -45,6 +47,8 @@ test_that("sd.rcnorm.approx produces expected results", {
   expect_type(result_corr, "double")
   expect_true(result_corr > 0)
 })
+
+# -------------------------------------------------------------------------------------------------------
 
 # drcnorm.approx()
 
@@ -67,6 +71,8 @@ test_that("drcnorm.approx produces expected results", {
   result_corr <- drcnorm.approx(1, mean1 = 1, mean2 = 1, sd1 = 0.1, sd2 = 0.1, rho = 0.5)
   expect_false(identical(result_uncorr, result_corr))
 })
+
+# -------------------------------------------------------------------------------------------------------
 
 # drcnorm()
 
@@ -109,6 +115,7 @@ test_that("drcnorm produces expected values", {
   expect_equal(exact, approx, tolerance = 0.1)
 })
 
+# -------------------------------------------------------------------------------------------------------
 
 # calc.mean.ratios()
 

@@ -16,6 +16,8 @@ test_that("construct.varcov works correctly", {
   )
 })
 
+# -------------------------------------------------------------------------------------------------------
+
 # organise.pars() test
 
 test_that("organise.pars works correctly", {
@@ -30,6 +32,8 @@ test_that("organise.pars works correctly", {
   expect_named(result, c("mus", "sigma", "xi"))
   expect_equal(result$mus, c(10, 20))
 })
+
+# -------------------------------------------------------------------------------------------------------
 
 # fit.morph() test
 
