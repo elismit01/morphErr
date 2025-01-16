@@ -234,3 +234,4 @@ summary.lme.morph <- function(object, ..., type = "pars", y.dim, x.dim, B = 1000
 
 
 
+
