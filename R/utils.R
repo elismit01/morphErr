@@ -62,7 +62,6 @@ mean.ratio.constructor <- function(dim1, dim2) {
   }
 }
 
-
 #' Extract Variance-Covariance Matrix from Morphometric Model
 #'
 #' S3 method for extracting both parameter estimates and their
@@ -74,27 +73,153 @@ mean.ratio.constructor <- function(dim1, dim2) {
 #'   \item{est}{Named vector of parameter estimates}
 #'   \item{varcov}{Variance-covariance matrix}
 #'
+#' @importFrom nlme getData
+#' @importFrom lmeInfo extract_varcomp Fisher_info
+#' @importFrom msm deltamethod
+#' @importFrom Matrix bdiag
+#'
 #' @keywords internal
 vcov.lme.morph <- function(object) {
-  # Convert lme.morph objectinto standard lme
+  # Extract data from fitted model
+  data <- getData(object)
+
+  # Num of dimes in the morphometric data
+  m <- length(unique(data$dim))
+
+  # Get parameter estimates + names
+  beta <- object$coefficients$fixed
+  names(beta) <- paste0("beta", seq_along(beta))
+  vc <- extract_varcomp(object, vector = TRUE)
+
+  # Set up parameter vectors
+  orig.est <- c(beta, vc)
+  param_names <- names(orig.est)
+
+  # Create dimension pairs for correlation parameters (only for dimensions we have)
+  pairs <- combn(m, 2)
+  dim.pairs <- apply(pairs, 2, function(x) paste(x, collapse = ","))
+
+  # Initialise est vector and g list with correct dimensions
+  est <- numeric(m + m + ncol(pairs) + m + ncol(pairs))
+  names(est) <- c(paste0("mu", 1:m),
+                  paste0("sigma", 1:m),
+                  paste0("rho", dim.pairs),
+                  paste0("psi", 1:m),
+                  paste0("phi", dim.pairs))
+  g <- vector("list", length(est))
+  names(g) <- names(est)
+
+  # Transform parameters
+  k <- 1
+
+  # 1. Mean parameters (mu)
+  for(i in 1:m) {
+    est[k] <- beta[i]
+    g[[k]] <- reformulate(paste0("x", i))
+    k <- k + 1
+  }
+
+  # 2. Variance parameters (sigma from Tau)
+  for(i in 1:m) {
+    tau_name <- paste0("Tau.animal.id.animal.id.var(dim", i, ")")
+    if(tau_name %in% names(orig.est)) {
+      tau_idx <- which(param_names == tau_name)
+      est[k] <- sqrt(orig.est[tau_idx])
+      g[[k]] <- reformulate(paste0("sqrt(x", tau_idx, ")"))
+    } else {
+      est[k] <- NA
+      g[[k]] <- reformulate("0")
+    }
+    k <- k + 1
+  }
+
+  # 3. Corrrelation parameters (rho)
+  for(i in 1:(m-1)) {
+    for(j in (i+1):m) {
+      var_i <- paste0("Tau.animal.id.animal.id.var(dim", i, ")")
+      var_j <- paste0("Tau.animal.id.animal.id.var(dim", j, ")")
+      cov_ij <- paste0("Tau.animal.id.animal.id.cov(dim", j, ",dim", i, ")")
+
+      if(all(c(var_i, var_j, cov_ij) %in% names(orig.est))) {
+        var_i_idx <- which(param_names == var_i)
+        var_j_idx <- which(param_names == var_j)
+        cov_ij_idx <- which(param_names == cov_ij)
+
+        est[k] <- orig.est[cov_ij_idx] /
+          (sqrt(orig.est[var_i_idx]) * sqrt(orig.est[var_j_idx]))
+
+        g[[k]] <- reformulate(paste0("x", cov_ij_idx, "/(sqrt(x", var_i_idx,
+                                     ")*sqrt(x", var_j_idx, "))"))
+      } else {
+        est[k] <- NA
+        g[[k]] <- reformulate("0")
+      }
+      k <- k + 1
+    }
+  }
+
+  # 4. Standard deviation parameters (psi)
+  sigma_sq_name <- "sigma_sq"
+  if(sigma_sq_name %in% names(orig.est)) {
+    sigma_sq_idx <- which(param_names == sigma_sq_name)
+    for(i in 1:m) {
+      if(i == 1) {
+        est[k] <- sqrt(orig.est[sigma_sq_idx])
+        g[[k]] <- reformulate(paste0("sqrt(x", sigma_sq_idx, ")"))
+      } else {
+        var_param <- paste0("var_params", i-1)
+        if(var_param %in% names(orig.est)) {
+          var_idx <- which(param_names == var_param)
+          est[k] <- sqrt(orig.est[sigma_sq_idx]) * orig.est[var_idx]
+          g[[k]] <- reformulate(paste0("sqrt(x", sigma_sq_idx, ")*x", var_idx))
+        } else {
+          est[k] <- NA
+          g[[k]] <- reformulate("0")
+        }
+      }
+      k <- k + 1
+    }
+  } else {
+    for(i in 1:m) {
+      est[k] <- NA
+      g[[k]] <- reformulate("0")
+      k <- k + 1
+    }
+  }
+
+  # 5. Correlation parameters (phi)
+  l <- 1
+  for(i in 1:(m-1)) {
+    for(j in (i+1):m) {
+      cor_param <- paste0("cor_params", l)
+      if(cor_param %in% names(orig.est)) {
+        cor_idx <- which(param_names == cor_param)
+        est[k] <- orig.est[cor_idx]
+        g[[k]] <- reformulate(paste0("x", cor_idx))
+      } else {
+        est[k] <- NA
+        g[[k]] <- reformulate("0")
+      }
+      l <- l + 1
+      k <- k + 1
+    }
+  }
+
+  # Convert to standard lme class for vcov extraction
   object.lme <- object
   class(object.lme) <- "lme"
 
-  # Get original parameter estimates
-  orig.est <- c(object$coefficients$fixed,
-                extract_varcomp(object, vector = TRUE))
-  names(orig.est)[1:length(object$coefficients$fixed)] <-
-    paste0("mu", 1:length(object$coefficients$fixed))
-
-  # Getting original variance-covariance matrix
+  # Get original ariance-covariance matrix using Fisher info
   orig.varcov <- as.matrix(bdiag(vcov(object.lme),
                                  solve(Fisher_info(object))))
 
-  # Get Components and create list
-  list(est = orig.est,
-       varcov = orig.varcov)
-}
+  # Transform variance-covariance matrix using delta metod
+  varcov <- deltamethod(g, orig.est, orig.varcov, ses = FALSE)
+  rownames(varcov) <- colnames(varcov) <- names(est)
 
+  # Return estimates and variance-covariance matrix
+  list(est = est, varcov = varcov)
+}
 
 #' Print Method for Morphometric Model Summary
 #'
