@@ -137,7 +137,7 @@ print.summary.lme.morph <- function(x, ...) {
 #' @param boot.invert Logical; whether to invert bootstrap distribution
 #'
 #' @return A matrix or data frame containing the requested summary statistics
-#' @keywords internal
+#' @export
 summary.lme.morph <- function(object, ..., type = "pars", y.dim, x.dim, B = 1000, boot.invert = FALSE) {
   vcov.obj <- object$vcov
   ## Get estimates
