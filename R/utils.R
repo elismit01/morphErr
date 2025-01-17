@@ -105,7 +105,7 @@ vcov.lme.morph <- function(object) {
 #' @param ... Additional arguments passed to print methods
 #'
 #' @return No return value, called for side effect of printing
-#' @keywords internal
+#' @export
 print.summary.lme.morph <- function(x, ...) {
   class(x) <- "matrix"
   x <- as.data.frame(x)

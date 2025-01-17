@@ -2,6 +2,8 @@
 
 S3method(plot,lme.morph)
 S3method(plot,morph)
+S3method(print,summary.lme.morph)
+S3method(summary,lme.morph)
 export(drcnorm)
 export(extract.sim.morph)
 export(fit.morph)
