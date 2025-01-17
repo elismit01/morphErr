@@ -83,122 +83,119 @@ vcov.lme.morph <- function(object) {
   # Extract data from fitted model
   data <- getData(object)
 
-  # Num of dimes in the morphometric data
-  m <- length(unique(data$dim))
+  # Fixed at 3 dimensions
+  m <- 3
 
-  # Get parameter estimates + names
-  beta <- object$coefficients$fixed
-  names(beta) <- paste0("beta", seq_along(beta))
-  vc <- extract_varcomp(object, vector = TRUE)
+  # Extract estimates with original parameterisation
+  orig.est <- c(object$coefficients$fixed, extract_varcomp(object, vector = TRUE))
+  names(orig.est)[1:3] <- paste0("beta", 1:3)
+  orig.names <- names(orig.est)
 
-  # Set up parameter vectors
-  orig.est <- c(beta, vc)
-  param_names <- names(orig.est)
+  # Create parameter vector (- )exactly 15 parameters for 3 dimensions)
+  est <- numeric(15)
+  names(est) <- c(
+    "mu1", "mu2", "mu3",                  # means
+    "sigma1", "sigma2", "sigma3",         # sd
+    "rho1,2", "rho1,3", "rho2,3",        # correlations
+    "psi1", "psi2", "psi3",              # scale parameters
+    "phi1,2", "phi1,3", "phi2,3"         # error parameters
+  )
 
-  # Create dimension pairs for correlation parameters (only for dimensions we have)
-  pairs <- combn(m, 2)
-  dim.pairs <- apply(pairs, 2, function(x) paste(x, collapse = ","))
-
-  # Initialise est vector and g list with correct dimensions
-  est <- numeric(m + m + ncol(pairs) + m + ncol(pairs))
-  names(est) <- c(paste0("mu", 1:m),
-                  paste0("sigma", 1:m),
-                  paste0("rho", dim.pairs),
-                  paste0("psi", 1:m),
-                  paste0("phi", dim.pairs))
-  g <- vector("list", length(est))
+  # Create transformation functions list
+  g <- vector("list", 15)
   names(g) <- names(est)
-
-  # Transform parameters
   k <- 1
 
-  # 1. Mean parameters (mu)
-  for(i in 1:m) {
-    est[k] <- beta[i]
-    g[[k]] <- reformulate(paste0("x", i))
-    k <- k + 1
-  }
-
-  # 2. Variance parameters (sigma from Tau)
-  for(i in 1:m) {
-    tau_name <- paste0("Tau.animal.id.animal.id.var(dim", i, ")")
-    if(tau_name %in% names(orig.est)) {
-      tau_idx <- which(param_names == tau_name)
-      est[k] <- sqrt(orig.est[tau_idx])
-      g[[k]] <- reformulate(paste0("sqrt(x", tau_idx, ")"))
+  # 1. Mean parameters (mu 1-3)
+  for (i in 1:3) {
+    orig.name.beta <- paste0("beta", i)
+    which.orig.name.beta <- which(orig.names == orig.name.beta)
+    if (object$intercept && i != 1) {
+      which.orig.name.intercept <- which(orig.names == "beta1")
+      est[k] <- orig.est["beta1"] + orig.est[orig.name.beta]
+      g[[k]] <- reformulate(paste0("x", which.orig.name.intercept, "+ x", which.orig.name.beta))
     } else {
-      est[k] <- NA
-      g[[k]] <- reformulate("0")
+      est[k] <- orig.est[orig.name.beta]
+      g[[k]] <- reformulate(paste0("x", which.orig.name.beta))
     }
     k <- k + 1
   }
 
-  # 3. Corrrelation parameters (rho)
-  for(i in 1:(m-1)) {
-    for(j in (i+1):m) {
-      var_i <- paste0("Tau.animal.id.animal.id.var(dim", i, ")")
-      var_j <- paste0("Tau.animal.id.animal.id.var(dim", j, ")")
-      cov_ij <- paste0("Tau.animal.id.animal.id.cov(dim", j, ",dim", i, ")")
+  # 2. Standard deviation parameters (sigma 1-3)
+  for (i in 1:3) {
+    orig.name <- paste0("Tau.animal.id.animal.id.var(dim", i, ")")
+    if (orig.name %in% orig.names) {
+      which.orig.name <- which(orig.names == orig.name)
+      est[k] <- sqrt(orig.est[orig.name])
+      g[[k]] <- reformulate(paste0("sqrt(x", which.orig.name, ")"))
+    } else {
+      est[k] <- 0
+      g[[k]] <- reformulate("x1*0")
+    }
+    k <- k + 1
+  }
 
-      if(all(c(var_i, var_j, cov_ij) %in% names(orig.est))) {
-        var_i_idx <- which(param_names == var_i)
-        var_j_idx <- which(param_names == var_j)
-        cov_ij_idx <- which(param_names == cov_ij)
+  # 3. Corrrelation parameters (rho1,2, rho1,3, rho2,3)
+  for (i in 1:2) {
+    for (j in (i + 1):3) {
+      orig.name.sd1 <- paste0("Tau.animal.id.animal.id.var(dim", i, ")")
+      orig.name.sd2 <- paste0("Tau.animal.id.animal.id.var(dim", j, ")")
+      orig.name.cov <- paste0("Tau.animal.id.animal.id.cov(dim", j, ",dim", i, ")")
 
-        est[k] <- orig.est[cov_ij_idx] /
-          (sqrt(orig.est[var_i_idx]) * sqrt(orig.est[var_j_idx]))
+      if (all(c(orig.name.sd1, orig.name.sd2, orig.name.cov) %in% orig.names)) {
+        which.orig.name.sd1 <- which(orig.names == orig.name.sd1)
+        which.orig.name.sd2 <- which(orig.names == orig.name.sd2)
+        which.orig.name.cov <- which(orig.names == orig.name.cov)
 
-        g[[k]] <- reformulate(paste0("x", cov_ij_idx, "/(sqrt(x", var_i_idx,
-                                     ")*sqrt(x", var_j_idx, "))"))
+        est[k] <- orig.est[orig.name.cov]/(sqrt(orig.est[orig.name.sd1]) *
+                                             sqrt(orig.est[orig.name.sd2]))
+        g[[k]] <- reformulate(paste0("x", which.orig.name.cov, "/(sqrt(x",
+                                     which.orig.name.sd1, ")*sqrt(x", which.orig.name.sd2,
+                                     "))"))
       } else {
-        est[k] <- NA
-        g[[k]] <- reformulate("0")
+        est[k] <- 0
+        g[[k]] <- reformulate("x1*0")  # Safe dummy formula
       }
       k <- k + 1
     }
   }
 
-  # 4. Standard deviation parameters (psi)
-  sigma_sq_name <- "sigma_sq"
-  if(sigma_sq_name %in% names(orig.est)) {
-    sigma_sq_idx <- which(param_names == sigma_sq_name)
-    for(i in 1:m) {
-      if(i == 1) {
-        est[k] <- sqrt(orig.est[sigma_sq_idx])
-        g[[k]] <- reformulate(paste0("sqrt(x", sigma_sq_idx, ")"))
+  # 4. Measurement error sd parameters (psi 1-3)
+  orig.name.ss <- "sigma_sq"
+  if (orig.name.ss %in% orig.names) {
+    which.orig.name.ss <- which(orig.names == orig.name.ss)
+    for (i in 1:3) {
+      if (i == 1) {
+        est[k] <- sqrt(orig.est[orig.name.ss])
+        g[[k]] <- reformulate(paste0("sqrt(x", which.orig.name.ss, ")"))
       } else {
-        var_param <- paste0("var_params", i-1)
-        if(var_param %in% names(orig.est)) {
-          var_idx <- which(param_names == var_param)
-          est[k] <- sqrt(orig.est[sigma_sq_idx]) * orig.est[var_idx]
-          g[[k]] <- reformulate(paste0("sqrt(x", sigma_sq_idx, ")*x", var_idx))
+        orig.name.var <- paste0("var_params", i - 1)
+        if (orig.name.var %in% orig.names) {
+          which.orig.name.var <- which(orig.names == orig.name.var)
+          est[k] <- sqrt(orig.est[orig.name.ss]) * orig.est[orig.name.var]
+          g[[k]] <- reformulate(paste0("sqrt(x", which.orig.name.ss, ")*x",
+                                       which.orig.name.var))
         } else {
-          est[k] <- NA
-          g[[k]] <- reformulate("0")
+          est[k] <- 0
+          g[[k]] <- reformulate("x1*0")
         }
       }
       k <- k + 1
     }
-  } else {
-    for(i in 1:m) {
-      est[k] <- NA
-      g[[k]] <- reformulate("0")
-      k <- k + 1
-    }
   }
 
-  # 5. Correlation parameters (phi)
+  # 5. Measurement error correlation parameters (phi1,2, phi1,3, phi2,3)
   l <- 1
-  for(i in 1:(m-1)) {
-    for(j in (i+1):m) {
-      cor_param <- paste0("cor_params", l)
-      if(cor_param %in% names(orig.est)) {
-        cor_idx <- which(param_names == cor_param)
-        est[k] <- orig.est[cor_idx]
-        g[[k]] <- reformulate(paste0("x", cor_idx))
+  for (i in 1:2) {
+    for (j in (i + 1):3) {
+      orig.name.cor <- paste0("cor_params", l)
+      if (orig.name.cor %in% orig.names) {
+        which.orig.name.cor <- which(orig.names == orig.name.cor)
+        est[k] <- orig.est[orig.name.cor]
+        g[[k]] <- reformulate(paste0("x", which.orig.name.cor))
       } else {
-        est[k] <- NA
-        g[[k]] <- reformulate("0")
+        est[k] <- 0
+        g[[k]] <- reformulate("x1*0")  # Safe dummy formula
       }
       l <- l + 1
       k <- k + 1
@@ -209,15 +206,13 @@ vcov.lme.morph <- function(object) {
   object.lme <- object
   class(object.lme) <- "lme"
 
-  # Get original ariance-covariance matrix using Fisher info
-  orig.varcov <- as.matrix(bdiag(vcov(object.lme),
-                                 solve(Fisher_info(object))))
+  # block diagonal variance-covariance matrix
+  orig.varcov <- as.matrix(bdiag(vcov(object.lme), solve(Fisher_info(object))))
 
-  # Transform variance-covariance matrix using delta metod
+  # Transform variance-covariance matrix using delta method
   varcov <- deltamethod(g, orig.est, orig.varcov, ses = FALSE)
   rownames(varcov) <- colnames(varcov) <- names(est)
 
-  # Return estimates and variance-covariance matrix
   list(est = est, varcov = varcov)
 }
 
