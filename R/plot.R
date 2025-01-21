@@ -167,6 +167,7 @@ plot.morph <- function(data, dims = c(1, 2), plot.data = TRUE,
 #' @param ... Additional arguments passed to plotting functions
 #'
 #' @return NULL (invisibly). Creates a plot as a side effect.
+#' @export
 plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
                            line.type = "none", confints = !add,
                            add = FALSE, reverse.axes = FALSE,
