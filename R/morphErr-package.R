@@ -21,6 +21,6 @@
 #' @importFrom parallel makeCluster stopCluster clusterExport clusterEvalQ
 #' @importFrom pbapply pblapply
 #' @importFrom numDeriv hessian
-#' @importFrom stats nlminb
+#' @importFrom stats nlminb reformulate
 ## usethis namespace: end
 NULL
