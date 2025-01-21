@@ -59,24 +59,3 @@ NULL (invisibly). Creates a plot as a side effect.
 S3 method for plotting fitted morphometric models. Supports various plot types
 and can overlay fitted lines on data.
 }
-\examples{
-\dontrun{
-# Generate some data
-data <- sim.measurements(
-  n.animals = 10,
-  n.photos = rep(3, 10),
-  m = 2,
-  pars = c(100, 50, # means
-           10, 5, # Sds
-           0.7,# correlation
-           1, 0.5,  # measurement SDs
-           0.3) # measurement correlation
-)
-
-# Fit model and create plots
-fit <- fit.morph(data)
-plot(fit, type = "data", line.type = "lm")
-plot(fit, type = "ratio")
-}
-
-}

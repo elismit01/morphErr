@@ -124,12 +124,12 @@ test_that("calc.mean.ratios produces expected results", {
   test_data <- sim.measurements(
     n.animals = 5,
     n.photos = rep(3, 5),
-    m = 2,
-    pars = c(100, 50,# means
-             10, 5, # sd's
-             0.7,   # correlation
-             1, 0.5, # measurement sd
-             0.3)  # measurement correlation
+    m = 3,
+    pars = c(290, 125, 75,    # means
+             45, 25, 15,       # SDs
+             0.75, 0.80, 0.85,  # correlations
+             2.0, 1.5, 1.0,    # measurement SDs
+             0.4, 0.5, 0.6)  # measurement correlations
   )
 
   # Fit model to test data
@@ -141,15 +141,32 @@ test_that("calc.mean.ratios produces expected results", {
   result <- calc.mean.ratios(fit)
   expect_true(is.matrix(result))
   expect_equal(colnames(result), c("Estimate", "Std. Error"))
-  # 2 dimensions shoudl have 2 ratios
-  expect_equal(nrow(result), 2)
+  # Should have 6 ratios (1/2, 2/1, 1/3, 3/1, 2/3, 3/2)
+  expect_equal(nrow(result), 6)
+
+  # Check ratio names
+  expected_names <- c(
+    "mean(dim1/dim2)", "mean(dim1/dim3)",
+    "mean(dim2/dim1)", "mean(dim2/dim3)",
+    "mean(dim3/dim1)", "mean(dim3/dim2)"
+  )
+  expect_equal(rownames(result), expected_names)
 
   # Second test group: values make sense
   expect_true(all(result[, "Estimate"] > 0))
   expect_true(all(result[, "Std. Error"] > 0))
 
-  # Third test group: variance-covariance ouptut
+  # Check for recip relationships (e.g. dim1/dim2 should be approximately 1/(dim2/dim1)))
+  for(i in seq(1, 5, by = 2)) {
+    ratio1 <- result[i, "Estimate"]
+    ratio2 <- result[i + 1, "Estimate"]
+    expect_equal(ratio1 * ratio2, 1, tolerance = 0.1)
+  }
+
+  # Third test group: variance-covariance output
   result_vcov <- calc.mean.ratios(fit, vcov = TRUE)
   expect_named(result_vcov, c("est", "varcov"))
   expect_true(isSymmetric(result_vcov$varcov))
+  expect_equal(nrow(result_vcov$varcov), 6)
+  expect_equal(ncol(result_vcov$varcov), 6)
 })

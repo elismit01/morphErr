@@ -69,6 +69,8 @@ organise.pars <- function(pars, n.animals, n.photos, m, block.only = FALSE) {
   list(mus = mus, sigma = sigma.mat, xi = xi.mat)
 }
 
+# -------------------------------------------------------------------------------------------------------
+
 #' Construct Variance-Covariance Matrix
 #'
 #' Takes standard deviations and correlation parameters, and organises
@@ -107,6 +109,8 @@ construct.varcov <- function(sds, cors, n.blocks, m, block.only){
   }
   out
 }
+
+# -------------------------------------------------------------------------------------------------------
 
 #' Fit Morphometric Model
 #'

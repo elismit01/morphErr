@@ -31,12 +31,12 @@ between two dimensions.
 data <- sim.measurements(
   n.animals = 10,
   n.photos = rep(3, 10),
-  m = 2,
-  pars = c(100, 50, # means
-           10, 5, # sDs
-           0.7, # correlation
-           1, 0.5,# measurement SDs
-           0.3)  # measurement correlation
+  m = 3,
+  pars = c(290, 125, 75,    # means
+           45, 25, 15,       # SDs
+           0.75, 0.80, 0.85,  # correlations
+           2.0, 1.5, 1.0,    # measurement SDs
+           0.4, 0.5, 0.6)  # measurement correlations
 )
 
 # Fit model and plot ratio PDF
@@ -49,12 +49,12 @@ plot.ratio.pdf(fit, 1, 2)
 data <- sim.measurements(
   n.animals = 10,
   n.photos = rep(3, 10),
-  m = 2,
-  pars = c(100, 50, # means
-           10, 5, # sDs
-           0.7, # correlation
-           1, 0.5,# measurement SDs
-           0.3)  # measurement correlation
+  m = 3,
+  pars = c(290, 125, 75,    # means
+           45, 25, 15,       # SDs
+           0.75, 0.80, 0.85,  # correlations
+           2.0, 1.5, 1.0,    # measurement SDs
+           0.4, 0.5, 0.6)  # measurement correlations
 )
 
 # Fit model and plot ratio PDF

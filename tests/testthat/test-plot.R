@@ -4,12 +4,12 @@ create_test_data <- function() {
   sim.measurements(
     n.animals = 10,
     n.photos = 3,
-    m = 2,
-    pars = c(100, 50,  # means
-             10, 5,  # Sds
-             0.7,  # correlation
-             1, 0.5,  # measurement SDs
-             0.3)  # measurement correlation
+    m = 3,
+    pars = c(290, 125, 75,    # means
+             45, 25, 15,       # SDs
+             0.75, 0.80, 0.85,  # correlations
+             2.0, 1.5, 1.0,    # measurement SDs
+             0.4, 0.5, 0.6)  # measurement correlations
   )
 }
 
@@ -71,7 +71,7 @@ test_that("plot.lme.morph creates basic plots correctly", {
   test_data <- create_test_data()
   fit <- suppressWarnings(fit.morph(test_data))
 
-    # Test diffferent plot types
+  # Test different plot types
   expect_silent(plot(fit, type = "data"))
   expect_silent(plot(fit, type = "ratio"))
 })
@@ -81,17 +81,16 @@ test_that("plot.lme.morph creates basic plots correctly", {
 # plot.lme.morph()
 
 test_that("plot.lme.morph handles line overlays", {
-    # Create and fit test data
-    test_data <- create_test_data()
-    fit <- suppressWarnings(fit.morph(test_data))
+  # Create and fit test data
+  test_data <- create_test_data()
+  fit <- suppressWarnings(fit.morph(test_data))
 
-    # Test different line types
-    expect_warning(plot(fit, type = "data", line.type = "lm"))
-    expect_warning(plot(fit, type = "data", line.type = "pca"))
+  # Test different line types
+  expect_silent(plot(fit, type = "data", line.type = "lm"))
+  expect_silent(plot(fit, type = "data", line.type = "pca"))
 
-    # Test with confidence intervals
-    expect_warning(plot(fit, type = "data", line.type = "lm",
-                        confints = TRUE))
+  # Test with cis
+  expect_silent(plot(fit, type = "data", line.type = "lm", confints = TRUE))
 })
 
 test_that("plot.lme.morph handles adding to existing plots", {
@@ -100,34 +99,20 @@ test_that("plot.lme.morph handles adding to existing plots", {
   fit <- suppressWarnings(fit.morph(test_data))
 
   # Test first plot
-  expect_warning(
-    plot(fit, type = "data", line.type = "lm"),
-    "Could not add line to plot: Could not compute valid coefficients"
-  )
+  expect_silent(plot(fit, type = "data", line.type = "lm"))
 
-  # Test ading to existing plot
-  expect_warning(
-    plot(fit, type = "data", line.type = "pca", add = TRUE, lty = 2),
-    "Could not add line to plot: Could not compute valid coefficients"
-  )
+  # Test adding to existing plot
+  expect_silent(plot(fit, type = "data", line.type = "pca", add = TRUE, lty = 2))
 })
 
 # -------------------------------------------------------------------------------------------------------
 
-# plot.ration.pdf()
+# plot.ratio.pdf()
 
 test_that("plot.ratio.pdf creates valid plots", {
   # Test data
   test_data <- create_test_data()
   fit <- suppressWarnings(fit.morph(test_data))
-
-  # Print model summary for debugging
-  print("Model summary:")
-  print(summary(fit))
-
-  # Print vcov structure
-  print("VCov structure:")
-  print(str(vcov(fit)))
 
   # Test basic plot creation
   expect_silent(plot.ratio.pdf(fit, 1, 2))

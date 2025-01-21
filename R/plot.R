@@ -36,11 +36,11 @@ NULL
 #'   n.animals = 5,
 #'   n.photos = rep(3, 5),
 #'   m = 3,
-#'   pars = c(100, 50, 25,    # means
-#'            10, 5, 2,       # SDs
-#'            0.7, 0.6, 0.5,  # correlations
-#'            1, 0.5, 0.2,    # measurement SDs
-#'            0.3, 0.2, 0.1)  # measurement correlations
+#'   pars = c(290, 125, 75,    # means
+#'            45, 25, 15,       # SDs
+#'            0.75, 0.80, 0.85,  # correlations
+#'            2.0, 1.5, 1.0,    # measurement SDs
+#'            0.4, 0.5, 0.6)  # measurement correlations
 #' )
 #'
 #' # Basic scatter plot
@@ -138,6 +138,7 @@ plot.morph <- function(data, dims = c(1, 2), plot.data = TRUE,
   invisible(NULL)
 }
 
+# -------------------------------------------------------------------------------------------------------
 
 #' Plot Method for Morphometric Model Fits
 #'
@@ -166,39 +167,17 @@ plot.morph <- function(data, dims = c(1, 2), plot.data = TRUE,
 #' @param ... Additional arguments passed to plotting functions
 #'
 #' @return NULL (invisibly). Creates a plot as a side effect.
-#'
-#' @examples
-#' \dontrun{
-#' # Generate some data
-#' data <- sim.measurements(
-#'   n.animals = 10,
-#'   n.photos = rep(3, 10),
-#'   m = 2,
-#'   pars = c(100, 50, # means
-#'            10, 5, # Sds
-#'            0.7,# correlation
-#'            1, 0.5,  # measurement SDs
-#'            0.3) # measurement correlation
-#' )
-#'
-#' # Fit model and create plots
-#' fit <- fit.morph(data)
-#' plot(fit, type = "data", line.type = "lm")
-#' plot(fit, type = "ratio")
-#' }
-#'
-#' @export
 plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
                            line.type = "none", confints = !add,
                            add = FALSE, reverse.axes = FALSE,
                            plot.data = TRUE, xlim = NULL, ylim = NULL,
-                           xlab = NULL, ylab = NULL, ...){
+                           xlab = NULL, ylab = NULL, ...) {
   # Get data
   data <- nlme::getData(x)
 
   # Basic data plot if requested
-  if (type == "data"){
-    if (!add){
+  if (type == "data") {
+    if (!add) {
       plot.morph(data, dims, plot.data = plot.data,
                  xlim = xlim, ylim = ylim,
                  xlab = xlab, ylab = ylab)
@@ -208,52 +187,59 @@ plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
     xlim <- par("usr")[c(1, 2)]
 
     # Add lines if requested
-    if (line.type != "none"){
+    if (line.type != "none") {
       # Get coefficients + check they exist
-      tryCatch({
-        if (line.type == "lm"){
+      suppressWarnings({
+        if (line.type == "lm") {
           betas <- summary(x, type = "betas",
                            y.dim = dims[2], x.dim = dims[1])
-        } else if (line.type == "pca"){
+        } else if (line.type == "pca") {
           betas <- summary(x, type = "betas-pca",
                            y.dim = dims[2], x.dim = dims[1])
         }
 
         if (!is.matrix(betas) || nrow(betas) < 2) {
-          stop("Could not compute valid coefficients")
+          return(invisible())
         }
 
-        # Draw line
-        if (reverse.axes){
-          abline(-betas[1, 1]/betas[2, 1], 1/betas[2, 1], ...)
-        } else {
-          abline(betas[1:2, 1], ...)
-        }
-
-        # Add confidence intervals if request
-        if (confints){
-          dim1.xx <- seq(xlim[1], xlim[2], length.out = 1000)
-          newdata <- data.frame(dim1.xx)
-          colnames(newdata) <- paste0("dim", dims[1])
-
-          if (line.type == "lm"){
-            preds <- predict(x, y.dim = dims[2], newdata = newdata)
+        # Draw line (if coefs valid)
+        if (!is.na(betas[1,1]) && !is.na(betas[2,1]) && betas[2,1] != 0) {
+          # First main line
+          if (reverse.axes) {
+            abline(-betas[1, 1]/betas[2, 1], 1/betas[2, 1], ...)
           } else {
-            preds <- predict(x, y.dim = dims[2],
-                             newdata = newdata, type = "pca")
+            abline(betas[1:2, 1], ...)
           }
 
-          preds.upper <- preds[, 1] + qnorm(0.975)*preds[, 2]
-          preds.lower <- preds[, 1] - qnorm(0.975)*preds[, 2]
-          lines(dim1.xx, preds.upper, lty = "dotted")
-          lines(dim1.xx, preds.lower, lty = "dotted")
+          # Add confidence intervals if request
+          if (confints) {
+            # Sequence of x values
+            dim1.xx <- seq(xlim[1], xlim[2], length.out = 1000)
+
+            # Prediction data frame
+            newdata <- data.frame(x = dim1.xx)
+            names(newdata) <- paste0("dim", dims[1])
+
+            # Get preds
+            preds <- if (line.type == "lm") {
+              suppressWarnings(predict(x, y.dim = dims[2], true_measurements = newdata))
+            } else {
+              suppressWarnings(predict(x, y.dim = dims[2], true_measurements = newdata, type = "pca"))
+            }
+
+            # Only add lines if gt valid preds
+            if (is.matrix(preds) && nrow(preds) == length(dim1.xx)) {
+              preds.upper <- preds[, 1] + qnorm(0.975)*preds[, 2]
+              preds.lower <- preds[, 1] - qnorm(0.975)*preds[, 2]
+              lines(dim1.xx, preds.upper, lty = "dotted")
+              lines(dim1.xx, preds.lower, lty = "dotted")
+            }
+          }
         }
-      }, error = function(e) {
-        warning("Could not add line to plot: ", e$message)
       })
     }
-  } else if (type == "ratio"){
-    if (!add){
+  } else if (type == "ratio") {
+    if (!add) {
       plot.morph(data, dims, xlim = xlim, ylim = ylim,
                  ratios = TRUE, plot.data = plot.data,
                  xlab = xlab, ylab = ylab)
@@ -262,23 +248,31 @@ plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
     # plot limits if not specified
     xlim <- par("usr")[c(1, 2)]
 
-    if (line.type != "none"){
+    if (line.type != "none") {
       xx <- seq(xlim[1], xlim[2], length.out = 1000)
-      preds <- calc.conditional.ratio(x, y.dim = dims[2],
-                                      x.dim = dims[1],
-                                      newdata.x.dim = xx,
-                                      type = line.type)
-      lines(xx, preds[, 1])
+      suppressWarnings({
+        preds <- calc.conditional.ratio(x, y.dim = dims[2],
+                                        x.dim = dims[1],
+                                        newdata.x.dim = xx,
+                                        type = line.type)
+        if (is.matrix(preds)) {
+          lines(xx, preds[, 1])
 
-      if (confints){
-        lines(xx, preds[, 1] + qnorm(0.975)*preds[, 2],
-              lty = "dotted")
-        lines(xx, preds[, 1] - qnorm(0.975)*preds[, 2],
-              lty = "dotted")
-      }
+          if (confints) {
+            lines(xx, preds[, 1] + qnorm(0.975)*preds[, 2],
+                  lty = "dotted")
+            lines(xx, preds[, 1] - qnorm(0.975)*preds[, 2],
+                  lty = "dotted")
+          }
+        }
+      })
     }
   }
+
+  invisible(NULL)
 }
+
+# -------------------------------------------------------------------------------------------------------
 
 #' Plot Probability Density Function for Morphometric Ratios
 #'
@@ -296,12 +290,12 @@ plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
 #' data <- sim.measurements(
 #'   n.animals = 10,
 #'   n.photos = rep(3, 10),
-#'   m = 2,
-#'   pars = c(100, 50, # means
-#'            10, 5, # sDs
-#'            0.7, # correlation
-#'            1, 0.5,# measurement SDs
-#'            0.3)  # measurement correlation
+#'   m = 3,
+#'   pars = c(290, 125, 75,    # means
+#'            45, 25, 15,       # SDs
+#'            0.75, 0.80, 0.85,  # correlations
+#'            2.0, 1.5, 1.0,    # measurement SDs
+#'            0.4, 0.5, 0.6)  # measurement correlations
 #' )
 #'
 #' # Fit model and plot ratio PDF
@@ -366,6 +360,7 @@ plot.ratio.pdf <- function(x, dim1, dim2) {
   invisible(NULL)
 }
 
+# -------------------------------------------------------------------------------------------------------
 
 #' Plot Probability Density Function for Morphometric Ratios
 #'
@@ -383,12 +378,12 @@ plot.ratio.pdf <- function(x, dim1, dim2) {
 #' data <- sim.measurements(
 #'   n.animals = 10,
 #'   n.photos = rep(3, 10),
-#'   m = 2,
-#'   pars = c(100, 50, # means
-#'            10, 5, # sDs
-#'            0.7, # correlation
-#'            1, 0.5,# measurement SDs
-#'            0.3)  # measurement correlation
+#'   m = 3,
+#'   pars = c(290, 125, 75,    # means
+#'            45, 25, 15,       # SDs
+#'            0.75, 0.80, 0.85,  # correlations
+#'            2.0, 1.5, 1.0,    # measurement SDs
+#'            0.4, 0.5, 0.6)  # measurement correlations
 #' )
 #'
 #' # Fit model and plot ratio PDF

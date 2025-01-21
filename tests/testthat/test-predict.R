@@ -88,7 +88,7 @@ test_that("predict.lme.morph handles input validation correctly", {
 })
 
 test_that("predict.lme.morph handles true measurements correctly", {
-  # Data setup (same as above)
+  # Data setup
   set.seed(1234)
   mus <- c(290, 130, 75)
   sigmas <- c(45, 25, 15)
@@ -112,7 +112,7 @@ test_that("predict.lme.morph handles true measurements correctly", {
   expect_equal(colnames(result), c("Estimate", "Std. Error"))
   expect_equal(nrow(result), 1)
 
-  # Test both prediction types
+  # Test both pred types
   lm_pred <- predict.lme.morph(fit,
                                true_measurements = true_meas,
                                y.dim = 1,
@@ -139,20 +139,20 @@ test_that("predict.lme.morph handles observed measurements correctly", {
   fit <- fit.morph(data)
 
   # Test with a single relistic obs
-  obs_mat <- matrix(c(285, 128, 73), nrow = 1)  # Values close to means
-  result_mat <- predict.lme.morph(fit,
-                                  observed_measurements = obs_mat,
-                                  y.dim = 1)
+  obs_mat <- matrix(c(285, 128, 73), nrow = 1)
+  result_mat <- suppressWarnings(
+    predict.lme.morph(fit,
+                      observed_measurements = obs_mat,
+                      y.dim = 1)
+  )
 
   # Check basic structure + values
   expect_true(is.matrix(result_mat))
   expect_equal(colnames(result_mat), c("Estimate", "Std. Error"))
-  #(This should have valid estimate):
   expect_true(!is.na(result_mat[1,1]))
-  # SE is expected be na for obs measurements:
   expect_true(is.na(result_mat[1,2]))
 
-  # Test that prediction is close-ish to the observation
+  # Test that prediction is somewhat close to the observation
   expect_true(abs(result_mat[1,1] - obs_mat[1,1]) < 50)
 })
 
@@ -177,7 +177,7 @@ test_that("predict.lme.morph handles no measurements case correctly", {
   expect_equal(colnames(result), c("Estimate", "Std. Error"))
   expect_equal(nrow(result), 1)
   expect_true(!is.na(result[1,1]))
-  # (Not testing SE anymore cause it might be NA)
+  # (Noot testing SE anymore cause it might be NA)
   expect_true(abs(result[1,1] - mus[1]) < 50)
 })
 

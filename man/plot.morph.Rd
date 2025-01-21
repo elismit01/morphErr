@@ -48,11 +48,11 @@ data <- sim.measurements(
   n.animals = 5,
   n.photos = rep(3, 5),
   m = 3,
-  pars = c(100, 50, 25,    # means
-           10, 5, 2,       # SDs
-           0.7, 0.6, 0.5,  # correlations
-           1, 0.5, 0.2,    # measurement SDs
-           0.3, 0.2, 0.1)  # measurement correlations
+  pars = c(290, 125, 75,    # means
+           45, 25, 15,       # SDs
+           0.75, 0.80, 0.85,  # correlations
+           2.0, 1.5, 1.0,    # measurement SDs
+           0.4, 0.5, 0.6)  # measurement correlations
 )
 
 # Basic scatter plot

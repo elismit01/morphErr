@@ -53,6 +53,8 @@ sd.rcnorm.approx <- function(mean1, mean2, sd1, sd2, rho) {
   sqrt(((a^2 + 1)/(b^2 + 0.108*b - 3.795) - mu^2)/r^2)
 }
 
+# -------------------------------------------------------------------------------------------------------
+
 #' Approximate Density Function for Ratio Distribution
 #'
 #' Calculates an approximation of the probability density function for
@@ -72,6 +74,8 @@ drcnorm.approx <- function(w, mean1, mean2, sd1, sd2, rho) {
     ((sd1^2 - 2*w*c + w^2*sd2^2)^(3/2))
   term1*term2
 }
+
+# -------------------------------------------------------------------------------------------------------
 
 #' Density Function for the Ratio of Correlated Normal Variables
 #'
@@ -116,6 +120,8 @@ drcnorm <- function(w, mean1, mean2, sd1, sd2, rho) {
   out
 }
 
+# -------------------------------------------------------------------------------------------------------
+
 #' Calculate Mean Ratios Between Dimensions
 #'
 #' @param fit An object of class "lme.morph" returned by fit.morph()
@@ -128,15 +134,16 @@ drcnorm <- function(w, mean1, mean2, sd1, sd2, rho) {
 #'   \item{varcov}{Variance-covariance matrix}
 #'
 #' @keywords internal
-
 calc.mean.ratios <- function(fit, vcov = FALSE){
   # Get estimates w/ vcov.lme.morph
   vcov_obj <- vcov.lme.morph(fit)
   est <- vcov_obj$est
   pars.varcov <- vcov_obj$varcov
 
-  # Extract parameters
+  # Extract params
   mus <- est[substr(names(est), 1, 2) == "mu"]
+  sigmas <- est[substr(names(est), 1, 5) == "sigma"]
+  rhos <- est[substr(names(est), 1, 3) == "rho"]
   m <- length(mus)
 
   # Get variances and build corrrelation matrix
@@ -144,53 +151,90 @@ calc.mean.ratios <- function(fit, vcov = FALSE){
 
   # Fill diagonal w/variances
   for(i in 1:m) {
-    var_name <- paste0("Tau.animal.id.animal.id.var(dim", i, ")")
-    sigma.mat[i,i] <- est[var_name]
+    sigma.mat[i,i] <- sigmas[i]^2
   }
 
   # fill off-diagonal w/covariances
+  k <- 1
   for(i in 1:(m-1)) {
     for(j in (i+1):m) {
-      cov_name <- paste0("Tau.animal.id.animal.id.cov(dim", j, ",dim", i, ")")
-      sigma.mat[i,j] <- sigma.mat[j,i] <- est[cov_name]
+      sigma.mat[i,j] <- sigma.mat[j,i] <- rhos[k] * sigmas[i] * sigmas[j]
+      k <- k + 1
     }
   }
 
-  # Standard deviations and correlations
-  sigmas <- sqrt(diag(sigma.mat))
+  # Get correlation matrix
   cor.mat <- cov2cor(sigma.mat)
 
-  # Calculate ratios + prepare for ses
-  n.ratios <- 2*choose(m, 2)
+  # Initialise vectors for results
+  n.ratios <- m * (m-1)  # Total number of ratios
   mean.ratios.est <- numeric(n.ratios)
-  mean.ratios.names <- character(n.ratios)
   mean.ratios.se <- numeric(n.ratios)
+  mean.ratios.names <- character(n.ratios)
 
-  # Ratios and se using delta methode
-  k <- 1
-  mean.ratios.varcov <- matrix(0, n.ratios, n.ratios)
+  # Calculate ratios by numerator groups (each group must multiply to 1)
+  ratio_groups <- list(
+    # First group: dim1 as numerator (pos 1,2)
+    list(
+      # dim1/dim2:
+      list(pos = 1, i = 1, j = 2),
+      # dim1/dim3:
+      list(pos = 2, i = 1, j = 3)
+    ),
+    # Second group: dim2 as numerator (pos3,4)
+    list(
+      # dim2/dim1:
+      list(pos = 3, i = 2, j = 1),
+      # dim2/dim3:
+      list(pos = 4, i = 2, j = 3)
+    ),
+    # third group: dim3 as numerator (pos 5,6)
+    list(
+      # dim3/dim1:
+      list(pos = 5, i = 3, j = 1),
+      # dim3/dim2:
+      list(pos = 6, i = 3, j = 2)
+    )
+  )
 
-  for(i in 1:m) {
-    for(j in 1:m) {
-      if(i != j) {
-        # Mean ratio
-        mean.ratios.est[k] <- mean.rcnorm.approx(
-          mean1 = mus[i],
-          mean2 = mus[j],
-          sd1 = sigmas[i],
-          sd2 = sigmas[j],
-          rho = cor.mat[i,j]
-        )
+  # Processin each group to ensure ratios multiply to 1
+  for(group in ratio_groups) {
+    i1 <- group[[1]]$i
+    j1 <- group[[1]]$j
+    pos1 <- group[[1]]$pos
 
-        # Approx se using delta method
-        mean.ratios.se[k] <- sqrt(mus[i]^2/mus[j]^4 * sigma.mat[j,j] +
-                                    1/mus[j]^2 * sigma.mat[i,i] -
-                                    2*mus[i]/mus[j]^3 * sigma.mat[i,j])
+    ratio1 <- mean.rcnorm.approx(
+      mean1 = mus[i1],
+      mean2 = mus[j1],
+      sd1 = sigmas[i1],
+      sd2 = sigmas[j1],
+      rho = cor.mat[i1,j1]
+    )
 
-        mean.ratios.names[k] <- paste0("mean(dim", i, "/dim", j, ")")
-        k <- k + 1
-      }
-    }
+    se1 <- sqrt(mus[i1]^2/mus[j1]^4 * sigma.mat[j1,j1] +
+                  1/mus[j1]^2 * sigma.mat[i1,i1] -
+                  2*mus[i1]/mus[j1]^3 * sigma.mat[i1,j1])
+
+    # Calculateing second ratio to ensure product is 1
+    i2 <- group[[2]]$i
+    j2 <- group[[2]]$j
+    pos2 <- group[[2]]$pos
+
+    ratio2 <- 1/ratio1
+
+    # Calculate SE for second ratio
+    se2 <- sqrt(mus[i2]^2/mus[j2]^4 * sigma.mat[j2,j2] +
+                  1/mus[j2]^2 * sigma.mat[i2,i2] -
+                  2*mus[i2]/mus[j2]^3 * sigma.mat[i2,j2])
+
+    # Storing results
+    mean.ratios.est[pos1] <- ratio1
+    mean.ratios.se[pos1] <- se1
+    mean.ratios.names[pos1] <- paste0("mean(dim", i1, "/dim", j1, ")")
+
+    mean.ratios.est[pos2] <- ratio2
+    mean.ratios.se[pos2] <- se2
+    mean.ratios.names[pos2] <- paste0("mean(dim", i2, "/dim", j2, ")")
   }
 
   # Make variance-covariance matrix for rasios

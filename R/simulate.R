@@ -83,6 +83,8 @@ sim.measurements <- function(n.animals, n.photos, m, pars){
   )
 }
 
+# -------------------------------------------------------------------------------------------------------
+
 #' Simulation Study for Morphometric Models
 #'
 #' Simulates multiple datasets and fits models to each one.
@@ -201,6 +203,8 @@ sim.morph <- function(n.sims, n.animals, n.photos, mus, sigmas, rhos, psis, phis
   class(out) <- "lme.morph.sim"
   out
 }
+
+# -------------------------------------------------------------------------------------------------------
 
 #' Extract Results from Simulation Study
 #'

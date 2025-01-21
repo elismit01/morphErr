@@ -22,6 +22,8 @@ smooth.indicator <- function(x, t){
   2*pnorm(x - t, sd = 1e-10) - 1
 }
 
+# -------------------------------------------------------------------------------------------------------
+
 #' Constructor Function for Mean Ratio Calculations
 #'
 #' @param dim1,dim2 Integers specifying which dimensions to use
@@ -61,6 +63,8 @@ mean.ratio.constructor <- function(dim1, dim2) {
                        cor.mat[dim1,dim2])
   }
 }
+
+# -------------------------------------------------------------------------------------------------------
 
 #' Extract Variance-Covariance Matrix from Morphometric Model
 #'
@@ -216,6 +220,8 @@ vcov.lme.morph <- function(object) {
   list(est = est, varcov = varcov)
 }
 
+# -------------------------------------------------------------------------------------------------------
+
 #' Print Method for Morphometric Model Summary
 #'
 #' @description
@@ -235,6 +241,7 @@ print.summary.lme.morph <- function(x, ...) {
   print(x)
 }
 
+# -------------------------------------------------------------------------------------------------------
 
 #' Summary Method for Morphometric Models
 #'
