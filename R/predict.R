@@ -128,6 +128,7 @@ calc.betas <- function(fit, est = NULL, stders = TRUE, y.dim, x.dim,
 #' @param ... Additional arguments passed to methods
 #'
 #' @return A matrix with Estimate and Std.Error columns
+#' @export
 predict.lme.morph <- function(object,
                               true_measurements = NULL,
                               observed_measurements = NULL,
