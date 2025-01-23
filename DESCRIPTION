@@ -1,12 +1,19 @@
 Package: morphErr
-Title: Morphometric Analysis with Measurement Error
+Title: Linear mixed-effects models for morphometric data subject to measurement error
 Version: 0.0.0.9000
 Authors@R: 
     c(
     person("Ben C", "Stevenson", email = "ben.stevenson@auckland.ac.nz", role = c("aut", "cre")),
     person("Elizabeth C", "Smit", email = "esmi468@aucklanduni.ac.nz", role = "aut")
     )
-Description: What the package does (one paragraph).
+Description: Morphometric data collected on animal populations can be
+    subject to measurement error, which leads to biased estimators
+    using line-fitting techniques such as linear regression and
+    reduced major axis. The models implemented in this package
+    explicitly accommodate measurement error, allow for multivariate
+    data, and provide tests for isometric relationships between
+    dimensions. Morphometric data of the reef manta ray, collected in
+    Raja Ampat, Indonesia, are included.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
