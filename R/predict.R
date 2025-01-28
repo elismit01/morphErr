@@ -43,7 +43,7 @@ calc.betas <- function(fit, est = NULL, stders = TRUE, y.dim, x.dim,
 
   # Get parameters using new format
   mus <- est[substr(names(est), 1, 2) == "mu"]
-  sigmas <- est[substr(names(est), 1, 5) == "sigma"]  # Now directly using SDs
+  sigmas <- est[substr(names(est), 1, 5) == "sigma"]
   rhos <- est[substr(names(est), 1, 3) == "rho"]
 
   # Constructing cov matrix
@@ -135,7 +135,7 @@ predict.lme.morph <- function(object,
                               y.dim,
                               type = c("lm", "pca"),
                               ...) {
-  # Input valdation
+  # Input validation
   if (!inherits(object, "lme.morph")) {
     stop("Object must be of class 'lme.morph'")
   }
@@ -154,15 +154,18 @@ predict.lme.morph <- function(object,
 
     x.dim <- as.numeric(sapply(strsplit(colnames(true.measurements), "dim"), function(x) x[2]))
 
-    # Get coefficients (not vcov matrix)
+    # Get coefficients + vcov matrix
     betas <- calc.betas(fit = object, y.dim = y.dim, x.dim = x.dim, type = type, vcov = FALSE)
+    vcov.obj <- calc.betas(fit = object, y.dim = y.dim, x.dim = x.dim, type = type, vcov = TRUE)
+    vcov.mat <- vcov.obj$varcov
 
-    # Create pred matrix
+    # Create pred matrix + calculate pred
     X <- as.matrix(cbind(1, true.measurements))
-
-    # Calculate preds and se
     pred.est <- sum(betas[,"Estimate"] * c(1, unlist(true.measurements)))
-    pred.se <- NA  # We'll implement SE calculation later if needed
+
+    # Calculate se using delta method
+    X.mat <- matrix(c(1, unlist(true.measurements)), nrow = 1)
+    pred.se <- sqrt(X.mat %*% vcov.mat %*% t(X.mat))
 
     result <- matrix(c(pred.est, pred.se), nrow = 1)
     colnames(result) <- c("Estimate", "Std. Error")
