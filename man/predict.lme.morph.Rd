@@ -6,8 +6,8 @@
 \usage{
 \method{predict}{lme.morph}(
   object,
-  true_measurements = NULL,
-  observed_measurements = NULL,
+  true.measurements = NULL,
+  observed.measurements = NULL,
   y.dim,
   type = c("lm", "pca"),
   ...
@@ -16,10 +16,10 @@
 \arguments{
 \item{object}{A fitted model object from fit.morph()}
 
-\item{true_measurements}{A data frame of true measurements to predict from, with column names
+\item{true.measurements}{A data frame of true measurements to predict from, with column names
 of the form "dimX" where X is the dimension number, or NULL}
 
-\item{observed_measurements}{A matrix of observed measurements with error, where each row
+\item{observed.measurements}{A matrix of observed measurements with error, where each row
 represents measurements from one photograph, or NULL. NA values allowed for missing
 measurements.}
 
@@ -34,5 +34,5 @@ A matrix with Estimate and Std.Error columns
 }
 \description{
 Makes predictions based on either true measurements or observed measurements with error.
-Users must provide either true_measurements or observed_measurements, not both.
+Users must provide either true.measurements or observed.measurements, not both.
 }
