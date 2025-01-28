@@ -23,11 +23,13 @@ Imports:
     Matrix,
     msm,
     mvtnorm,
-    nlme,
     pbapply,
     RTMB,
     numDeriv,
     stats
+Depends:
+    R (>= 3.5.0),
+    nlme
 Suggests: 
     knitr,
     rmarkdown,

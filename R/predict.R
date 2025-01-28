@@ -115,12 +115,12 @@ calc.betas <- function(fit, est = NULL, stders = TRUE, y.dim, x.dim,
 #'
 #' @description
 #' Makes predictions based on either true measurements or observed measurements with error.
-#' Users must provide either true_measurements or observed_measurements, not both.
+#' Users must provide either true.measurements or observed.measurements, not both.
 #'
 #' @param object A fitted model object from fit.morph()
-#' @param true_measurements A data frame of true measurements to predict from, with column names
+#' @param true.measurements A data frame of true measurements to predict from, with column names
 #'        of the form "dimX" where X is the dimension number, or NULL
-#' @param observed_measurements A matrix of observed measurements with error, where each row
+#' @param observed.measurements A matrix of observed measurements with error, where each row
 #'        represents measurements from one photograph, or NULL. NA values allowed for missing
 #'        measurements.
 #' @param y.dim Which dimension to predict
@@ -130,8 +130,8 @@ calc.betas <- function(fit, est = NULL, stders = TRUE, y.dim, x.dim,
 #' @return A matrix with Estimate and Std.Error columns
 #' @export
 predict.lme.morph <- function(object,
-                              true_measurements = NULL,
-                              observed_measurements = NULL,
+                              true.measurements = NULL,
+                              observed.measurements = NULL,
                               y.dim,
                               type = c("lm", "pca"),
                               ...) {
@@ -140,28 +140,28 @@ predict.lme.morph <- function(object,
     stop("Object must be of class 'lme.morph'")
   }
 
-  if (!is.null(true_measurements) && !is.null(observed_measurements)) {
+  if (!is.null(true.measurements) && !is.null(observed.measurements)) {
     stop("Cannot provide both true and observed measurements. Please provide only one type.")
   }
 
   type <- match.arg(type)
 
   # Handle true measurements path
-  if (!is.null(true_measurements)) {
-    if (!is.data.frame(true_measurements)) {
-      stop("true_measurements must be a data frame")
+  if (!is.null(true.measurements)) {
+    if (!is.data.frame(true.measurements)) {
+      stop("true.measurements must be a data frame")
     }
 
-    x.dim <- as.numeric(sapply(strsplit(colnames(true_measurements), "dim"), function(x) x[2]))
+    x.dim <- as.numeric(sapply(strsplit(colnames(true.measurements), "dim"), function(x) x[2]))
 
     # Get coefficients (not vcov matrix)
     betas <- calc.betas(fit = object, y.dim = y.dim, x.dim = x.dim, type = type, vcov = FALSE)
 
     # Create pred matrix
-    X <- as.matrix(cbind(1, true_measurements))
+    X <- as.matrix(cbind(1, true.measurements))
 
     # Calculate preds and se
-    pred.est <- sum(betas[,"Estimate"] * c(1, unlist(true_measurements)))
+    pred.est <- sum(betas[,"Estimate"] * c(1, unlist(true.measurements)))
     pred.se <- NA  # We'll implement SE calculation later if needed
 
     result <- matrix(c(pred.est, pred.se), nrow = 1)
@@ -170,12 +170,12 @@ predict.lme.morph <- function(object,
   }
 
   # Handle observed measurements path
-  if (!is.null(observed_measurements)) {
-    if (is.vector(observed_measurements)) {
-      observed_measurements <- matrix(observed_measurements, nrow = 1)
+  if (!is.null(observed.measurements)) {
+    if (is.vector(observed.measurements)) {
+      observed.measurements <- matrix(observed.measurements, nrow = 1)
     }
-    if (is.data.frame(observed_measurements)) {
-      observed_measurements <- as.matrix(observed_measurements)
+    if (is.data.frame(observed.measurements)) {
+      observed.measurements <- as.matrix(observed.measurements)
     }
 
     # Get parameter vals
@@ -198,10 +198,10 @@ predict.lme.morph <- function(object,
       out <- 0
 
       # Observation likelihood
-      if (nrow(observed_measurements) > 0) {
-        for (j in 1:nrow(observed_measurements)) {
-          obs.dims <- !is.na(observed_measurements[j, ])
-          out <- out + mvtnorm::dmvnorm(observed_measurements[j, obs.dims],
+      if (nrow(observed.measurements) > 0) {
+        for (j in 1:nrow(observed.measurements)) {
+          obs.dims <- !is.na(observed.measurements[j, ])
+          out <- out + mvtnorm::dmvnorm(observed.measurements[j, obs.dims],
                                         mean = t[obs.dims],
                                         sigma = pars$xi[obs.dims, obs.dims, drop = FALSE],
                                         log = TRUE)
@@ -234,4 +234,3 @@ predict.lme.morph <- function(object,
   colnames(result) <- c("Estimate", "Std. Error")
   return(result)
 }
-

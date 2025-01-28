@@ -72,8 +72,8 @@ test_that("predict.lme.morph handles input validation correctly", {
   # Test providing both measurement types
   expect_error(
     predict.lme.morph(fit,
-                      true_measurements = data.frame(dim1 = 1),
-                      observed_measurements = matrix(1, 1, 1),
+                      true.measurements = data.frame(dim1 = 1),
+                      observed.measurements = matrix(1, 1, 1),
                       y.dim = 1),
     "Cannot provide both true and observed measurements"
   )
@@ -81,9 +81,9 @@ test_that("predict.lme.morph handles input validation correctly", {
   # Test invalid true_measurement type
   expect_error(
     predict.lme.morph(fit,
-                      true_measurements = matrix(1, 1, 1),
+                      true.measurements = matrix(1, 1, 1),
                       y.dim = 1),
-    "true_measurements must be a data frame"
+    "true.measurements must be a data frame"
   )
 })
 
@@ -103,7 +103,7 @@ test_that("predict.lme.morph handles true measurements correctly", {
   # Test prediction wit true measurements
   true_meas <- data.frame(dim2 = 130)
   result <- predict.lme.morph(fit,
-                              true_measurements = true_meas,
+                              true.measurements = true_meas,
                               y.dim = 1,
                               type = "lm")
 
@@ -114,11 +114,11 @@ test_that("predict.lme.morph handles true measurements correctly", {
 
   # Test both pred types
   lm_pred <- predict.lme.morph(fit,
-                               true_measurements = true_meas,
+                               true.measurements = true_meas,
                                y.dim = 1,
                                type = "lm")
   pca_pred <- predict.lme.morph(fit,
-                                true_measurements = true_meas,
+                                true.measurements = true_meas,
                                 y.dim = 1,
                                 type = "pca")
 
@@ -142,7 +142,7 @@ test_that("predict.lme.morph handles observed measurements correctly", {
   obs_mat <- matrix(c(285, 128, 73), nrow = 1)
   result_mat <- suppressWarnings(
     predict.lme.morph(fit,
-                      observed_measurements = obs_mat,
+                      observed.measurements = obs_mat,
                       y.dim = 1)
   )
 
@@ -180,6 +180,3 @@ test_that("predict.lme.morph handles no measurements case correctly", {
   # (Noot testing SE anymore cause it might be NA)
   expect_true(abs(result[1,1] - mus[1]) < 50)
 })
-
-
-
