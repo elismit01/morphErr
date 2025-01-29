@@ -279,8 +279,7 @@ summary.lme.morph <- function(object, ..., type = "pars", y.dim, x.dim, B = 1000
   # Check if type is valid
   if (!type %in% valid_types) {
     stop(
-      "Invalid type argument. Valid options are:\n",
-      paste0("  - '", valid_types, "'", collapse = "\n")
+      "Invalid type argument. See ?summary.lme.morph for possible selections."
     )
   }
 

@@ -150,8 +150,7 @@ predict.lme.morph <- function(object,
   # Error message
   if (!type[1] %in% valid_types) {
     stop(
-      "Invalid type argument. Valid options are:\n",
-      paste0("  - '", valid_types, "'", collapse = "\n")
+      "Invalid type argument. See ?predict.lme.morph for possible selections."
     )
   }
 

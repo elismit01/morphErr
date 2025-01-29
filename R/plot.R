@@ -56,7 +56,7 @@ plot.morph <- function(data, dims = c(1, 2), plot.data = TRUE,
                        ratios = FALSE, xlab = NULL, ylab = NULL) {
   # Input validation
   if (!is.data.frame(data)) {
-    stop("'data' must be a data frame containing columns: 'animal.id', 'photo.id', 'dim', and 'measurement'")
+    stop("Columns missing from data frame. See ?plot.morph for column requirements.")
   }
 
   # Check required columns exist
@@ -202,8 +202,7 @@ plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
   valid_types <- c("data", "ratio")
   if (!type %in% valid_types) {
     stop(
-      "Invalid type argument. Valid options are:\n",
-      paste0("  - '", valid_types, "'", collapse = "\n")
+      "Invalid type argument. See ?plot.lme.morph for possible selections."
     )
   }
 
@@ -211,8 +210,7 @@ plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
   valid_line_types <- c("none", "lm", "pca")
   if (!line.type %in% valid_line_types) {
     stop(
-      "Invalid line.type argument. Valid options are:\n",
-      paste0("  - '", valid_line_types, "'", collapse = "\n")
+      "Invalid line.type argument. See ?plot.lme.morph for possible selections."
     )
   }
 
