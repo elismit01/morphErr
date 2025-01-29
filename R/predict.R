@@ -144,6 +144,17 @@ predict.lme.morph <- function(object,
     stop("Cannot provide both true and observed measurements. Please provide only one type.")
   }
 
+  # Valid types
+  valid_types <- c("lm", "pca")
+
+  # Error message
+  if (!type[1] %in% valid_types) {
+    stop(
+      "Invalid type argument. Valid options are:\n",
+      paste0("  - '", valid_types, "'", collapse = "\n")
+    )
+  }
+
   type <- match.arg(type)
 
   # Handle true measurements path

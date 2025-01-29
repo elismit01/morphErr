@@ -5,8 +5,6 @@
 \title{Plot Probability Density Function for Morphometric Ratios}
 \usage{
 \method{plot}{ratio.pdf}(x, dim1, dim2)
-
-\method{plot}{ratio.pdf}(x, dim1, dim2)
 }
 \arguments{
 \item{x}{An object of class "lme.morph" returned by fit.morph()}
@@ -15,35 +13,12 @@
 }
 \value{
 NULL (invisibly). Creates a plot as a side effect.
-
-NULL (invisibly). Creates a plot as a side effect.
 }
 \description{
 Creates a plot of the probability density function for the ratio
 between two dimensions.
-
-Creates a plot of the probability density function for the ratio
-between two dimensions.
 }
 \examples{
-\dontrun{
-# Simulate some data
-data <- sim.measurements(
-  n.animals = 10,
-  n.photos = rep(3, 10),
-  m = 3,
-  pars = c(290, 125, 75,    # means
-           45, 25, 15,       # SDs
-           0.75, 0.80, 0.85,  # correlations
-           2.0, 1.5, 1.0,    # measurement SDs
-           0.4, 0.5, 0.6)  # measurement correlations
-)
-
-# Fit model and plot ratio PDF
-fit <- fit.morph(data)
-plot.ratio.pdf(fit, 1, 2)
-}
-
 \dontrun{
 # Simulate some data
 data <- sim.measurements(

@@ -266,6 +266,24 @@ print.summary.lme.morph <- function(x, ...) {
 #' @return A matrix or data frame containing the requested summary statistics
 #' @export
 summary.lme.morph <- function(object, ..., type = "pars", y.dim, x.dim, B = 1000, boot.invert = FALSE) {
+  # Valid types
+  valid_types <- c(
+    "pars",   # Param estimates
+    "betas", "betas-lm",  # lm coefficients
+    "betas-pca",   # PCA interpretaton
+    "ratios",  # Mean ratios between dims
+    "isometric-pca",  # Isometry test results
+    "isometric-pca-boot"  # Bootstrapped isometry test results
+  )
+
+  # Check if type is valid
+  if (!type %in% valid_types) {
+    stop(
+      "Invalid type argument. Valid options are:\n",
+      paste0("  - '", valid_types, "'", collapse = "\n")
+    )
+  }
+
   vcov.obj <- object$vcov
   ## Get estimates
   est <- vcov.obj$est
