@@ -25,11 +25,11 @@ Imports:
     mvtnorm,
     pbapply,
     RTMB,
+    nlme,
     numDeriv,
     stats
 Depends:
     R (>= 3.5.0),
-    nlme
 Suggests: 
     knitr,
     rmarkdown,
