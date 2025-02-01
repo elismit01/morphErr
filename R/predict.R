@@ -3,6 +3,7 @@
 #' This file contains functions for making predictions from fitted models:
 #' - calc.betas(): Calculates coefficients for predictions
 #' - predict.lme.morph(): Predicts measurements from fitted models
+#' - calc.conditional.ratio(): Calculates a ratio between dimensions, conditional on the denominator
 #'
 #' @name predict
 #' @keywords internal
