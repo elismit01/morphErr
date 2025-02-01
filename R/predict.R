@@ -111,139 +111,157 @@ calc.betas <- function(fit, est = NULL, stders = TRUE, y.dim, x.dim,
 
 # -------------------------------------------------------------------------------------------------------
 
-#' Predict measurements for morphometric data
+#' Predict measurements using true measurements
 #'
 #' @description
-#' Makes predictions based on either true measurements or observed measurements with error.
-#' Users must provide either true.measurements or observed.measurements, not both.
+#' Makes predictions for one dimension based on true measurements of other dimensions.
 #'
 #' @param object A fitted model object from fit.morph()
-#' @param true.measurements A data frame of true measurements to predict from, with column names
-#'        of the form "dimX" where X is the dimension number, or NULL
-#' @param observed.measurements A matrix of observed measurements with error, where each row
-#'        represents measurements from one photograph, or NULL. NA values allowed for missing
-#'        measurements.
-#' @param y.dim Which dimension to predict
-#' @param type Either "lm" or "pca" for prediction type (only used with true measurements)
+#' @param y.dim Integer specifying which dimension to predict
+#' @param newdata A data frame of other dimensions to use for prediction. Column names
+#'        must be of the form "dimX" where X is the dimension number
+#' @param type Either "lm" or "pca" for prediction type
 #' @param ... Additional arguments passed to methods
 #'
 #' @return A matrix with Estimate and Std.Error columns
 #' @export
-predict.lme.morph <- function(object,
-                              true.measurements = NULL,
-                              observed.measurements = NULL,
-                              y.dim,
-                              type = c("lm", "pca"),
-                              ...) {
+predict.lme.morph <- function(object, y.dim, newdata = NULL, type = c("lm", "pca"), ...) {
   # Input validation
   if (!inherits(object, "lme.morph")) {
-    stop("Object must be of class 'lme.morph'")
-  }
-
-  if (!is.null(true.measurements) && !is.null(observed.measurements)) {
-    stop("Cannot provide both true and observed measurements. Please provide only one type.")
+    stop("Invalid model object. Input must be a fitted model of class 'lme.morph'")
   }
 
   # Valid types
   valid_types <- c("lm", "pca")
-
-  # Error message
   if (!type[1] %in% valid_types) {
     stop(
       "Invalid type argument. See ?predict.lme.morph for possible selections."
     )
   }
-
   type <- match.arg(type)
 
-  # Handle true measurements path
-  if (!is.null(true.measurements)) {
-    if (!is.data.frame(true.measurements)) {
-      stop("true.measurements must be a data frame")
-    }
-
-    x.dim <- as.numeric(sapply(strsplit(colnames(true.measurements), "dim"), function(x) x[2]))
-
-    # Get coefficients + vcov matrix
-    betas <- calc.betas(fit = object, y.dim = y.dim, x.dim = x.dim, type = type, vcov = FALSE)
-    vcov.obj <- calc.betas(fit = object, y.dim = y.dim, x.dim = x.dim, type = type, vcov = TRUE)
-    vcov.mat <- vcov.obj$varcov
-
-    # Create pred matrix + calculate pred
-    X <- as.matrix(cbind(1, true.measurements))
-    pred.est <- sum(betas[,"Estimate"] * c(1, unlist(true.measurements)))
-
-    # Calculate se using delta method
-    X.mat <- matrix(c(1, unlist(true.measurements)), nrow = 1)
-    pred.se <- sqrt(X.mat %*% vcov.mat %*% t(X.mat))
+  # If no measurements, return pop means with se
+  if (is.null(newdata)) {
+    vcov.obj <- object$vcov
+    est <- vcov.obj$est
+    mus <- est[substr(names(est), 1, 2) == "mu"]
+    pred.est <- mus[y.dim]
+    pred.se <- sqrt(diag(vcov.obj$varcov))[paste0("mu", y.dim)]
 
     result <- matrix(c(pred.est, pred.se), nrow = 1)
     colnames(result) <- c("Estimate", "Std. Error")
     return(result)
   }
 
-  # Handle observed measurements path
-  if (!is.null(observed.measurements)) {
-    if (is.vector(observed.measurements)) {
-      observed.measurements <- matrix(observed.measurements, nrow = 1)
-    }
-    if (is.data.frame(observed.measurements)) {
-      observed.measurements <- as.matrix(observed.measurements)
-    }
-
-    # Get parameter vals
-    vcov.obj <- object$vcov
-    est <- vcov.obj$est
-    m <- length(levels(object$data$dim))
-    pars <- organise.pars(est, n.animals = 1, n.photos = 1, m = m, block.only = TRUE)
-
-    # Create prediction vector
-    true <- numeric(m)
-    # All dimensions to be predicted:
-    true[] <- NA
-    # Fill non-predicted dimensions with means:
-    true[-y.dim] <- pars$mus[-y.dim]
-
-    # Setup optimisation function
-    djoint <- function(t.to.predict) {
-      t <- true
-      t[y.dim] <- t.to.predict
-      out <- 0
-
-      # Observation likelihood
-      if (nrow(observed.measurements) > 0) {
-        for (j in 1:nrow(observed.measurements)) {
-          obs.dims <- !is.na(observed.measurements[j, ])
-          out <- out + mvtnorm::dmvnorm(observed.measurements[j, obs.dims],
-                                        mean = t[obs.dims],
-                                        sigma = pars$xi[obs.dims, obs.dims, drop = FALSE],
-                                        log = TRUE)
-        }
-      }
-
-      # Add prior
-      out <- out + mvtnorm::dmvnorm(t, mean = pars$mus, sigma = pars$sigma, log = TRUE)
-      -out
-    }
-
-    # Optimise
-    preds <- nlminb(pars$mus[y.dim], djoint)
-    pred.est <- preds$par
-
-    # Return with NA for se
-    result <- matrix(c(pred.est, NA), nrow = 1)
-    colnames(result) <- c("Estimate", "Std. Error")
-    return(result)
+  # Validate newdata
+  if (!is.data.frame(newdata)) {
+    stop("'newdata' must be a data frame with columns named 'dimX' where X is the dimension number")
   }
 
-  # If no measurements provided, return pop means with SE
-  vcov.obj <- object$vcov
-  est <- vcov.obj$est
-  mus <- est[substr(names(est), 1, 2) == "mu"]
-  pred.est <- mus[y.dim]
-  pred.se <- sqrt(diag(vcov.obj$varcov))[paste0("mu", y.dim)]
+  # Get predictor dimes
+  x.dim <- as.numeric(sapply(strsplit(colnames(newdata), "dim"), function(x) x[2]))
+
+  # Get coeficients and vcov matrix
+  betas <- calc.betas(fit = object, y.dim = y.dim, x.dim = x.dim, type = type, vcov = FALSE)
+  vcov.obj <- calc.betas(fit = object, y.dim = y.dim, x.dim = x.dim, type = type, vcov = TRUE)
+  vcov.mat <- vcov.obj$varcov
+
+  # Create pred matrix and calculate prediction
+  X <- as.matrix(cbind(1, newdata))
+  pred.est <- sum(betas[,"Estimate"] * c(1, unlist(newdata)))
+
+  # Calculate se w/delta method
+  X.mat <- matrix(c(1, unlist(newdata)), nrow = 1)
+  pred.se <- sqrt(X.mat %*% vcov.mat %*% t(X.mat))
 
   result <- matrix(c(pred.est, pred.se), nrow = 1)
   colnames(result) <- c("Estimate", "Std. Error")
   return(result)
+}
+
+# -------------------------------------------------------------------------------------------------------
+
+#' Predict measurements from observed measurements with error
+#'
+#' @description
+#' Makes predictions by combining prior information with observed measurements that contain error.
+#'
+#' @param object A fitted model object from fit.morph()
+#' @param true A vector of true dimension measurements. Set elements to NA for dimensions to predict
+#' @param obs A matrix of observed measurements with error, where each row represents measurements
+#'        from one photograph. NA values allowed for missing measurements.
+#'
+#' @return A numeric vector of predictions for all dimensions
+#' @export
+predict.from.obs <- function(object, true, obs = NULL) {
+  # Input validation
+  if (!inherits(object, "lme.morph")) {
+    stop("Invalid model object. Input must be a fitted model of class 'lme.morph'")
+  }
+
+  # Get params
+  vcov.obj <- object$vcov
+  est <- vcov.obj$est
+  m <- length(levels(object$data$dim))
+  pars <- organise.pars(est, n.animals = 1, n.photos = 1, m = m, block.only = TRUE)
+
+  # Validate tru vector length
+  if (length(true) != m) {
+    stop(
+      "Length of 'true' must match number of dimensions in model"
+    )
+  }
+
+  # Handle observations
+  if (!is.null(obs)) {
+    if (is.vector(obs)) {
+      obs <- matrix(obs, nrow = 1)
+    }
+    if (ncol(obs) != m) {
+      stop(
+        "Number of columns in 'obs' must match number of dimensions in model"
+      )
+    }
+  } else {
+    obs <- matrix(nrow = 0, ncol = m)
+  }
+
+  # Determine which dims to predict
+  dims.to.predict <- which(is.na(true))
+  if (length(dims.to.predict) == 0) {
+    stop("No dimensions to predict (no NA values in 'true' vector)")
+  }
+
+  # Optimisation function
+  djoint <- function(t.to.predict) {
+    t <- true
+    t[dims.to.predict] <- t.to.predict
+    out <- 0
+
+    # Add observation likelihood if ther are obs
+    if (nrow(obs) > 0) {
+      for (j in 1:nrow(obs)) {
+        obs.dims <- !is.na(obs[j, ])
+        out <- out + mvtnorm::dmvnorm(obs[j, obs.dims],
+                                      mean = t[obs.dims],
+                                      sigma = pars$xi[obs.dims, obs.dims, drop = FALSE],
+                                      log = TRUE)
+      }
+    }
+
+    # Add prior
+    out <- out + mvtnorm::dmvnorm(t, mean = pars$mus, sigma = pars$sigma, log = TRUE)
+    -out
+  }
+
+  # Optimise
+  preds <- nlminb(pars$mus[dims.to.predict], djoint)
+
+  # Prepare output
+  # Start with true vals:
+  out <- true
+  # Fill in preds:
+  out[dims.to.predict] <- preds$par
+
+  return(out)
 }

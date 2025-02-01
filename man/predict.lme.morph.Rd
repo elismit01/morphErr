@@ -2,30 +2,19 @@
 % Please edit documentation in R/predict.R
 \name{predict.lme.morph}
 \alias{predict.lme.morph}
-\title{Predict measurements for morphometric data}
+\title{Predict measurements using true measurements}
 \usage{
-\method{predict}{lme.morph}(
-  object,
-  true.measurements = NULL,
-  observed.measurements = NULL,
-  y.dim,
-  type = c("lm", "pca"),
-  ...
-)
+\method{predict}{lme.morph}(object, y.dim, newdata = NULL, type = c("lm", "pca"), ...)
 }
 \arguments{
 \item{object}{A fitted model object from fit.morph()}
 
-\item{true.measurements}{A data frame of true measurements to predict from, with column names
-of the form "dimX" where X is the dimension number, or NULL}
+\item{y.dim}{Integer specifying which dimension to predict}
 
-\item{observed.measurements}{A matrix of observed measurements with error, where each row
-represents measurements from one photograph, or NULL. NA values allowed for missing
-measurements.}
+\item{newdata}{A data frame of other dimensions to use for prediction. Column names
+must be of the form "dimX" where X is the dimension number}
 
-\item{y.dim}{Which dimension to predict}
-
-\item{type}{Either "lm" or "pca" for prediction type (only used with true measurements)}
+\item{type}{Either "lm" or "pca" for prediction type}
 
 \item{...}{Additional arguments passed to methods}
 }
@@ -33,6 +22,5 @@ measurements.}
 A matrix with Estimate and Std.Error columns
 }
 \description{
-Makes predictions based on either true measurements or observed measurements with error.
-Users must provide either true.measurements or observed.measurements, not both.
+Makes predictions for one dimension based on true measurements of other dimensions.
 }
