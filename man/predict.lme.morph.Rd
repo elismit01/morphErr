@@ -12,15 +12,17 @@
 \item{y.dim}{Integer specifying which dimension to predict}
 
 \item{newdata}{A data frame of other dimensions to use for prediction. Column names
-must be of the form "dimX" where X is the dimension number}
+must be of the form "dimX" where X is the dimension number. Can contain
+multiple rows for multiple predictions.}
 
 \item{type}{Either "lm" or "pca" for prediction type}
 
 \item{...}{Additional arguments passed to methods}
 }
 \value{
-A matrix with Estimate and Std.Error columns
+A matrix with Estimate and Std.Error columns for each prediction
 }
 \description{
 Makes predictions for one dimension based on true measurements of other dimensions.
+Can handle multiple predictions simultaneously.
 }

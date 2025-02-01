@@ -6,8 +6,8 @@
 \description{
 This file contains functions for making predictions from fitted models:
 \itemize{
-\item calc.betas(): Calculates coefficients for predictions
-\item predict.lme.morph(): Predicts measurements from fitted models
+\item predict.lme.morph(): Predicts measurements from fitted models using true measurements
+\item predict.from.obs(): Predicts measurements from fitted models using observed measurements
 }
 }
 \keyword{internal}

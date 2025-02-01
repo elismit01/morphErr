@@ -163,6 +163,69 @@ test_that("predict.lme.morph calculates standard errors correctly", {
   expect_true(result[1,2] < max(pars[1:3]))
 })
 
+test_that("predict.lme.morph handles multiple predictions correctly", {
+  # Setup
+  set.seed(1234)
+  mus <- c(290, 125, 75)
+  sigmas <- c(45, 25, 15)
+  rhos <- c(0.75, 0.80, 0.85)
+  psis <- c(2.00, 1.50, 1.00)
+  phis <- c(0.40, 0.50, 0.60)
+  pars <- c(mus, sigmas, rhos, psis, phis)
+
+  data <- sim.measurements(10, rep(5, 10), 3, pars)
+  fit <- fit.morph(data)
+
+  # Create multiple row newdata (6 vals each)
+  newdata <- data.frame(
+    dim2 = seq(120, 130, by = 2),
+    dim3 = seq(70, 80, by = 2)
+  )
+
+  # Test preds
+  result <- predict.lme.morph(fit, y.dim = 1, newdata = newdata)
+
+  # Check structure
+  expect_true(is.matrix(result))
+  expect_equal(colnames(result), c("Estimate", "Std. Error"))
+  expect_equal(nrow(result), nrow(newdata))
+
+  # Check preds increase w/increasing predictors
+  expect_true(all(diff(result[,"Estimate"]) > 0))
+
+  # Check ses are reasonable
+  expect_true(all(result[,"Std. Error"] > 0))
+  expect_true(all(result[,"Std. Error"] < max(mus) * 2))
+})
+
+test_that("predict.lme.morph handles edge cases in multiple predictions", {
+  # Setup
+  set.seed(1234)
+  pars <- c(290, 125, 75, 45, 25, 15, 0.75, 0.80, 0.85, 2.00, 1.50, 1.00, 0.40, 0.50, 0.60)
+  data <- sim.measurements(10, rep(5, 10), 3, pars)
+  fit <- fit.morph(data)
+
+  # Test single row newdata works same
+  single_newdata <- data.frame(dim2 = 130)
+  single_result <- predict.lme.morph(fit, y.dim = 1, newdata = single_newdata)
+  expect_equal(nrow(single_result), 1)
+
+  # Test large newdata
+  large_newdata <- data.frame(
+    dim2 = seq(100, 200, length.out = 100),
+    dim3 = seq(50, 100, length.out = 100)
+  )
+  large_result <- predict.lme.morph(fit, y.dim = 1, newdata = large_newdata)
+  expect_equal(nrow(large_result), 100)
+
+  # Test with na values (should error)
+  na_data <- data.frame(dim2 = c(130, NA, 140))
+  expect_error(
+    predict.lme.morph(fit, y.dim = 1, newdata = na_data),
+    "missing values"
+  )
+})
+
 # -------------------------------------------------------------------------------------------------------
 
 # predict.from.obs() tests

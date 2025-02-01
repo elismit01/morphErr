@@ -1,9 +1,8 @@
 #' Prediction Functions for morphErr
 #'
 #' This file contains functions for making predictions from fitted models:
-#' - calc.betas(): Calculates coefficients for predictions
-#' - predict.lme.morph(): Predicts measurements from fitted models
-#' - calc.conditional.ratio(): Calculates a ratio between dimensions, conditional on the denominator
+#' - predict.lme.morph(): Predicts measurements from fitted models using true measurements
+#' - predict.from.obs(): Predicts measurements from fitted models using observed measurements
 #'
 #' @name predict
 #' @keywords internal
@@ -116,15 +115,17 @@ calc.betas <- function(fit, est = NULL, stders = TRUE, y.dim, x.dim,
 #'
 #' @description
 #' Makes predictions for one dimension based on true measurements of other dimensions.
+#' Can handle multiple predictions simultaneously.
 #'
 #' @param object A fitted model object from fit.morph()
 #' @param y.dim Integer specifying which dimension to predict
 #' @param newdata A data frame of other dimensions to use for prediction. Column names
-#'        must be of the form "dimX" where X is the dimension number
+#'        must be of the form "dimX" where X is the dimension number. Can contain
+#'        multiple rows for multiple predictions.
 #' @param type Either "lm" or "pca" for prediction type
 #' @param ... Additional arguments passed to methods
 #'
-#' @return A matrix with Estimate and Std.Error columns
+#' @return A matrix with Estimate and Std.Error columns for each prediction
 #' @export
 predict.lme.morph <- function(object, y.dim, newdata = NULL, type = c("lm", "pca"), ...) {
   # Input validation
@@ -159,7 +160,12 @@ predict.lme.morph <- function(object, y.dim, newdata = NULL, type = c("lm", "pca
     stop("'newdata' must be a data frame with columns named 'dimX' where X is the dimension number")
   }
 
-  # Get predictor dimes
+  # Check for NA values
+  if (any(sapply(newdata, function(x) any(is.na(x))))) {
+    stop("newdata cannot contain missing values (NA)")
+  }
+
+  # Get predictor dims
   x.dim <- as.numeric(sapply(strsplit(colnames(newdata), "dim"), function(x) x[2]))
 
   # Get coeficients and vcov matrix
@@ -167,16 +173,20 @@ predict.lme.morph <- function(object, y.dim, newdata = NULL, type = c("lm", "pca
   vcov.obj <- calc.betas(fit = object, y.dim = y.dim, x.dim = x.dim, type = type, vcov = TRUE)
   vcov.mat <- vcov.obj$varcov
 
-  # Create pred matrix and calculate prediction
-  X <- as.matrix(cbind(1, newdata))
-  pred.est <- sum(betas[,"Estimate"] * c(1, unlist(newdata)))
+  # Create design matrix for all preds
+  n_preds <- nrow(newdata)
+  X <- cbind(1, as.matrix(newdata))
 
-  # Calculate se w/delta method
-  X.mat <- matrix(c(1, unlist(newdata)), nrow = 1)
-  pred.se <- sqrt(X.mat %*% vcov.mat %*% t(X.mat))
+  # Calculate preds for all rows
+  pred.est <- X %*% betas[,"Estimate"]
 
-  result <- matrix(c(pred.est, pred.se), nrow = 1)
+  # Calculate se for all predictions
+  pred.se <- sqrt(diag(X %*% vcov.mat %*% t(X)))
+
+  # Combine
+  result <- cbind(pred.est, pred.se)
   colnames(result) <- c("Estimate", "Std. Error")
+
   return(result)
 }
 
