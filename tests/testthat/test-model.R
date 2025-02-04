@@ -77,7 +77,7 @@ test_that("fit.morph handles inputs correctly", {
   )
 
   # Test basic model fit
-  fit <- suppressWarnings(fit.morph(test_data))
+  fit <- fit.morph(test_data)
 
   # Check class
   expect_s3_class(fit, "lme.morph")
@@ -87,6 +87,6 @@ test_that("fit.morph handles inputs correctly", {
   expect_false(fit$intercept)
 
   # Test with intercept
-  fit_int <- suppressWarnings(fit.morph(test_data, intercept = TRUE))
+  fit_int <- fit.morph(test_data, intercept = TRUE)
   expect_true(fit_int$intercept)
 })

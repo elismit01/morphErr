@@ -159,7 +159,7 @@ sim.morph <- function(n.sims, n.animals, n.photos, mus, sigmas, rhos, psis, phis
   # Function for parallel processing
   sim_one <- function(x, n.animals, n.photos, m, pars, method){
     data <- sim.measurements(n.animals, n.photos, m, pars)
-    suppressWarnings(fit.morph(data, method = method))
+    fit.morph(data, method = method)
   }
 
   # Running simulations

@@ -231,7 +231,6 @@ plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
     # Add lines if requested
     if (line.type != "none") {
       # Get coefficients + check they exist
-      suppressWarnings({
         if (line.type == "lm") {
           betas <- summary(x, type = "betas",
                            y.dim = dims[2], x.dim = dims[1])
@@ -264,9 +263,9 @@ plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
 
             # Get preds
             preds <- if (line.type == "lm") {
-              suppressWarnings(predict(x, y.dim = dims[2], true_measurements = newdata))
+              predict(x, y.dim = dims[2], true_measurements = newdata)
             } else {
-              suppressWarnings(predict(x, y.dim = dims[2], true_measurements = newdata, type = "pca"))
+              predict(x, y.dim = dims[2], true_measurements = newdata, type = "pca")
             }
 
             # Only add lines if gt valid preds
@@ -275,10 +274,9 @@ plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
               preds.lower <- preds[, 1] - qnorm(0.975)*preds[, 2]
               lines(dim1.xx, preds.upper, lty = "dotted")
               lines(dim1.xx, preds.lower, lty = "dotted")
-            }
           }
         }
-      })
+      }
     }
   } else if (type == "ratio") {
     if (!add) {
@@ -292,7 +290,6 @@ plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
 
     if (line.type != "none") {
       xx <- seq(xlim[1], xlim[2], length.out = 1000)
-      suppressWarnings({
         preds <- calc.conditional.ratio(x, y.dim = dims[2],
                                         x.dim = dims[1],
                                         newdata.x.dim = xx,
@@ -307,9 +304,8 @@ plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
                   lty = "dotted")
           }
         }
-      })
+      }
     }
-  }
 
   invisible(NULL)
 }
