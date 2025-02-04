@@ -69,7 +69,7 @@ test_that("plot.morph handles edge cases", {
 test_that("plot.lme.morph creates basic plots correctly", {
   # Create and fit test data
   test_data <- create_test_data()
-  fit <- suppressWarnings(fit.morph(test_data))
+  fit <- fit.morph(test_data)
 
   # Test different plot types
   expect_silent(plot(fit, type = "data"))
@@ -83,7 +83,7 @@ test_that("plot.lme.morph creates basic plots correctly", {
 test_that("plot.lme.morph handles line overlays", {
   # Create and fit test data
   test_data <- create_test_data()
-  fit <- suppressWarnings(fit.morph(test_data))
+  fit <- fit.morph(test_data)
 
   # Test different line types
   expect_silent(plot(fit, type = "data", line.type = "lm"))
@@ -96,7 +96,7 @@ test_that("plot.lme.morph handles line overlays", {
 test_that("plot.lme.morph handles adding to existing plots", {
   # Create + fit test data
   test_data <- create_test_data()
-  fit <- suppressWarnings(fit.morph(test_data))
+  fit <- fit.morph(test_data)
 
   # Test first plot
   expect_silent(plot(fit, type = "data", line.type = "lm"))
@@ -112,7 +112,7 @@ test_that("plot.lme.morph handles adding to existing plots", {
 test_that("plot.ratio.pdf creates valid plots", {
   # Test data
   test_data <- create_test_data()
-  fit <- suppressWarnings(fit.morph(test_data))
+  fit <- fit.morph(test_data)
 
   # Test basic plot creation
   expect_silent(plot.ratio.pdf(fit, 1, 2))

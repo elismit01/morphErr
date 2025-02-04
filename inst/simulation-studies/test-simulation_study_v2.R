@@ -21,7 +21,7 @@ test_that("morphometric simulation correctly implements Ben's specifications", {
   data <- sim.measurements(n.animals, rep(n.photos, n.animals), m, true_pars)
 
   # Fit model
-  fit <- suppressWarnings(fit.morph(data))
+  fit <- fit.morph(data)
 
   # 1. Test parameter recovery
   estimates <- summary(fit)

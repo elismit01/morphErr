@@ -133,9 +133,7 @@ test_that("calc.mean.ratios produces expected results", {
   )
 
   # Fit model to test data
-  suppressWarnings({
     fit <- fit.morph(test_data)
-  })
 
   # First test group: basic output structure
   result <- calc.mean.ratios(fit)
@@ -189,9 +187,7 @@ test_that("calc.conditional.ratio produces expected results", {
   )
 
   # Fit model to test data
-  suppressWarnings({
     fit <- fit.morph(test_data)
-  })
 
   # Test basic functionality for lm
   newdata <- seq(100, 300, length.out = 5)
@@ -256,9 +252,7 @@ test_that("calc.conditional.ratio handles edge cases", {
              0.2, 0.2, 0.2) # Smaller measurement correlations
   )
 
-  suppressWarnings({
     fit <- fit.morph(test_data)
-  })
 
   # Test w/moderate x vals
   test_x <- c(75, 150)
