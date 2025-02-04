@@ -19,46 +19,51 @@ cat("Starting simulation study...\n")
 
 run_simulation_study <- function() {
   cat("Initialising simulation study\n")
-
-  # Storage for results
   results <- list()
 
   # Loop through sample sizes
   for(n_animals in SAMPLE_SIZES) {
     cat(sprintf("\nRunning simulations for %d animals...\n", n_animals))
 
-    # Storag for this sample size
+    # Run simulations using sim.morph
+    sim_results <- sim.morph(
+      n.sims = N_SIMS,
+      n.animals = n_animals,
+      n.photos = N_PHOTOS,
+      mus = TRUE_PARAMS$mus,
+      sigmas = TRUE_PARAMS$sigmas,
+      rhos = TRUE_PARAMS$rhos,
+      psis = TRUE_PARAMS$psis,
+      phis = TRUE_PARAMS$phis,
+      progressbar = TRUE
+    )
+
+    # Storage for sample size
     size_results <- list(
       parameter_estimates = matrix(NA, nrow = N_SIMS, ncol = 15),
-      # Add storage for ses:
       parameter_ses = matrix(NA, nrow = N_SIMS, ncol = 15),
-      # Track ci coverage:
       ci_coverage = matrix(FALSE, nrow = N_SIMS, ncol = 15),
       isometry_tests = matrix(NA, nrow = N_SIMS, ncol = 3)
     )
 
-    # Run sims for this sample size
+    # Proces each sim
+    true_pars <- c(TRUE_PARAMS$mus, TRUE_PARAMS$sigmas,
+                   TRUE_PARAMS$rhos, TRUE_PARAMS$psis, TRUE_PARAMS$phis)
+
     for(i in 1:N_SIMS) {
-      if(i %% 100 == 0) cat(sprintf("  Simulation %d of %d\n", i, N_SIMS))
+      if(i %% 100 == 0) cat(sprintf("  Processing simulation %d of %d\n", i, N_SIMS))
 
-      # Generate data
-      true_pars <- c(TRUE_PARAMS$mus, TRUE_PARAMS$sigmas,
-                     TRUE_PARAMS$rhos, TRUE_PARAMS$psis, TRUE_PARAMS$phis)
-      data <- sim.measurements(n_animals, rep(N_PHOTOS, n_animals), m = 3, true_pars)
+      # Get fit from sim.morph results
+      fit <- sim_results$fits[[i]]
 
-      # Fit model
-      fit <- suppressWarnings(fit.morph(data))
-
-      # Get sumary with estimates + ses
+      # Get summary with estimates + ses
       fit_summary <- summary(fit)
 
       # Store parameter estimates + ses
-      # Estimates:
       size_results$parameter_estimates[i,] <- fit_summary[,1]
-      # Ses:
       size_results$parameter_ses[i,] <- fit_summary[,2]
 
-      # Check if true vals fall within 95% cis
+      # Check if true vals fall within 95% CIs
       lower_ci <- fit_summary[,1] - 1.96 * fit_summary[,2]
       upper_ci <- fit_summary[,1] + 1.96 * fit_summary[,2]
       size_results$ci_coverage[i,] <- true_pars >= lower_ci & true_pars <= upper_ci
@@ -78,25 +83,17 @@ run_simulation_study <- function() {
     # Calculate summary stats
     results[[as.character(n_animals)]] <- list(
       sample_size = n_animals,
-      # Original summary stats
       parameter_bias = colMeans(size_results$parameter_estimates) - true_pars,
       parameter_rmse = sqrt(colMeans((size_results$parameter_estimates - true_pars)^2)),
-
-      # New CI coverage summaries (prop of times true value in CI)
       ci_coverage = colMeans(size_results$ci_coverage),
-
-      # Isometry test summaries
       isometry_power = c(
-        # Type I error rate for 2vs3 (should be ~0.05):
         mean(size_results$isometry_tests[,1] < 0.05),
-        # Power for 1vs2:
         mean(size_results$isometry_tests[,2] < 0.05),
-        # Power for 1v3:
         mean(size_results$isometry_tests[,3] < 0.05)
       )
     )
 
-    # Print summary for sample size
+    # Summary for sample size
     cat(sprintf("\nResults for n = %d:\n", n_animals))
     cat("\nParameter Coverage Probabilities (should be close to 0.95):\n")
     names(results[[as.character(n_animals)]]$ci_coverage) <-
@@ -129,7 +126,7 @@ run_simulation_study <- function() {
   return(results)
 }
 
-# Run the study if this file is run directly
+# Run study if file is run directly
 if (sys.nframe() == 0 || interactive()) {
   cat("Starting to run simulation study...\n")
   results <- run_simulation_study()
