@@ -173,7 +173,7 @@ fit.morph <- function(data, method = "REML", intercept = FALSE){
                    correlation = nlme::corSymm(form = ~ 1 | animal.id / photo.id),
                    weights = nlme::varIdent(form = ~ 1 | dim),
                    data = gdata,
-                   control = nlme::lmeControl(maxIter = 10000, msMaxIter = 10000),
+                   control = nlme::lmeControl(maxIter = 100000, msMaxIter = 100000),
                    method = method)
 
   # Add additional attributes
