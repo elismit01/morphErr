@@ -159,7 +159,7 @@ sim.morph <- function(n.sims, n.animals, n.photos, mus, sigmas, rhos, psis, phis
   # Function for parallel processing
   sim_one <- function(x, n.animals, n.photos, m, pars, method){
     data <- sim.measurements(n.animals, n.photos, m, pars)
-    suppressWarnings(fit.morph(data, method = method))
+    try(fit.morph(data, method = method), silent = TRUE)
   }
 
   # Running simulations
@@ -198,7 +198,12 @@ sim.morph <- function(n.sims, n.animals, n.photos, mus, sigmas, rhos, psis, phis
     phis = phis,
     method = method
   )
-
+  converged <- sapply(fits, function(x) class(x)[1] != "try-error")
+  n.not.converged <- sum(!converged)
+  if (n.not.converged > 0){
+      warning(paste0("A total of ", n.not.converged, " model ", ifelse(n.not.converged == 1, "fit", "fits"), " did not converge and ", ifelse(n.not.converged == 1, "has", "have"), " been omitted from the simulation results."))
+      fits <- fits[converged]
+  }
   out <- list(settings = settings, fits = fits)
   class(out) <- "lme.morph.sim"
   out
