@@ -35,13 +35,13 @@ NULL
 #'   }
 #'
 #' @examples
-#' # Simulate data for 2 animals, 2 photos each, measuring 2 dimensions
-#' pars <- c(100, 50, # means for dimensions 1 and 2
-#'           10, 5,  # standard deviations
-#'           0.7,  # correlation between dimensions
-#'           1, 0.5, # measurement error SDs
-#'           0.3)   # measurement error correlation
-#' data <- sim.measurements(2, rep(2, 2), 2, pars)
+#' # Simulate data for 2 animals, 2 photos each, measuring 3 dimensions
+#' pars <- c(315, 150, 100,  # means for dimensions 1, 2, and 3
+#'           25, 15, 10,  # standard deviations
+#'           0.85, 0.80, 0.75,  # correlations between dimensions
+#'           10, 6, 4,  # measurement error SDs
+#'           0.5, 0.4, 0.3) # measurement error correlations
+#' data <- sim.measurements(2, rep(2, 2), 3, pars)
 #'
 #' @export
 sim.measurements <- function(n.animals, n.photos, m, pars){
@@ -114,11 +114,11 @@ sim.measurements <- function(n.animals, n.photos, m, pars){
 #'   n.sims = 5,
 #'   n.animals = 10,
 #'   n.photos = 3,
-#'   mus = c(100, 50),
-#'   sigmas = c(10, 5),
-#'   rhos = 0.7,
-#'   psis = c(1, 0.5),
-#'   phis = 0.3,
+#'   mus = c(315, 150, 100),
+#'   sigmas = c(25, 15, 10),
+#'   rhos = c(0.85, 0.80, 0.75),
+#'   psis = c(10, 6, 4),
+#'   phis = c(0.5, 0.4, 0.3),
 #'   method = "REML",
 #'   n.cores = 1
 #' )
@@ -228,11 +228,11 @@ sim.morph <- function(n.sims, n.animals, n.photos, mus, sigmas, rhos, psis, phis
 #'   n.sims = 5,
 #'   n.animals = 10,
 #'   n.photos = 3,
-#'   mus = c(100, 50),
-#'   sigmas = c(10, 5),
-#'   rhos = 0.7,
-#'   psis = c(1, 0.5),
-#'   phis = 0.3
+#'   mus = c(315, 150, 100),
+#'   sigmas = c(25, 15, 10),
+#'   rhos = c(0.85, 0.80, 0.75),
+#'   psis = c(10, 6, 4),
+#'   phis = c(0.5, 0.4, 0.3)
 #' )
 #'
 #' # Extract summaries

@@ -269,3 +269,4 @@ test_that("calc.conditional.ratio handles edge cases", {
   expect_equal(nrow(result_single), 1)
   expect_true(all(is.finite(result_single)))
 })
+

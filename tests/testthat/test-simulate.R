@@ -2,28 +2,28 @@
 
 test_that("sim.measurements handles inputs correctly", {
   # Test 1: basic functionality with equal photos
-  pars <- c(100, 50,  # means
-            10, 5,  # SDs
-            0.7,  # correlation
-            1, 0.5,  # measurement SDs
-            0.3) # measurement correlation
+  pars = c(315, 150, 100,    # means
+           25, 15, 10,       # SDs
+           0.85, 0.80, 0.75,  # correlations
+           10, 6, 4,    # measurement SDs
+           0.5, 0.4, 0.3)  # measurement correlations
 
   # 3 animals, 2 photos each:
-  data1 <- sim.measurements(3, 2, 2, pars)
+  data1 <- sim.measurements(3, 2, 3, pars)
 
   # Basic structure checkss
   expect_s3_class(data1, "data.frame")
   expect_named(data1, c("animal.id", "photo.id", "dim", "measurement"))
-  expect_equal(nrow(data1), 3 * 2 * 2)  # n_animals * n_photos * n_dims
+  expect_equal(nrow(data1), 3 * 2 * 3)  # n_animals * n_photos * n_dims
 
   # Test 2: dif numbers of photos per animal
   n_photos <- c(2, 3, 1)
-  data2 <- sim.measurements(3, n_photos, 2, pars)
-  expect_equal(nrow(data2), sum(n_photos) * 2)  # total_photos * n_dims
+  data2 <- sim.measurements(3, n_photos, 3, pars)
+  expect_equal(nrow(data2), sum(n_photos) * 3)  # total_photos * n_dims
 
   # Test 3: error handling
   expect_error(
-    sim.measurements(2, c(2, 2, 2), 2, pars),
+    sim.measurements(2, c(2, 2, 2), 3, pars),
     "length of 'n.photos' should be equal to 'n.animals'"
   )
 })
@@ -35,13 +35,13 @@ test_that("sim.measurements handles inputs correctly", {
 test_that("sim.morph runs simulations correctly", {
   # Set up small simulation
   n.sims <- 2
-  n.animals <- 3
-  n.photos <- 2
-  mus <- c(100, 50)
-  sigmas <- c(10, 5)
-  rhos <- 0.7
-  psis <- c(1, 0.5)
-  phis <- 0.3
+  n.animals <- 5
+  n.photos <- rep(3,5)
+  mus <- c(315, 150, 100)
+  sigmas <- c(25, 15, 10)
+  rhos <- c(0.85, 0.80, 0.75)
+  psis <- c(10, 6, 4)
+  phis <- c(0.5, 0.4, 0.3)
 
   # Run simulation
   set.seed(123)
@@ -72,8 +72,8 @@ test_that("sim.morph runs simulations correctly", {
   # Test error handling
   expect_error(
     sim.morph(n.sims = 2, n.animals = 3, n.photos = 2,
-              mus = c(100, 50), sigmas = c(10), rhos = 0.7,
-              psis = c(1, 0.5), phis = 0.3),
+              mus = c(315, 150, 100), sigmas =  c(25, 15), rhos = c(0.85, 0.80, 0.75),
+              psis = c(10, 6, 4), phis = c(0.5, 0.4, 0.3)),
     "The 'sigmas' argument must have an element for each dimension"
   )
 })
@@ -87,13 +87,13 @@ test_that("extract.sim.morph works correctly", {
   set.seed(123)
   sim_result <- sim.morph(
     n.sims = 2,
-    n.animals = 3,
-    n.photos = 2,
-    mus = c(100, 50),
-    sigmas = c(10, 5),
-    rhos = 0.7,
-    psis = c(1, 0.5),
-    phis = 0.3,
+    n.animals = 5,
+    n.photos = rep(3,5),
+    mus = c(315, 150, 100),
+    sigmas = c(25, 15, 10),
+    rhos = c(0.85, 0.80, 0.75),
+    psis = c(10, 6, 4),
+    phis = c(0.5, 0.4, 0.3),
     progressbar = FALSE
   )
 

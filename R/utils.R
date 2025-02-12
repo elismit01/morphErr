@@ -158,7 +158,7 @@ vcov.lme.morph <- function(object) {
                                      "))"))
       } else {
         est[k] <- 0
-        g[[k]] <- reformulate("x1*0")  # Safe dummy formula
+        g[[k]] <- reformulate("x1*0")
       }
       k <- k + 1
     }
@@ -199,7 +199,7 @@ vcov.lme.morph <- function(object) {
         g[[k]] <- reformulate(paste0("x", which.orig.name.cor))
       } else {
         est[k] <- 0
-        g[[k]] <- reformulate("x1*0")  # Safe dummy formula
+        g[[k]] <- reformulate("x1*0")
       }
       l <- l + 1
       k <- k + 1

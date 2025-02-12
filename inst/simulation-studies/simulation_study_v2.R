@@ -11,9 +11,9 @@ TRUE_PARAMS <- list(
 # Numbsimulations per sample size:
 N_SIMS <- 1000
 # Num picc per animal
-N_PHOTOS <- 5
+N_PHOTOS <- 2
 # Dif nums of animals to test
-SAMPLE_SIZES <- c(20, 50, 100, 200)
+SAMPLE_SIZES <- c(10, 25, 50, 100)
 
 cat("Starting simulation study...\n")
 

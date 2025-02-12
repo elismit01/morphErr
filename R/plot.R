@@ -36,11 +36,11 @@ NULL
 #'   n.animals = 5,
 #'   n.photos = rep(3, 5),
 #'   m = 3,
-#'   pars = c(290, 125, 75,    # means
-#'            45, 25, 15,       # SDs
-#'            0.75, 0.80, 0.85,  # correlations
-#'            2.0, 1.5, 1.0,    # measurement SDs
-#'            0.4, 0.5, 0.6)  # measurement correlations
+#'   pars = c(315, 150, 100,    # means
+#'            25, 15, 10,       # SDs
+#'            0.85, 0.80, 0.75,  # correlations
+#'            10, 6, 4,    # measurement SDs
+#'            0.5, 0.4, 0.3)  # measurement correlations
 #' )
 #'
 #' # Basic scatter plot
@@ -231,49 +231,49 @@ plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
     # Add lines if requested
     if (line.type != "none") {
       # Get coefficients + check they exist
-        if (line.type == "lm") {
-          betas <- summary(x, type = "betas",
-                           y.dim = dims[2], x.dim = dims[1])
-        } else if (line.type == "pca") {
-          betas <- summary(x, type = "betas-pca",
-                           y.dim = dims[2], x.dim = dims[1])
+      if (line.type == "lm") {
+        betas <- summary(x, type = "betas",
+                         y.dim = dims[2], x.dim = dims[1])
+      } else if (line.type == "pca") {
+        betas <- summary(x, type = "betas-pca",
+                         y.dim = dims[2], x.dim = dims[1])
+      }
+
+      if (!is.matrix(betas) || nrow(betas) < 2) {
+        return(invisible())
+      }
+
+      # Draw line (if coefs valid)
+      if (!is.na(betas[1,1]) && !is.na(betas[2,1]) && betas[2,1] != 0) {
+        # First main line
+        if (reverse.axes) {
+          abline(-betas[1, 1]/betas[2, 1], 1/betas[2, 1], ...)
+        } else {
+          abline(betas[1:2, 1], ...)
         }
 
-        if (!is.matrix(betas) || nrow(betas) < 2) {
-          return(invisible())
-        }
+        # Add confidence intervals if request
+        if (confints) {
+          # Sequence of x values
+          dim1.xx <- seq(xlim[1], xlim[2], length.out = 1000)
 
-        # Draw line (if coefs valid)
-        if (!is.na(betas[1,1]) && !is.na(betas[2,1]) && betas[2,1] != 0) {
-          # First main line
-          if (reverse.axes) {
-            abline(-betas[1, 1]/betas[2, 1], 1/betas[2, 1], ...)
+          # Prediction data frame
+          newdata <- data.frame(x = dim1.xx)
+          names(newdata) <- paste0("dim", dims[1])
+
+          # Get preds
+          preds <- if (line.type == "lm") {
+            predict(x, y.dim = dims[2], true_measurements = newdata)
           } else {
-            abline(betas[1:2, 1], ...)
+            predict(x, y.dim = dims[2], true_measurements = newdata, type = "pca")
           }
 
-          # Add confidence intervals if request
-          if (confints) {
-            # Sequence of x values
-            dim1.xx <- seq(xlim[1], xlim[2], length.out = 1000)
-
-            # Prediction data frame
-            newdata <- data.frame(x = dim1.xx)
-            names(newdata) <- paste0("dim", dims[1])
-
-            # Get preds
-            preds <- if (line.type == "lm") {
-              predict(x, y.dim = dims[2], true_measurements = newdata)
-            } else {
-              predict(x, y.dim = dims[2], true_measurements = newdata, type = "pca")
-            }
-
-            # Only add lines if gt valid preds
-            if (is.matrix(preds) && nrow(preds) == length(dim1.xx)) {
-              preds.upper <- preds[, 1] + qnorm(0.975)*preds[, 2]
-              preds.lower <- preds[, 1] - qnorm(0.975)*preds[, 2]
-              lines(dim1.xx, preds.upper, lty = "dotted")
-              lines(dim1.xx, preds.lower, lty = "dotted")
+          # Only add lines if gt valid preds
+          if (is.matrix(preds) && nrow(preds) == length(dim1.xx)) {
+            preds.upper <- preds[, 1] + qnorm(0.975)*preds[, 2]
+            preds.lower <- preds[, 1] - qnorm(0.975)*preds[, 2]
+            lines(dim1.xx, preds.upper, lty = "dotted")
+            lines(dim1.xx, preds.lower, lty = "dotted")
           }
         }
       }
@@ -290,22 +290,22 @@ plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
 
     if (line.type != "none") {
       xx <- seq(xlim[1], xlim[2], length.out = 1000)
-        preds <- calc.conditional.ratio(x, y.dim = dims[2],
-                                        x.dim = dims[1],
-                                        newdata.x.dim = xx,
-                                        type = line.type)
-        if (is.matrix(preds)) {
-          lines(xx, preds[, 1])
+      preds <- calc.conditional.ratio(x, y.dim = dims[2],
+                                      x.dim = dims[1],
+                                      newdata.x.dim = xx,
+                                      type = line.type)
+      if (is.matrix(preds)) {
+        lines(xx, preds[, 1])
 
-          if (confints) {
-            lines(xx, preds[, 1] + qnorm(0.975)*preds[, 2],
-                  lty = "dotted")
-            lines(xx, preds[, 1] - qnorm(0.975)*preds[, 2],
-                  lty = "dotted")
-          }
+        if (confints) {
+          lines(xx, preds[, 1] + qnorm(0.975)*preds[, 2],
+                lty = "dotted")
+          lines(xx, preds[, 1] - qnorm(0.975)*preds[, 2],
+                lty = "dotted")
         }
       }
     }
+  }
 
   invisible(NULL)
 }
@@ -329,11 +329,11 @@ plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
 #'   n.animals = 10,
 #'   n.photos = rep(3, 10),
 #'   m = 3,
-#'   pars = c(290, 125, 75,    # means
-#'            45, 25, 15,       # SDs
-#'            0.75, 0.80, 0.85,  # correlations
-#'            2.0, 1.5, 1.0,    # measurement SDs
-#'            0.4, 0.5, 0.6)  # measurement correlations
+#'   pars = c(315, 150, 100,    # means
+#'            25, 15, 10,       # SDs
+#'            0.85, 0.80, 0.75,  # correlations
+#'            10, 6, 4,    # measurement SDs
+#'            0.5, 0.4, 0.3)  # measurement correlations
 #' )
 #'
 #' # Fit model and plot ratio PDF
@@ -416,5 +416,3 @@ plot.ratio.pdf <- function(x, dim1, dim2) {
 
   invisible(NULL)
 }
-
-

@@ -3,11 +3,11 @@
 test_that("calc.betas handles input validation", {
   # Test data
   set.seed(1234)
-  mus <- c(290, 125, 75)
-  sigmas <- c(45, 25, 15)
-  rhos <- c(0.75, 0.80, 0.85)
-  psis <- c(2.00, 1.50, 1.00)
-  phis <- c(0.40, 0.50, 0.60)
+  mus <- c(315, 150, 100)
+  sigmas <- c(25, 15, 10)
+  rhos <- c(0.85, 0.80, 0.75)
+  psis <- c(10, 6, 4)
+  phis <- c(0.5, 0.4, 0.3)
   pars <- c(mus, sigmas, rhos, psis, phis)
 
   data <- sim.measurements(10, rep(5, 10), 3, pars)
@@ -29,11 +29,11 @@ test_that("calc.betas handles input validation", {
 test_that("calc.betas handles different types correctly", {
   # Test data setup (using the same)
   set.seed(1234)
-  mus <- c(290, 125, 75)
-  sigmas <- c(45, 25, 15)
-  rhos <- c(0.75, 0.80, 0.85)
-  psis <- c(2.00, 1.50, 1.00)
-  phis <- c(0.40, 0.50, 0.60)
+  mus <- c(315, 150, 100)
+  sigmas <- c(25, 15, 10)
+  rhos <- c(0.85, 0.80, 0.75)
+  psis <- c(10, 6, 4)
+  phis <- c(0.5, 0.4, 0.3)
   pars <- c(mus, sigmas, rhos, psis, phis)
 
   data <- sim.measurements(10, rep(5, 10), 3, pars)
@@ -57,11 +57,11 @@ test_that("calc.betas handles different types correctly", {
 test_that("predict.lme.morph handles input validation correctly", {
   # Data setup
   set.seed(1234)
-  mus <- c(290, 125, 75)
-  sigmas <- c(45, 25, 15)
-  rhos <- c(0.75, 0.80, 0.85)
-  psis <- c(2.00, 1.50, 1.00)
-  phis <- c(0.40, 0.50, 0.60)
+  mus <- c(315, 150, 100)
+  sigmas <- c(25, 15, 10)
+  rhos <- c(0.85, 0.80, 0.75)
+  psis <- c(10, 6, 4)
+  phis <- c(0.5, 0.4, 0.3)
   pars <- c(mus, sigmas, rhos, psis, phis)
 
   data <- sim.measurements(10, rep(5, 10), 3, pars)
@@ -91,11 +91,11 @@ test_that("predict.lme.morph handles input validation correctly", {
 test_that("predict.lme.morph handles predictions correctly", {
   # Data setup
   set.seed(1234)
-  mus <- c(290, 125, 75)
-  sigmas <- c(45, 25, 15)
-  rhos <- c(0.75, 0.80, 0.85)
-  psis <- c(2.00, 1.50, 1.00)
-  phis <- c(0.40, 0.50, 0.60)
+  mus <- c(315, 150, 100)
+  sigmas <- c(25, 15, 10)
+  rhos <- c(0.85, 0.80, 0.75)
+  psis <- c(10, 6, 4)
+  phis <- c(0.5, 0.4, 0.3)
   pars <- c(mus, sigmas, rhos, psis, phis)
 
   data <- sim.measurements(10, rep(5, 10), 3, pars)
@@ -119,11 +119,11 @@ test_that("predict.lme.morph handles predictions correctly", {
 test_that("predict.lme.morph handles no measurements case correctly", {
   # Setup
   set.seed(1234)
-  mus <- c(290, 125, 75)
-  sigmas <- c(45, 25, 15)
-  rhos <- c(0.75, 0.80, 0.85)
-  psis <- c(2.00, 1.50, 1.00)
-  phis <- c(0.40, 0.50, 0.60)
+  mus <- c(315, 150, 100)
+  sigmas <- c(25, 15, 10)
+  rhos <- c(0.85, 0.80, 0.75)
+  psis <- c(10, 6, 4)
+  phis <- c(0.5, 0.4, 0.3)
   pars <- c(mus, sigmas, rhos, psis, phis)
 
   data <- sim.measurements(10, rep(5, 10), 3, pars)
@@ -143,11 +143,11 @@ test_that("predict.lme.morph handles no measurements case correctly", {
 test_that("predict.lme.morph calculates standard errors correctly", {
   # Setup
   set.seed(1234)
-  mus <- c(290, 125, 75)
-  sigmas <- c(45, 25, 15)
-  rhos <- c(0.75, 0.80, 0.85)
-  psis <- c(2.00, 1.50, 1.00)
-  phis <- c(0.40, 0.50, 0.60)
+  mus <- c(315, 150, 100)
+  sigmas <- c(25, 15, 10)
+  rhos <- c(0.85, 0.80, 0.75)
+  psis <- c(10, 6, 4)
+  phis <- c(0.5, 0.4, 0.3)
   pars <- c(mus, sigmas, rhos, psis, phis)
 
   data <- sim.measurements(10, rep(5, 10), 3, pars)
@@ -166,11 +166,11 @@ test_that("predict.lme.morph calculates standard errors correctly", {
 test_that("predict.lme.morph handles multiple predictions correctly", {
   # Setup
   set.seed(1234)
-  mus <- c(290, 125, 75)
-  sigmas <- c(45, 25, 15)
-  rhos <- c(0.75, 0.80, 0.85)
-  psis <- c(2.00, 1.50, 1.00)
-  phis <- c(0.40, 0.50, 0.60)
+  mus <- c(315, 150, 100)
+  sigmas <- c(25, 15, 10)
+  rhos <- c(0.85, 0.80, 0.75)
+  psis <- c(10, 6, 4)
+  phis <- c(0.5, 0.4, 0.3)
   pars <- c(mus, sigmas, rhos, psis, phis)
 
   data <- sim.measurements(10, rep(5, 10), 3, pars)
@@ -201,7 +201,11 @@ test_that("predict.lme.morph handles multiple predictions correctly", {
 test_that("predict.lme.morph handles edge cases in multiple predictions", {
   # Setup
   set.seed(1234)
-  pars <- c(290, 125, 75, 45, 25, 15, 0.75, 0.80, 0.85, 2.00, 1.50, 1.00, 0.40, 0.50, 0.60)
+  pars = c(315, 150, 100,    # means
+           25, 15, 10,       # SDs
+           0.85, 0.80, 0.75,  # correlations
+           10, 6, 4,    # measurement SDs
+           0.5, 0.4, 0.3)  # measurement correlations
   data <- sim.measurements(10, rep(5, 10), 3, pars)
   fit <- fit.morph(data)
 
@@ -233,7 +237,11 @@ test_that("predict.lme.morph handles edge cases in multiple predictions", {
 test_that("predict.from.obs handles input validation correctly", {
   # Setup
   set.seed(1234)
-  pars <- c(290, 125, 75, 45, 25, 15, 0.75, 0.80, 0.85, 2.00, 1.50, 1.00, 0.40, 0.50, 0.60)
+  pars = c(315, 150, 100,    # means
+           25, 15, 10,       # SDs
+           0.85, 0.80, 0.75,  # correlations
+           10, 6, 4,    # measurement SDs
+           0.5, 0.4, 0.3)  # measurement correlations
   data <- sim.measurements(10, rep(5, 10), 3, pars)
   fit <- fit.morph(data)
 
@@ -253,7 +261,7 @@ test_that("predict.from.obs handles input validation correctly", {
 
   # Test no dims to pred
   expect_error(
-    predict.from.obs(fit, true = c(290, 130, 75)),
+    predict.from.obs(fit, true = c(315, 150, 100)),
     "No dimensions to predict"
   )
 })
@@ -261,7 +269,11 @@ test_that("predict.from.obs handles input validation correctly", {
 test_that("predict.from.obs handles predictions correctly", {
   # Setup
   set.seed(1234)
-  pars <- c(290, 125, 75, 45, 25, 15, 0.75, 0.80, 0.85, 2.00, 1.50, 1.00, 0.40, 0.50, 0.60)
+  pars = c(315, 150, 100,    # means
+           25, 15, 10,       # SDs
+           0.85, 0.80, 0.75,  # correlations
+           10, 6, 4,    # measurement SDs
+           0.5, 0.4, 0.3)  # measurement correlations
   data <- sim.measurements(10, rep(5, 10), 3, pars)
   fit <- fit.morph(data)
 

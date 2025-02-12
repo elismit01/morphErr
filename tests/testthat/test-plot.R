@@ -5,11 +5,11 @@ create_test_data <- function() {
     n.animals = 10,
     n.photos = 3,
     m = 3,
-    pars = c(290, 125, 75,    # means
-             45, 25, 15,       # SDs
-             0.75, 0.80, 0.85,  # correlations
-             2.0, 1.5, 1.0,    # measurement SDs
-             0.4, 0.5, 0.6)  # measurement correlations
+    pars = c(315, 150, 100,    # means
+             25, 15, 10,       # SDs
+             0.85, 0.80, 0.75,  # correlations
+             10, 6, 4,    # measurement SDs
+             0.5, 0.4, 0.3)  # measurement correlations
   )
 }
 
@@ -117,4 +117,3 @@ test_that("plot.ratio.pdf creates valid plots", {
   # Test basic plot creation
   expect_silent(plot.ratio.pdf(fit, 1, 2))
 })
-
