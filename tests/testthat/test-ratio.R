@@ -125,11 +125,11 @@ test_that("calc.mean.ratios produces expected results", {
     n.animals = 5,
     n.photos = rep(3, 5),
     m = 3,
-    pars = c(290, 125, 75,    # means
-             45, 25, 15,       # SDs
-             0.75, 0.80, 0.85,  # correlations
-             2.0, 1.5, 1.0,    # measurement SDs
-             0.4, 0.5, 0.6)  # measurement correlations
+    pars = c(315, 150, 100,    # means
+             25, 15, 10,       # SDs
+             0.85, 0.80, 0.75,  # correlations
+             10, 6, 4,    # measurement SDs
+             0.5, 0.4, 0.3)  # measurement correlations
   )
 
   # Fit model to test data
@@ -176,18 +176,18 @@ test_that("calc.mean.ratios produces expected results", {
 test_that("calc.conditional.ratio produces expected results", {
   # Test data
   test_data <- sim.measurements(
-    n.animals = 5,
-    n.photos = rep(3, 5),
+    n.animals = 50,
+    n.photos = rep(10, 50),
     m = 3,
-    pars = c(290, 125, 75,    # means
-             45, 25, 15,       # SDs
-             0.75, 0.80, 0.85,  # correlations
-             2.0, 1.5, 1.0,    # measurement SDs
-             0.4, 0.5, 0.6)  # measurement correlations
+    pars = c(315, 150, 100,    # means
+             25, 15, 10,       # SDs
+             0.85, 0.80, 0.75,  # correlations
+             10, 6, 4,    # measurement SDs
+             0.5, 0.4, 0.3)  # measurement correlations
   )
 
   # Fit model to test data
-    fit <- fit.morph(test_data)
+  fit <- fit.morph(test_data)
 
   # Test basic functionality for lm
   newdata <- seq(100, 300, length.out = 5)
