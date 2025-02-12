@@ -1,19 +1,19 @@
 # Parameters frm manuscript
 TRUE_PARAMS <- list(
-  mus = c(290, 125, 75),      # Mean dimensions
-  sigmas = c(45, 25, 15),     # Sd
-  rhos = c(0.75, 0.80, 0.85), # Corelations between dimensions
-  psis = c(2.0, 1.5, 1.0),    # Scale parameters
-  phis = c(0.4, 0.5, 0.6)    # Error parameters
+  mus = c(315, 150, 100),      # Mean dimensions
+  sigmas = c(25, 15, 10),     # Sd
+  rhos = c(0.85, 0.80, 0.75), # Corelations between dimensions
+  psis = c(10, 6, 4),    # Scale parameters
+  phis = c(0.5, 0.4, 0.3)    # Error parameters
 )
 
 # Simulation settings
 # Numbsimulations per sample size:
 N_SIMS <- 1000
 # Num picc per animal
-N_PHOTOS <- 2
+N_PHOTOS <- 3
 # Dif nums of animals to test
-SAMPLE_SIZES <- c(10, 25, 50, 100)
+SAMPLE_SIZES <- c(15, 25, 50, 100)
 
 cat("Starting simulation study...\n")
 
@@ -25,7 +25,7 @@ run_simulation_study <- function() {
   for(n_animals in SAMPLE_SIZES) {
     cat(sprintf("\nRunning simulations for %d animals...\n", n_animals))
 
-    # Run simulations using sim.morph
+    # Run sims using sim.morph w/parallel processing
     sim_results <- sim.morph(
       n.sims = N_SIMS,
       n.animals = n_animals,
@@ -35,65 +35,67 @@ run_simulation_study <- function() {
       rhos = TRUE_PARAMS$rhos,
       psis = TRUE_PARAMS$psis,
       phis = TRUE_PARAMS$phis,
+      n.cores = 4,
       progressbar = TRUE
     )
 
-    # Storage for sample size
-    size_results <- list(
-      parameter_estimates = matrix(NA, nrow = N_SIMS, ncol = 15),
-      parameter_ses = matrix(NA, nrow = N_SIMS, ncol = 15),
-      ci_coverage = matrix(FALSE, nrow = N_SIMS, ncol = 15),
-      isometry_tests = matrix(NA, nrow = N_SIMS, ncol = 3)
-    )
+    # Use eficient extraction for param estimates + ses
+    parameter_estimates <- extract.sim.morph(sim_results, function(x) summary(x)[,1])
+    parameter_ses <- extract.sim.morph(sim_results, function(x) summary(x)[,2])
 
-    # Proces each sim
+    # Extract isometry tests efficiently
+    isometry_tests <- extract.sim.morph(sim_results, function(x) {
+      tests <- summary(x, type = "isometric-pca")
+      c(
+        # should be non-sig (isometric):
+        tests["dim2 vs dim3", "P-value"],
+        # should be sig (non-isometric):
+        tests["dim1 vs dim2", "P-value"],
+        # should be sig (non-isometric):
+        tests["dim1 vs dim3", "P-value"]
+      )
+    })
+
+    # Getdim relationships (LM + RMA)
+    dim_relationships <- extract.sim.morph(sim_results, function(x) {
+      # Get both interpretations for each pair
+      c(
+        # dims 2 vs 3 (should be isometric)
+        summary(x, type = "betas", y.dim = 2, x.dim = 3)[2,1],
+        summary(x, type = "betas-pca", y.dim = 2, x.dim = 3)[2,1],
+        # dims 1 vs 2 (non-isometric)
+        summary(x, type = "betas", y.dim = 1, x.dim = 2)[2,1],
+        summary(x, type = "betas-pca", y.dim = 1, x.dim = 2)[2,1],
+        # dims 1 vs 3 (non-isometric)
+        summary(x, type = "betas", y.dim = 1, x.dim = 3)[2,1],
+        summary(x, type = "betas-pca", y.dim = 1, x.dim = 3)[2,1]
+      )
+    })
+
+    # Process true params
     true_pars <- c(TRUE_PARAMS$mus, TRUE_PARAMS$sigmas,
                    TRUE_PARAMS$rhos, TRUE_PARAMS$psis, TRUE_PARAMS$phis)
 
-    for(i in 1:N_SIMS) {
-      if(i %% 100 == 0) cat(sprintf("  Processing simulation %d of %d\n", i, N_SIMS))
+    # Calculate ci + coverage
+    lower_ci <- parameter_estimates - 1.96 * parameter_ses
+    upper_ci <- parameter_estimates + 1.96 * parameter_ses
+    ci_coverage <- colMeans(true_pars >= lower_ci & true_pars <= upper_ci)
 
-      # Get fit from sim.morph results
-      fit <- sim_results$fits[[i]]
-
-      # Get summary with estimates + ses
-      fit_summary <- summary(fit)
-
-      # Store parameter estimates + ses
-      size_results$parameter_estimates[i,] <- fit_summary[,1]
-      size_results$parameter_ses[i,] <- fit_summary[,2]
-
-      # Check if true vals fall within 95% CIs
-      lower_ci <- fit_summary[,1] - 1.96 * fit_summary[,2]
-      upper_ci <- fit_summary[,1] + 1.96 * fit_summary[,2]
-      size_results$ci_coverage[i,] <- true_pars >= lower_ci & true_pars <= upper_ci
-
-      # Store isometry test results
-      isometry_tests <- summary(fit, type = "isometric-pca")
-      size_results$isometry_tests[i,] <- c(
-        # should be non-sig (dims 2&3 are isometric):
-        isometry_tests["dim2 vs dim3", "P-value"],
-        # should be sig (non-isometric):
-        isometry_tests["dim1 vs dim2", "P-value"],
-        # should be sig (non-isometric):
-        isometry_tests["dim1 vs dim3", "P-value"]
-      )
-    }
-
-    # Calculate summary stats
+    # Store results for this sample size
     results[[as.character(n_animals)]] <- list(
       sample_size = n_animals,
-      parameter_bias = colMeans(size_results$parameter_estimates) - true_pars,
-      parameter_rmse = sqrt(colMeans((size_results$parameter_estimates - true_pars)^2)),
-      ci_coverage = colMeans(size_results$ci_coverage),
+      parameter_bias = colMeans(parameter_estimates) - true_pars,
+      parameter_rmse = sqrt(colMeans((parameter_estimates - true_pars)^2)),
+      ci_coverage = ci_coverage,
       isometry_power = c(
-        mean(size_results$isometry_tests[,1] < 0.05),
-        mean(size_results$isometry_tests[,2] < 0.05),
-        mean(size_results$isometry_tests[,3] < 0.05)
-      )
+        mean(isometry_tests[,1] < 0.05),
+        mean(isometry_tests[,2] < 0.05),
+        mean(isometry_tests[,3] < 0.05)
+      ),
+      relationships = colMeans(dim_relationships)
     )
 
-    # Summary for sample size
+    # Print progress summary
     cat(sprintf("\nResults for n = %d:\n", n_animals))
     cat("\nParameter Coverage Probabilities (should be close to 0.95):\n")
     names(results[[as.character(n_animals)]]$ci_coverage) <-
@@ -109,6 +111,9 @@ run_simulation_study <- function() {
                 results[[as.character(n_animals)]]$isometry_power[2]))
     cat(sprintf("Power (1vs3): %.3f\n",
                 results[[as.character(n_animals)]]$isometry_power[3]))
+
+    cat("\nMean Dimension Relationships (LM then RMA for each pair):\n")
+    print(round(results[[as.character(n_animals)]]$relationships, 3))
   }
 
   # Add sim settings to results
