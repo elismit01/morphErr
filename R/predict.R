@@ -198,18 +198,43 @@ predict.lme.morph <- function(object, y.dim, newdata = NULL, type = c("lm", "pca
 #' Makes predictions by combining prior information with observed measurements that contain error.
 #'
 #' @param object A fitted model object from fit.morph()
-#' @param true A vector of true dimension measurements. Set elements to NA for dimensions to predict
-#' @param obs A matrix of observed measurements with error, where each row represents measurements
-#'        from one photograph. NA values allowed for missing measurements.
+#' @param ... Additional arguments:
+#'        \itemize{
+#'          \item true: A vector of true dimension measurements. Set elements to NA for dimensions to predict
+#'          \item obs: A matrix of observed measurements with error, where each row represents measurements
+#'                from one photograph. NA values allowed for missing measurements.
+#'        }
 #'
 #' @return A numeric vector of predictions for all dimensions
 #' @export
-predict.from.obs <- function(object, true, obs = NULL) {
+predict.from.obs <- function(object, ...) {
+  # Extract arguments from ...
+  args <- list(...)
+
+  # If first argument isn't named, assume it's 'true'
+  if (length(args) > 0 && is.null(names(args)[1])) {
+    true <- args[[1]]
+  } else {
+    true <- args$true
+  }
+
+  # If second argument isn't named, assume it's 'obs'
+  if (length(args) > 1 && is.null(names(args)[2])) {
+    obs <- args[[2]]
+  } else {
+    obs <- args$obs
+  }
+
   # Input validation
   if (!inherits(object, "lme.morph")) {
     stop("Invalid model object. Input must be a fitted model of class 'lme.morph'")
   }
 
+  if (is.null(true)) {
+    stop("'true' argument must be provided")
+  }
+
+  # Rest of function remains the same...
   # Get params
   vcov.obj <- object$vcov
   est <- vcov.obj$est

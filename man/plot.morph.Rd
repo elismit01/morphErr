@@ -4,19 +4,10 @@
 \alias{plot.morph}
 \title{Plot Morphometric Data}
 \usage{
-\method{plot}{morph}(
-  data,
-  dims = c(1, 2),
-  plot.data = TRUE,
-  xlim = NULL,
-  ylim = NULL,
-  ratios = FALSE,
-  xlab = NULL,
-  ylab = NULL
-)
+\method{plot}{morph}(x, ...)
 }
 \arguments{
-\item{data}{A data frame containing:
+\item{x}{A data frame containing:
 \itemize{
 \item animal.id: Factor indicating the animal
 \item photo.id: Factor indicating the photo
@@ -24,15 +15,14 @@
 \item measurement: The observed measurement
 }}
 
-\item{dims}{Integer vector of length 2, selecting which dimensions to plot}
-
-\item{plot.data}{Logical; if FALSE, the plotting area is set up but points aren't plotted}
-
-\item{xlim, ylim}{Numeric vectors of length 2 giving plot limits}
-
-\item{ratios}{Logical; if TRUE, y-axis represents the ratio between dimensions}
-
-\item{xlab, ylab}{Character strings giving axis labels}
+\item{...}{Additional arguments:
+\itemize{
+\item dims: Integer vector of length 2, selecting which dimensions to plot
+\item plot.data: Logical; if FALSE, the plotting area is set up but points aren't plotted
+\item xlim,ylim: Numeric vectors of length 2 giving plot limits
+\item ratios: Logical; if TRUE, y-axis represents the ratio between dimensions
+\item xlab,ylab: Character strings giving axis labels
+}}
 }
 \value{
 NULL (invisibly). Creates a plot as a side effect.
@@ -40,26 +30,4 @@ NULL (invisibly). Creates a plot as a side effect.
 \description{
 Creates scatter plots of morphometric measurements, with options for
 different dimension combinations and ratio calculations.
-}
-\examples{
-\dontrun{
-# Simulate some data
-data <- sim.measurements(
-  n.animals = 5,
-  n.photos = rep(3, 5),
-  m = 3,
-  pars = c(315, 150, 100,    # means
-           25, 15, 10,       # SDs
-           0.85, 0.80, 0.75,  # correlations
-           10, 6, 4,    # measurement SDs
-           0.5, 0.4, 0.3)  # measurement correlations
-)
-
-# Basic scatter plot
-plot.morph(data, dims = c(1, 2))
-
-# Plot with ratios
-plot.morph(data, dims = c(1, 2), ratios = TRUE)
-}
-
 }

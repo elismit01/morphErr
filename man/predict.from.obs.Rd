@@ -4,15 +4,17 @@
 \alias{predict.from.obs}
 \title{Predict measurements from observed measurements with error}
 \usage{
-\method{predict}{from.obs}(object, true, obs = NULL)
+\method{predict}{from.obs}(object, ...)
 }
 \arguments{
 \item{object}{A fitted model object from fit.morph()}
 
-\item{true}{A vector of true dimension measurements. Set elements to NA for dimensions to predict}
-
-\item{obs}{A matrix of observed measurements with error, where each row represents measurements
-from one photograph. NA values allowed for missing measurements.}
+\item{...}{Additional arguments:
+\itemize{
+\item true: A vector of true dimension measurements. Set elements to NA for dimensions to predict
+\item obs: A matrix of observed measurements with error, where each row represents measurements
+from one photograph. NA values allowed for missing measurements.
+}}
 }
 \value{
 A numeric vector of predictions for all dimensions

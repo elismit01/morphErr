@@ -14,54 +14,44 @@ NULL
 #' Creates scatter plots of morphometric measurements, with options for
 #' different dimension combinations and ratio calculations.
 #'
-#' @param data A data frame containing:
+#' @param x A data frame containing:
 #'   \itemize{
 #'     \item animal.id: Factor indicating the animal
 #'     \item photo.id: Factor indicating the photo
 #'     \item dim: Factor indicating the dimension
 #'     \item measurement: The observed measurement
 #'   }
-#' @param dims Integer vector of length 2, selecting which dimensions to plot
-#' @param plot.data Logical; if FALSE, the plotting area is set up but points aren't plotted
-#' @param xlim,ylim Numeric vectors of length 2 giving plot limits
-#' @param ratios Logical; if TRUE, y-axis represents the ratio between dimensions
-#' @param xlab,ylab Character strings giving axis labels
+#' @param ... Additional arguments:
+#'   \itemize{
+#'     \item dims: Integer vector of length 2, selecting which dimensions to plot
+#'     \item plot.data: Logical; if FALSE, the plotting area is set up but points aren't plotted
+#'     \item xlim,ylim: Numeric vectors of length 2 giving plot limits
+#'     \item ratios: Logical; if TRUE, y-axis represents the ratio between dimensions
+#'     \item xlab,ylab: Character strings giving axis labels
+#'   }
 #'
 #' @return NULL (invisibly). Creates a plot as a side effect.
 #'
-#' @examples
-#' \dontrun{
-#' # Simulate some data
-#' data <- sim.measurements(
-#'   n.animals = 5,
-#'   n.photos = rep(3, 5),
-#'   m = 3,
-#'   pars = c(315, 150, 100,    # means
-#'            25, 15, 10,       # SDs
-#'            0.85, 0.80, 0.75,  # correlations
-#'            10, 6, 4,    # measurement SDs
-#'            0.5, 0.4, 0.3)  # measurement correlations
-#' )
-#'
-#' # Basic scatter plot
-#' plot.morph(data, dims = c(1, 2))
-#'
-#' # Plot with ratios
-#' plot.morph(data, dims = c(1, 2), ratios = TRUE)
-#' }
-#'
 #' @export
-plot.morph <- function(data, dims = c(1, 2), plot.data = TRUE,
-                       xlim = NULL, ylim = NULL,
-                       ratios = FALSE, xlab = NULL, ylab = NULL) {
+plot.morph <- function(x, ...) {
+  # Extract arguments from ...
+  args <- list(...)
+  dims <- if (!is.null(args$dims)) args$dims else c(1, 2)
+  plot.data <- if (!is.null(args$plot.data)) args$plot.data else TRUE
+  xlim <- args$xlim
+  ylim <- args$ylim
+  ratios <- if (!is.null(args$ratios)) args$ratios else FALSE
+  xlab <- args$xlab
+  ylab <- args$ylab
+
   # Input validation
-  if (!is.data.frame(data)) {
+  if (!is.data.frame(x)) {
     stop("Columns missing from data frame. See ?plot.morph for column requirements.")
   }
 
   # Check required columns exist
   required_cols <- c("animal.id", "photo.id", "dim", "measurement")
-  missing_cols <- setdiff(required_cols, names(data))
+  missing_cols <- setdiff(required_cols, names(x))
   if (length(missing_cols) > 0) {
     stop(
       "Missing required columns in data frame:\n",
@@ -75,23 +65,23 @@ plot.morph <- function(data, dims = c(1, 2), plot.data = TRUE,
   }
 
   # Check if all requested dims exist in data
-  if (!all(dims %in% as.numeric(levels(data$dim)))) {
+  if (!all(dims %in% as.numeric(levels(x$dim)))) {
     stop("Not all requested dimensions are present in the data")
   }
 
-  # Keep only the dimensions to be plotted
-  data <- data[data$dim %in% dims, ]
+  # Keep only the dims to be plotted
+  x <- x[x$dim %in% dims, ]
 
   # Check if we have both dimensions
-  if (!all(dims %in% unique(data$dim))) {
+  if (!all(dims %in% unique(x$dim))) {
     stop("Not all requested dimensions are present in the data")
   }
 
   # Extract columns
-  measurement <- data$measurement
-  dim <- data$dim
-  animal.id <- data$animal.id
-  photo.id <- data$photo.id
+  measurement <- x$measurement
+  dim <- x$dim
+  animal.id <- x$animal.id
+  photo.id <- x$photo.id
 
   # Total number of animals
   n.animals <- length(unique(animal.id))

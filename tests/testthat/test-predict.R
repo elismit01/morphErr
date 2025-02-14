@@ -277,16 +277,22 @@ test_that("predict.from.obs handles predictions correctly", {
   data <- sim.measurements(10, rep(5, 10), 3, pars)
   fit <- fit.morph(data)
 
-  # Test basic pred
+  # Test with named params
   true <- c(NA, 130, 75)
   obs <- matrix(c(285, 128, 73), nrow = 1)
-  result <- predict.from.obs(fit, true = true, obs = obs)
+  result1 <- predict.from.obs(fit, true = true, obs = obs)
+
+  # Test with unnamed params
+  result2 <- predict.from.obs(fit, true, obs)
+
+  # Check both method give same result
+  expect_equal(result1, result2)
 
   # Check output structure
-  expect_true(is.numeric(result))
-  expect_equal(length(result), 3)
+  expect_true(is.numeric(result1))
+  expect_equal(length(result1), 3)
   # Pred val not NA:
-  expect_false(is.na(result[1]))
+  expect_false(is.na(result1[1]))
   # Known values unchanged:
-  expect_equal(result[2:3], true[2:3])
+  expect_equal(result1[2:3], true[2:3])
 })
