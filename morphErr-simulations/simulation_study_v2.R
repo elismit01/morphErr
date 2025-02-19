@@ -1,3 +1,6 @@
+# Load package
+library(morphErr)
+
 # Parameters frm manuscript
 TRUE_PARAMS <- list(
   mus = c(315, 150, 100),      # Mean dimensions
