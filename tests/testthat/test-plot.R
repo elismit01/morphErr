@@ -105,6 +105,31 @@ test_that("plot.lme.morph handles adding to existing plots", {
   expect_silent(plot(fit, type = "data", line.type = "pca", add = TRUE, lty = 2))
 })
 
+test_that("plot.lme.morph handles different dimension combinations correctly", {
+  # Test data
+  test_data <- create_test_data()
+  fit <- fit.morph(test_data)
+
+  # Test diff dim combinations
+  for (type in c("pca", "lm")) {
+    # Test plots
+    expect_silent(plot(fit, dims = c(1, 2), line.type = type))
+    expect_silent(plot(fit, dims = c(1, 3), line.type = type))
+    expect_silent(plot(fit, dims = c(2, 3), line.type = type))
+
+    # Get preds for each combination to varify dif dims are used
+    x_val <- 200  # (test value)
+    pred_12 <- predict(fit, y.dim = 2, newdata = data.frame(dim1 = x_val), type = type)
+    pred_13 <- predict(fit, y.dim = 3, newdata = data.frame(dim1 = x_val), type = type)
+    pred_23 <- predict(fit, y.dim = 3, newdata = data.frame(dim2 = x_val), type = type)
+
+    # The preds shuld be dif when using different dims
+    expect_false(identical(pred_12[1], pred_13[1]))
+    expect_false(identical(pred_12[1], pred_23[1]))
+    expect_false(identical(pred_13[1], pred_23[1]))
+  }
+})
+
 # -------------------------------------------------------------------------------------------------------
 
 # plot.ratio.pdf()

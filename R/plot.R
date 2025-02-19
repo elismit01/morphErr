@@ -210,9 +210,10 @@ plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
   # Basic data plot if requested
   if (type == "data") {
     if (!add) {
-      plot.morph(data, dims, plot.data = plot.data,
+      plot.morph(data, plot.data = plot.data,
                  xlim = xlim, ylim = ylim,
-                 xlab = xlab, ylab = ylab)
+                 xlab = xlab, ylab = ylab,
+                 dims = dims)
     }
 
     # Get plot limits if not provided
@@ -270,9 +271,10 @@ plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
     }
   } else if (type == "ratio") {
     if (!add) {
-      plot.morph(data, dims, xlim = xlim, ylim = ylim,
+      plot.morph(data, xlim = xlim, ylim = ylim,
                  ratios = TRUE, plot.data = plot.data,
-                 xlab = xlab, ylab = ylab)
+                 xlab = xlab, ylab = ylab,
+                 dims = dims)
     }
 
     # plot limits if not specified
