@@ -1,12 +1,14 @@
 #' Prediction Functions for morphErr
 #'
 #' This file contains functions for making predictions from fitted models:
-#' - predict.lme.morph(): Predicts measurements from fitted models using true measurements
-#' - predict.from.obs(): Predicts measurements from fitted models using observed measurements
+#' - predict(): Predicts measurements from fitted models using true measurements
+#' - predict.obs(): Predicts measurements from fitted models using observed measurements
 #'
-#' @name predict
+#' @name predictions
 #' @keywords internal
 NULL
+
+# -------------------------------------------------------------------------------------------------------
 
 #' Calculate Beta Coefficients for Predictions
 #'
@@ -111,21 +113,28 @@ calc.betas <- function(fit, est = NULL, stders = TRUE, y.dim, x.dim,
 
 # -------------------------------------------------------------------------------------------------------
 
-#' Predict measurements using true measurements
+#' Predict Measurements from True Values
 #'
 #' @description
 #' Makes predictions for one dimension based on true measurements of other dimensions.
 #' Can handle multiple predictions simultaneously.
 #'
 #' @param object A fitted model object from fit.morph()
+#' @param ... Additional arguments passed to methods
+#'
+#' @return A matrix with Estimate and Std.Error columns for each prediction
+#' @export
+predict <- function(object, ...) {
+  UseMethod("predict")
+}
+
+#' @rdname predict
+#' @method predict lme.morph
 #' @param y.dim Integer specifying which dimension to predict
 #' @param newdata A data frame of other dimensions to use for prediction. Column names
 #'        must be of the form "dimX" where X is the dimension number. Can contain
 #'        multiple rows for multiple predictions.
 #' @param type Either "lm" or "pca" for prediction type
-#' @param ... Additional arguments passed to methods
-#'
-#' @return A matrix with Estimate and Std.Error columns for each prediction
 #' @export
 predict.lme.morph <- function(object, y.dim, newdata = NULL, type = c("lm", "pca"), ...) {
   # Input validation
@@ -192,7 +201,7 @@ predict.lme.morph <- function(object, y.dim, newdata = NULL, type = c("lm", "pca
 
 # -------------------------------------------------------------------------------------------------------
 
-#' Predict measurements from observed measurements with error
+#' Predict from Observed Measurements
 #'
 #' @description
 #' Makes predictions by combining prior information with observed measurements that contain error.
@@ -207,7 +216,7 @@ predict.lme.morph <- function(object, y.dim, newdata = NULL, type = c("lm", "pca
 #'
 #' @return A numeric vector of predictions for all dimensions
 #' @export
-predict.from.obs <- function(object, ...) {
+predict.obs <- function(object, ...) {
   # Extract arguments from ...
   args <- list(...)
 
