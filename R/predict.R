@@ -182,13 +182,15 @@ calc.betas <- function(fit, est = NULL, stders = TRUE, y.dim, x.dim,
             psiphi.deriv <- matrix(0, nrow = n.x, ncol = length(psis) + length(phis))
             betas.gr[-1, ] <- cbind(mu.deriv, sigma.deriv, rho.deriv, psiphi.deriv)
         } else {
-            stop("Still need to fix standard errors for PCA!")
-            se0 <- sqrt(sigma.mat[y.dim, y.dim] +
-                        (sigmas[y.dim]/sigmas[x.dim])^2 * sigma.mat[x.dim, x.dim])
-            se1 <- sigmas[y.dim]/sigmas[x.dim] *
-                sqrt(sigma.mat[y.dim, y.dim]/sigmas[y.dim]^2 +
-                     sigma.mat[x.dim, x.dim]/sigmas[x.dim]^2)
-            betas.se <- c(se0, se1)
+            betas.gr <- matrix(0, nrow = 2, ncol = length(par.vec))
+            ## Partial derivatives for the intercept.
+            betas.gr[1, names(est) == paste0("mu", y.dim)] <- 1
+            betas.gr[1, names(est) == paste0("mu", x.dim)] <- -sigmas[y.dim]/sigmas[x.dim]
+            betas.gr[1, names(est) == paste0("sigma", y.dim)] <- -mus[x.dim]/sigmas[x.dim]
+            betas.gr[1, names(est) == paste0("sigma", x.dim)] <- sigmas[y.dim]*mus[x.dim]/(sigmas[x.dim]^2)
+            ## Partial derivatives for the slope.
+            betas.gr[2, names(est) == paste0("sigma", y.dim)] <- 1/sigmas[x.dim]
+            betas.gr[2, names(est) == paste0("sigma", x.dim)] <- -sigmas[y.dim]/(sigmas[x.dim]^2)
         }
         pars.varcov <- fit$vcov$varcov
         betas.varcov <- betas.gr %*% pars.varcov %*% t(betas.gr)
