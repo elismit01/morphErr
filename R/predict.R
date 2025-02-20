@@ -32,83 +32,179 @@ NULL
 #' @keywords internal
 calc.betas <- function(fit, est = NULL, stders = TRUE, y.dim, x.dim,
                        type = "lm", vcov = FALSE) {
-  # Check type for PCA case
-  if (type == "pca" && length(x.dim) > 1) {
-    stop("Type 'pca' is only available for single predictor relationships")
-  }
-
-  # Estimates if nt provided
-  if (is.null(est)) {
-    vcov_obj <- vcov.lme.morph(fit)
-    est <- vcov_obj$est
-  }
-
-  # Get parameters using new format
-  mus <- est[substr(names(est), 1, 2) == "mu"]
-  sigmas <- est[substr(names(est), 1, 5) == "sigma"]
-  rhos <- est[substr(names(est), 1, 3) == "rho"]
-
-  # Constructing cov matrix
-  m <- length(mus)
-  sigma.mat <- matrix(0, nrow = m, ncol = m)
-
-  # Filll diagonal w/variances
-  for(i in 1:m) {
-    sigma.mat[i,i] <- sigmas[i]^2
-  }
-
-  # Fill off-diagonal w/covariances
-  k <- 1
-  for(i in 1:(m-1)) {
-    for(j in (i+1):m) {
-      sigma.mat[i,j] <- sigma.mat[j,i] <- rhos[k] * sigmas[i] * sigmas[j]
-      k <- k + 1
+                                        ## Check type for PCA case
+    if (type == "pca" && length(x.dim) > 1) {
+        stop("Type 'pca' is only available for single predictor relationships")
     }
-  }
+    
+    ## Estimates if nt provided
+    if (is.null(est)) {
+        vcov_obj <- vcov.lme.morph(fit)
+        est <- vcov_obj$est
+    }
+    
+    ## Get parameters using new format
+    mus <- est[substr(names(est), 1, 2) == "mu"]
+    sigmas <- est[substr(names(est), 1, 5) == "sigma"]
+    rhos <- est[substr(names(est), 1, 3) == "rho"]
+    psis <- est[substr(names(est), 1, 3) == "psi"]
+    phis <- est[substr(names(est), 1, 3) == "phi"]
+    par.list <- list(mus = mus, sigmas = sigmas, rhos = rhos, psis = psis, phis = phis)
+    par.vec <- unlist(par.list)
+    
+    ## Constructing cov matrix
+    m <- length(mus)
+    sigma.mat <- matrix(0, nrow = m, ncol = m)
+    
+    ## Fill diagonal w/variances
+    for(i in 1:m) {
+        sigma.mat[i,i] <- sigmas[i]^2
+    }
+    
+    ## Fill off-diagonal w/covariances
+    k <- 1
+    for(i in 1:(m-1)) {
+        for(j in (i+1):m) {
+            sigma.mat[i,j] <- sigma.mat[j,i] <- rhos[k] * sigmas[i] * sigmas[j]
+            k <- k + 1
+        }
+    }
 
-  if (type == "lm") {
-    # lm interpretation
-    sub.sigma.mat.y <- sigma.mat[y.dim, x.dim, drop = FALSE]
-    sub.sigma.mat.x <- sigma.mat[x.dim, x.dim, drop = FALSE]
-    beta.dims <- c(sub.sigma.mat.y %*% solve(sub.sigma.mat.x))
-    beta0 <- mus[y.dim] - sum(beta.dims * mus[x.dim])
-    betas.est <- c(beta0, beta.dims)
-  } else {
-    # PCA/RMA interpretation (to fix error it now uses sigmas directly)
-    betas.est <- c(mus[y.dim] - sigmas[y.dim]/sigmas[x.dim] * mus[x.dim],
-                   sigmas[y.dim]/sigmas[x.dim])
-  }
-
-  # Handle ses if requested
-  if (stders) {
-    # Delta method for se
     if (type == "lm") {
-      se0 <- sqrt(sigma.mat[y.dim, y.dim])
-      se.dims <- sqrt(diag(solve(sub.sigma.mat.x)) * sigma.mat[y.dim, y.dim])
-      betas.se <- c(se0, se.dims)
+        ## lm interpretation
+        sub.sigma.mat.y <- sigma.mat[y.dim, x.dim, drop = FALSE]
+        sub.sigma.mat.x <- sigma.mat[x.dim, x.dim, drop = FALSE]
+        beta.dims <- c(sub.sigma.mat.y %*% solve(sub.sigma.mat.x))
+        beta0 <- mus[y.dim] - sum(beta.dims * mus[x.dim])
+        betas.est <- c(beta0, beta.dims)
     } else {
-      se0 <- sqrt(sigma.mat[y.dim, y.dim] +
-                    (sigmas[y.dim]/sigmas[x.dim])^2 * sigma.mat[x.dim, x.dim])
-      se1 <- sigmas[y.dim]/sigmas[x.dim] *
-        sqrt(sigma.mat[y.dim, y.dim]/sigmas[y.dim]^2 +
-               sigma.mat[x.dim, x.dim]/sigmas[x.dim]^2)
-      betas.se <- c(se0, se1)
+                                        ## PCA/RMA interpretation (to fix error it now uses sigmas directly)
+        betas.est <- c(mus[y.dim] - sigmas[y.dim]/sigmas[x.dim] * mus[x.dim],
+                       sigmas[y.dim]/sigmas[x.dim])
     }
 
-    if (vcov) {
-      # Create approx vcov matrix
-      vcov.mat <- diag(betas.se^2)
-      out <- list(est = betas.est, varcov = vcov.mat)
-    } else {
-      out <- cbind(betas.est, betas.se)
-      colnames(out) <- c("Estimate", "Std. Error")
-      rownames(out) <- c("beta0", paste0("beta", x.dim))
-    }
-  } else {
-    out <- betas.est
-  }
+  ## Handle ses if requested
+    if (stders) {
+        ## Delta method for se
+        if (type == "lm") {
+            n.x <- length(x.dim)
+            ## Inverse of the submatrix.
+            sigmaqq.inv <- solve(sub.sigma.mat.x)
+            ## Matrix to store the partial derivatives.
+            betas.gr <- matrix(0, nrow = n.x + 1, ncol = length(par.vec))
+            ## Partial derivatives for the intercept, starting with the mus.
+            mu.deriv <- numeric(length(mus))
+            mu.deriv[y.dim] <- 1
+            mu.deriv[x.dim] <- -sub.sigma.mat.y %*% sigmaqq.inv
+            ## Now the sigmas.
+            sigma.deriv <- numeric(length(sigmas))
+            sigma.deriv[y.dim] <- -matrix(c(get.corpar(rhos, y.dim, x.dim[1])*sigmas[x.dim[1]],
+                                get.corpar(rhos, y.dim, x.dim[2])*sigmas[x.dim[2]]), nrow = 1) %*%
+                sigmaqq.inv %*% mus[x.dim]
+            for (i in 1:n.x){
+                dsigmapq <- numeric(n.x)
+                dsigmapq[i] <- get.corpar(rhos, y.dim, x.dim[i])*sigmas[y.dim]
+                dsigmaqq <- matrix(0, nrow = n.x, ncol = n.x)
+                dsigmaqq[i, i] <- 2*sigmas[x.dim[i]]
+                for (j in (1:n.x)[-i]){
+                    dsigmaqq[i, j] <- dsigmaqq[j, i] <- get.corpar(rhos, x.dim[i], x.dim[j])*sigmas[x.dim[j]]
+                }
+                dsigmaqqinv <- -sigmaqq.inv %*% dsigmaqq %*% sigmaqq.inv
+                sigma.deriv[x.dim[i]] <- -dsigmapq %*% sigmaqq.inv %*% mus[x.dim] -
+                    sub.sigma.mat.y %*% dsigmaqqinv %*% mus[x.dim]
+            }
+            ## Now the rhos.
+            rho.deriv <- numeric(length(rhos))
+            for (i in 1:length(rhos)){
+                dims <- as.numeric(strsplit(substr(names(rhos)[i], 4, nchar(names(rhos))), ",")[[1]])
+                ## One dimension is for y.dim, the other is for an x.dim.
+                if (any(dims == y.dim) & any(x.dim %in% dims)){
+                    xx.dim <- dims[dims != y.dim]
+                    dsigmapq <- numeric(n.x)
+                    dsigmapq[xx.dim == x.dim] <- sigmas[y.dim]*sigmas[xx.dim]
+                    rho.deriv[i] <- -dsigmapq %*% sigmaqq.inv %*% mus[x.dim]
+                } else if (all(dims %in% x.dim)){
+                    ## If both dimensions are for x.dims.
+                    which.x.dim <- which(x.dim %in% dims)
+                    dsigmaqq <- matrix(0, nrow = n.x, ncol = n.x)
+                    dsigmaqq[which.x.dim[1], which.x.dim[2]] <-
+                        dsigmaqq[which.x.dim[2], which.x.dim[1]] <- sigmas[dims[1]]*sigmas[dims[2]]
+                    dsigmaqqinv <- -sigmaqq.inv %*% dsigmaqq %*% sigmaqq.inv
+                    rho.deriv[i] <- -sub.sigma.mat.y %*% dsigmaqqinv %*% mus[x.dim]
+                }
+                ## Note that if a dimension is not an x.dim or a y.dim, the
+                ## derivative is zero.
+            }
+            ## Filling in the matrix.
+            betas.gr[1, ] <- c(mu.deriv, sigma.deriv, rho.deriv, rep(0, length(psis)), rep(0, length(phis)))
 
-  out
+            ## Next we need the partial derivatives for the
+            ## coefficients for the predictor variables, starting with
+            ## respect to mu, which are just 0.
+            mu.deriv <- matrix(0, nrow = n.x, ncol = length(mus))
+            ## Now the sigmas.
+            sigma.deriv <- matrix(0, nrow = n.x, ncol = length(sigmas))
+            sigma.deriv[, y.dim] <- matrix(c(get.corpar(rhos, y.dim, x.dim[1])*sigmas[x.dim[1]],
+                                              get.corpar(rhos, y.dim, x.dim[2])*sigmas[x.dim[2]]), nrow = 1) %*% sigmaqq.inv
+            for (i in 1:n.x){
+                dsigmapq <- numeric(n.x)
+                dsigmapq[i] <- get.corpar(rhos, y.dim, x.dim[i])*sigmas[y.dim]
+                dsigmaqq <- matrix(0, nrow = n.x, ncol = n.x)
+                dsigmaqq[i, i] <- 2*sigmas[x.dim[i]]
+                for (j in (1:n.x)[-i]){
+                    dsigmaqq[i, j] <- dsigmaqq[j, i] <- get.corpar(rhos, x.dim[i], x.dim[j])*sigmas[x.dim[j]]
+                }
+                dsigmaqqinv <- -sigmaqq.inv %*% dsigmaqq %*% sigmaqq.inv
+                sigma.deriv[, x.dim[i]] <- dsigmapq %*% sigmaqq.inv +
+                    sub.sigma.mat.y %*% dsigmaqqinv
+            }
+            ## Now with respect to rho.
+            rho.deriv <- matrix(0, nrow = n.x, ncol = length(rhos))
+            for (i in 1:length(rhos)){
+                dims <- as.numeric(strsplit(substr(names(rhos)[i], 4, nchar(names(rhos))), ",")[[1]])
+                ## One dimension is for y.dim, the other is for an x.dim.
+                if (any(dims == y.dim) & any(x.dim %in% dims)){
+                    xx.dim <- dims[dims != y.dim]
+                    dsigmapq <- numeric(n.x)
+                    dsigmapq[xx.dim == x.dim] <- sigmas[y.dim]*sigmas[xx.dim]
+                    rho.deriv[, i] <- dsigmapq %*% sigmaqq.inv
+                } else if (all(dims %in% x.dim)){
+                    ## If both dimensions are for x.dims.
+                    which.x.dim <- which(x.dim %in% dims)
+                    dsigmaqq <- matrix(0, nrow = n.x, ncol = n.x)
+                    dsigmaqq[which.x.dim[1], which.x.dim[2]] <-
+                        dsigmaqq[which.x.dim[2], which.x.dim[1]] <- sigmas[dims[1]]*sigmas[dims[2]]
+                    dsigmaqqinv <- -sigmaqq.inv %*% dsigmaqq %*% sigmaqq.inv
+                    rho.deriv[, i] <- sub.sigma.mat.y %*% dsigmaqqinv 
+                }
+            }
+            ## Putting all the partial derivatives together.
+            psiphi.deriv <- matrix(0, nrow = n.x, ncol = length(psis) + length(phis))
+            betas.gr[-1, ] <- cbind(mu.deriv, sigma.deriv, rho.deriv, psiphi.deriv)
+        } else {
+            stop("Still need to fix standard errors for PCA!")
+            se0 <- sqrt(sigma.mat[y.dim, y.dim] +
+                        (sigmas[y.dim]/sigmas[x.dim])^2 * sigma.mat[x.dim, x.dim])
+            se1 <- sigmas[y.dim]/sigmas[x.dim] *
+                sqrt(sigma.mat[y.dim, y.dim]/sigmas[y.dim]^2 +
+                     sigma.mat[x.dim, x.dim]/sigmas[x.dim]^2)
+            betas.se <- c(se0, se1)
+        }
+        pars.varcov <- fit$vcov$varcov
+        betas.varcov <- betas.gr %*% pars.varcov %*% t(betas.gr)
+        betas.se <- sqrt(diag(betas.varcov))
+        if (vcov){
+            out <- list(est = betas.est, varcov = betas.varcov)
+        } else {
+            out <- cbind(betas.est, betas.se)
+            colnames(out) <- c("Estimate", "Std. Error")
+            rownames(out) <- c("beta0", paste0("beta", x.dim))
+        }
+    } else {
+        out <- betas.est
+    }
+    
+    out
 }
 
 # -------------------------------------------------------------------------------------------------------
@@ -309,4 +405,11 @@ predict.obs <- function(object, ...) {
   out[dims.to.predict] <- preds$par
 
   return(out)
+}
+
+## A function to grab a correlation parameter from a named vector.
+get.corpar <- function(cors, i, j){
+    inds <- substr(names(cors), 4, nchar(names(cors)))
+    str <- paste(sort(c(i, j)), collapse = ",")
+    cors[inds == str]
 }
