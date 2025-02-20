@@ -254,9 +254,9 @@ plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
 
           # Get preds
           preds <- if (line.type == "lm") {
-            predict(x, y.dim = dims[2], true_measurements = newdata)
+            predict(x, y.dim = dims[2], newdata = newdata)
           } else {
-            predict(x, y.dim = dims[2], true_measurements = newdata, type = "pca")
+            predict(x, y.dim = dims[2], newdata = newdata, type = "pca")
           }
 
           # Only add lines if gt valid preds
