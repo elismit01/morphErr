@@ -98,9 +98,11 @@ calc.betas <- function(fit, est = NULL, stders = TRUE, y.dim, x.dim,
             mu.deriv[x.dim] <- -sub.sigma.mat.y %*% sigmaqq.inv
             ## Now the sigmas.
             sigma.deriv <- numeric(length(sigmas))
-            sigma.deriv[y.dim] <- -matrix(c(get.corpar(rhos, y.dim, x.dim[1])*sigmas[x.dim[1]],
-                                get.corpar(rhos, y.dim, x.dim[2])*sigmas[x.dim[2]]), nrow = 1) %*%
-                sigmaqq.inv %*% mus[x.dim]
+            dsigmapq <- matrix(0, nrow = 1, ncol = n.x)
+            for (i in 1:n.x){
+                dsigmapq[1, i] <- get.corpar(rhos, y.dim, x.dim[i])*sigmas[x.dim[i]]
+            }
+            sigma.deriv[y.dim] <- -dsigmapq %*% sigmaqq.inv %*% mus[x.dim]
             for (i in 1:n.x){
                 dsigmapq <- numeric(n.x)
                 dsigmapq[i] <- get.corpar(rhos, y.dim, x.dim[i])*sigmas[y.dim]
@@ -144,8 +146,11 @@ calc.betas <- function(fit, est = NULL, stders = TRUE, y.dim, x.dim,
             mu.deriv <- matrix(0, nrow = n.x, ncol = length(mus))
             ## Now the sigmas.
             sigma.deriv <- matrix(0, nrow = n.x, ncol = length(sigmas))
-            sigma.deriv[, y.dim] <- matrix(c(get.corpar(rhos, y.dim, x.dim[1])*sigmas[x.dim[1]],
-                                              get.corpar(rhos, y.dim, x.dim[2])*sigmas[x.dim[2]]), nrow = 1) %*% sigmaqq.inv
+            dsigmapq <- matrix(0, nrow = 1, ncol = n.x)
+            for (i in 1:n.x){
+                dsigmapq[1, i] <- get.corpar(rhos, y.dim, x.dim[i])*sigmas[x.dim[i]]
+            }
+            sigma.deriv[, y.dim] <- dsigmapq %*% sigmaqq.inv
             for (i in 1:n.x){
                 dsigmapq <- numeric(n.x)
                 dsigmapq[i] <- get.corpar(rhos, y.dim, x.dim[i])*sigmas[y.dim]
