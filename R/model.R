@@ -157,6 +157,11 @@ fit.morph <- function(data, method = "REML", intercept = FALSE){
     }
   }
 
+  # Reordering the data because (believe it or not) the
+  # parameterisation of the variance model in nlme uses whichever
+  # dimension appears first in the data as the baseline.
+  data <- data[order(data$dim), ]
+    
   # Set up groups
   gdata <- nlme::groupedData(measurement ~ 1 | animal.id / photo.id, data = data)
 
