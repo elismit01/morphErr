@@ -131,14 +131,3 @@ test_that("plot.lme.morph handles different dimension combinations correctly", {
 })
 
 # -------------------------------------------------------------------------------------------------------
-
-# plot.ratio.pdf()
-
-test_that("plot.ratio.pdf creates valid plots", {
-  # Test data
-  test_data <- create_test_data()
-  fit <- fit.morph(test_data)
-
-  # Test basic plot creation
-  expect_silent(plot.ratio.pdf(fit, 1, 2))
-})

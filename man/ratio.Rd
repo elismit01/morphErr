@@ -6,10 +6,6 @@
 \description{
 This file contains functions for analysing ratios between measurements:
 \itemize{
-\item mean.rcnorm.approx(): Approximates mean of ratio distribution
-\item sd.rcnorm.approx(): Approximates standard deviation of ratio distribution
-\item drcnorm.approx(): Approximation for ratio density
-\item drcnorm(): Density function for correlated normal ratios
 \item calc.mean.ratios(): Calculates mean ratios between dimensions
 }
 }

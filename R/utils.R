@@ -9,61 +9,6 @@
 #' @keywords internal
 NULL
 
-#' Smooth Indicator Function
-#'
-#' Creates a smoothed version of an indicator function.
-#'
-#' @param x Numeric value to evaluate
-#' @param t Threshold value
-#'
-#' @return A smoothed indicator value between 0 and 1
-#' @keywords internal
-smooth.indicator <- function(x, t){
-  2*pnorm(x - t, sd = 1e-10) - 1
-}
-
-# -------------------------------------------------------------------------------------------------------
-
-#' Constructor Function for Mean Ratio Calculations
-#'
-#' @param dim1,dim2 Integers specifying which dimensions to use
-#'
-#' @return A function that calculates ratios
-#' @keywords internal
-mean.ratio.constructor <- function(dim1, dim2) {
-  function(pars) {
-    # Get parameters
-    mus <- pars$mus
-    sigmas <- pars$sigmas
-    rhos <- pars$rhos
-
-    # Plain matrix operations not RTMB
-    m <- length(mus)
-    sigma.mat <- matrix(0, nrow = m, ncol = m)
-
-    # Fill diagonal
-    for (i in 1:m) {
-      sigma.mat[i,i] <- sigmas[i]^2
-    }
-
-    # Fill corelations
-    k <- 1
-    for (i in 1:(m-1)) {
-      for (j in (i+1):m) {
-        sigma.mat[i,j] <- sigma.mat[j,i] <- rhos[k] * sigmas[i] * sigmas[j]
-        k <- k + 1
-      }
-    }
-
-    # Get correlation matrix and calculate mean ratio
-    cor.mat <- cov2cor(sigma.mat)
-    mean.rcnorm.approx(mus[dim1], mus[dim2],
-                       sqrt(sigma.mat[dim1,dim1]),
-                       sqrt(sigma.mat[dim2,dim2]),
-                       cor.mat[dim1,dim2])
-  }
-}
-
 # -------------------------------------------------------------------------------------------------------
 
 #' Extract Variance-Covariance Matrix from Morphometric Model
@@ -81,6 +26,7 @@ mean.ratio.constructor <- function(dim1, dim2) {
 #' @importFrom lmeInfo extract_varcomp Fisher_info
 #' @importFrom msm deltamethod
 #' @importFrom Matrix bdiag
+#' @importFrom utils combn
 #'
 #' @keywords internal
 vcov.lme.morph <- function(object) {
@@ -238,7 +184,6 @@ summary.lme.morph <- function(object, ..., type = "pars", y.dim, x.dim, B = 1000
     "pars",   # Param estimates
     "betas", "betas-lm",  # lm coefficients
     "betas-pca",   # PCA interpretaton
-    "ratios",  # Mean ratios between dims
     "isometric-pca",  # Isometry test results
     "isometric-pca-boot"  # Bootstrapped isometry test results
   )
@@ -265,9 +210,6 @@ summary.lme.morph <- function(object, ..., type = "pars", y.dim, x.dim, B = 1000
   } else if (type == "betas-pca") {
     ## Beta parameters for the first PC between y.dim and x.dim
     out <- calc.betas(fit = object, est = est, y.dim = y.dim, x.dim = x.dim, type = "pca")
-  } else if (type == "ratios") {
-    ## Estimates and SES for mean ratios between dimensions
-    out <- calc.mean.ratios(object)
   } else if (type == "isometric-pca" | type == "isometric-pca-boot") {
     data <- getData(object)
     ## num of dimensions
