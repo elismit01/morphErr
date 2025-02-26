@@ -2,30 +2,12 @@
 % Please edit documentation in R/predict.R
 \name{predict}
 \alias{predict}
-\alias{predict.lme.morph}
-\title{Predict Measurements from True Values}
-\usage{
-predict(object, ...)
-
-\method{predict}{lme.morph}(object, y.dim, newdata = NULL, type = c("lm", "pca"), ...)
-}
-\arguments{
-\item{object}{A fitted model object from fit.morph()}
-
-\item{...}{Additional arguments passed to methods}
-
-\item{y.dim}{Integer specifying which dimension to predict}
-
-\item{newdata}{A data frame of other dimensions to use for prediction. Column names
-must be of the form "dimX" where X is the dimension number. Can contain
-multiple rows for multiple predictions.}
-
-\item{type}{Either "lm" or "pca" for prediction type}
-}
-\value{
-A matrix with Estimate and Std.Error columns for each prediction
-}
+\title{Prediction Functions for morphErr}
 \description{
-Makes predictions for one dimension based on true measurements of other dimensions.
-Can handle multiple predictions simultaneously.
+This file contains functions for making predictions from fitted models:
+\itemize{
+\item predict.lme.morph(): Predicts measurements from fitted models using true measurements
+\item predict.obs(): Predicts measurements from fitted models using observed measurements
 }
+}
+\keyword{internal}
