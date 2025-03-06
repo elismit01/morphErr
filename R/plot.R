@@ -87,7 +87,7 @@ plot.morph <- function(x, ...) {
   n.animals <- length(unique(animal.id))
 
   # Choose colour palette
-  cols <- hcl.colors(n.animals, palette = "viridis")
+  cols <- hcl.colors(n.animals, palette = "Dark 2")
 
   # Map colours to ids
   col.id.map <- data.frame(cols, unique(animal.id))
