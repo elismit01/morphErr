@@ -1,7 +1,7 @@
 #' Visualisation Functions for morphErr
 #'
 #' This file contains functions for visualising morphometric data and model results:
-#' - plot.morph(): Plots raw morphometric data
+#' - plotmorph(): Plots raw morphometric data
 #' - plot.lme.morph(): Creates model-based plots
 #' - plot.ratio.pdf(): Plots probability density functions for ratios
 #'
@@ -12,46 +12,34 @@ NULL
 #' Plot Morphometric Data
 #'
 #' Creates scatter plots of morphometric measurements, with options for
-#' different dimension combinations and ratio calculations.
+#' different dimension combinations and plotting of ratios.
 #'
-#' @param x A data frame containing:
+#' @param data A data frame containing the following columns:
 #'   \itemize{
-#'     \item animal.id: Factor indicating the animal
-#'     \item photo.id: Factor indicating the photo
-#'     \item dim: Factor indicating the dimension
-#'     \item measurement: The observed measurement
+#'     \item animal.id: Factor indicating the animal.
+#'     \item photo.id: Factor indicating the photo.
+#'     \item dim: Factor indicating the dimension.
+#'     \item measurement: The observed measurement.
 #'   }
-#' @param ... Additional arguments:
-#'   \itemize{
-#'     \item dims: Integer vector of length 2, selecting which dimensions to plot
-#'     \item plot.data: Logical; if FALSE, the plotting area is set up but points aren't plotted
-#'     \item xlim,ylim: Numeric vectors of length 2 giving plot limits
-#'     \item ratios: Logical; if TRUE, y-axis represents the ratio between dimensions
-#'     \item xlab,ylab: Character strings giving axis labels
-#'   }
-#'
-#' @return NULL (invisibly). Creates a plot as a side effect.
-#'
+#' @param dims Integer vector of length 2, selecting which dimensions to plot.
+#' @param plot.data Logical. If FALSE, the plotting area is set up but points aren't plotted.
+#' @param xlim The x-axis limits of the plot.
+#' @param ylim The y-axis limits of the plot.
+#' @param ratios Logical. If TRUE, y-axis represents the ratio between dimensions.
+#' @param xlab A title for the x-axis.
+#' @param ylab A title for the y-axis.
 #' @export
-plot.morph <- function(x, ...) {
-  # Extract arguments from ...
-  args <- list(...)
-  dims <- if (!is.null(args$dims)) args$dims else c(1, 2)
-  plot.data <- if (!is.null(args$plot.data)) args$plot.data else TRUE
-  xlim <- args$xlim
-  ylim <- args$ylim
-  ratios <- if (!is.null(args$ratios)) args$ratios else FALSE
-  xlab <- args$xlab
-  ylab <- args$ylab
+plotmorph <- function(data, dims = c(1, 2), plot.data = TRUE, ratios = FALSE,
+                       xlim = NULL, ylim = NULL, xlab = NULL, ylab = NULL){
 
   # Input validation
-  if (!is.data.frame(x)) {
-    stop("Columns missing from data frame. See ?plot.morph for column requirements.")
+  if (!is.data.frame(data)) {
+    stop("Columns missing from data frame. See ?plotmorph for column requirements.")
   }
 
   # Check required columns exist
   required_cols <- c("animal.id", "photo.id", "dim", "measurement")
-  missing_cols <- setdiff(required_cols, names(x))
+  missing_cols <- setdiff(required_cols, names(data))
   if (length(missing_cols) > 0) {
     stop(
       "Missing required columns in data frame:\n",
@@ -65,23 +53,23 @@ plot.morph <- function(x, ...) {
   }
 
   # Check if all requested dims exist in data
-  if (!all(dims %in% as.numeric(levels(x$dim)))) {
+  if (!all(dims %in% as.numeric(levels(data$dim)))) {
     stop("Not all requested dimensions are present in the data")
   }
 
   # Keep only the dims to be plotted
-  x <- x[x$dim %in% dims, ]
+  data <- data[data$dim %in% dims, ]
 
   # Check if we have both dimensions
-  if (!all(dims %in% unique(x$dim))) {
+  if (!all(dims %in% unique(data$dim))) {
     stop("Not all requested dimensions are present in the data")
   }
 
   # Extract columns
-  measurement <- x$measurement
-  dim <- x$dim
-  animal.id <- x$animal.id
-  photo.id <- x$photo.id
+  measurement <- data$measurement
+  dim <- data$dim
+  animal.id <- data$animal.id
+  photo.id <- data$photo.id
 
   # Total number of animals
   n.animals <- length(unique(animal.id))
@@ -149,8 +137,6 @@ plot.morph <- function(x, ...) {
       }
     }
   }
-
-  invisible(NULL)
 }
 
 # -------------------------------------------------------------------------------------------------------
@@ -210,7 +196,7 @@ plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
   # Basic data plot if requested
   if (type == "data") {
     if (!add) {
-      plot.morph(data, plot.data = plot.data,
+      plotmorph(data, plot.data = plot.data,
                  xlim = xlim, ylim = ylim,
                  xlab = xlab, ylab = ylab,
                  dims = dims)
@@ -271,7 +257,7 @@ plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
     }
   } else if (type == "ratio") {
     if (!add) {
-      plot.morph(data, xlim = xlim, ylim = ylim,
+      plotmorph(data, xlim = xlim, ylim = ylim,
                  ratios = TRUE, plot.data = plot.data,
                  xlab = xlab, ylab = ylab,
                  dims = dims)

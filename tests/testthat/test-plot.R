@@ -15,30 +15,30 @@ create_test_data <- function() {
 
 # -------------------------------------------------------------------------------------------------------
 
-# plot.morph()
+# plotmorph()
 
-test_that("plot.morph creates correct plot structure", {
+test_that("plotmorph creates correct plot structure", {
   # Get test data
   test_data <- create_test_data()
 
   # Test basic plotting
-  expect_silent(plot.morph(test_data))
+  expect_silent(plotmorph(test_data))
 
   # test ratio plotting
-  expect_silent(plot.morph(test_data, ratios = TRUE))
+  expect_silent(plotmorph(test_data, ratios = TRUE))
 
   # Test custom limits and labels
-  expect_silent(plot.morph(test_data,
+  expect_silent(plotmorph(test_data,
                            xlim = c(0, 200),
                            ylim = c(0, 100),
                            xlab = "Width",
                            ylab = "Height"))
 
   # Test plot.data = FALSE
-  expect_silent(plot.morph(test_data, plot.data = FALSE))
+  expect_silent(plotmorph(test_data, plot.data = FALSE))
 })
 
-test_that("plot.morph handles invalid inputs", {
+test_that("plotmorph handles invalid inputs", {
   # Create minimal test data with only one dimension
   bad_data <- data.frame(
     animal.id = factor(1:2),
@@ -49,21 +49,21 @@ test_that("plot.morph handles invalid inputs", {
 
   # Should errror when requesting non-existent dimension
   expect_error(
-    plot.morph(bad_data, dims = c(1, 2)),
+    plotmorph(bad_data, dims = c(1, 2)),
     "Not all requested dimensions are present in the data"
   )
 })
 
-test_that("plot.morph handles edge cases", {
+test_that("plotmorph handles edge cases", {
   test_data <- create_test_data()
 
   # Test with single animal
   single_animal <- test_data[test_data$animal.id == levels(test_data$animal.id)[1], ]
-  expect_silent(plot.morph(single_animal))
+  expect_silent(plotmorph(single_animal))
 
   # Test with single photo per animal
   single_photo <- test_data[test_data$photo.id == levels(test_data$photo.id)[1], ]
-  expect_silent(plot.morph(single_photo))
+  expect_silent(plotmorph(single_photo))
 })
 
 test_that("plot.lme.morph creates basic plots correctly", {
