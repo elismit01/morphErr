@@ -135,15 +135,6 @@ vcov.lme.morph <- function(object) {
 
 # -------------------------------------------------------------------------------------------------------
 
-#' Print Method for Morphometric Model Summary
-#'
-#' @description
-#' Prints the summary of a morphometric model in a clean format.
-#'
-#' @param x Object of class "summary.lme.morph"
-#' @param ... Additional arguments passed to print methods
-#'
-#' @return No return value, called for side effect of printing
 #' @export
 print.summary.lme.morph <- function(x, ...) {
   class(x) <- "matrix"
