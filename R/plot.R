@@ -1,13 +1,9 @@
-#' Visualisation Functions for morphErr
-#'
-#' This file contains functions for visualising morphometric data and model results:
-#' - plotmorph(): Plots raw morphometric data
-#' - plot.lme.morph(): Creates model-based plots
-#' - plot.ratio.pdf(): Plots probability density functions for ratios
-#'
-#' @name plot
-#' @keywords internal
-NULL
+# Visualisation Functions for morphErr
+#
+# This file contains functions for visualising morphometric data and model results:
+# - plotmorph(): Plots raw morphometric data
+# - plot.lme.morph(): Creates model-based plots
+# - plot.ratio.pdf(): Plots probability density functions for ratios
 
 #' Plot Morphometric Data
 #'

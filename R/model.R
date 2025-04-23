@@ -1,13 +1,10 @@
-#' Model Fitting Functions for morphErr
-#'
-#' This file contains the main model fitting functions for morphometric analysis:
-#' - fit.morph(): Main function for fitting morphometric models
-#' - organise.pars(): Organises parameter vectors into lists
-#' - construct.varcov(): Constructs variance-covariance matrices
-#'
-#' @name model
-#' @keywords internal
-NULL
+# Model Fitting Functions for morphErr
+#
+# This file contains the main model fitting functions for morphometric analysis:
+# - fit.morph(): Main function for fitting morphometric models
+# - organise.pars(): Organises parameter vectors into lists
+# - construct.varcov(): Constructs variance-covariance matrices
+
 
 #' Organise Parameter Vector into Components
 #'

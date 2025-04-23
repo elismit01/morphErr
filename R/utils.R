@@ -1,13 +1,10 @@
-#' Utility Functions for morphErr
-#'
-#' This file contains helper functions and utilities:
-#' - print.summary.lme.morph(): Prints model summaries
-#' - summary.lme.morph(): Creates model summaries
-#' - smooth.indicator(): Helper function for smooth approximations
-#'
-#' @name utils
-#' @keywords internal
-NULL
+# Utility Functions for morphErr
+#
+# This file contains helper functions and utilities:
+# - print.summary.lme.morph(): Prints model summaries
+# - summary.lme.morph(): Creates model summaries
+# - smooth.indicator(): Helper function for smooth approximations
+
 
 # -------------------------------------------------------------------------------------------------------
 

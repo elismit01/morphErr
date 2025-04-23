@@ -1,11 +1,8 @@
-#' Ratio Analysis Functions for morphErr
-#'
-#' This file contains functions for analysing ratios between measurements:
-#' - calc.mean.ratios(): Calculates mean ratios between dimensions
-#'
-#' @name ratio
-#' @keywords internal
-NULL
+# Ratio Analysis Functions for morphErr
+#
+# This file contains functions for analysing ratios between measurements:
+# - calc.mean.ratios(): Calculates mean ratios between dimensions
+
 
 #' Calculate Conditional Ratios Between Dimensions
 #'

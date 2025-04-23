@@ -1,12 +1,9 @@
-#' Prediction Functions for morphErr
-#'
-#' This file contains functions for making predictions from fitted models:
-#' - predict.lme.morph(): Predicts measurements from fitted models using true measurements
-#' - predict.obs(): Predicts measurements from fitted models using observed measurements
-#'
-#' @name predict
-#' @keywords internal
-NULL
+# Prediction Functions for morphErr
+#
+# This file contains functions for making predictions from fitted models:
+# - predict.lme.morph(): Predicts measurements from fitted models using true measurements
+# - predict.obs(): Predicts measurements from fitted models using observed measurements
+
 
 # -------------------------------------------------------------------------------------------------------
 
