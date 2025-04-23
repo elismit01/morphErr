@@ -52,11 +52,11 @@ test_that("fit.morph handles inputs correctly", {
   # Construct correlation matrix
   cor_mat <- matrix(1, 3, 3)
   cor_mat[upper.tri(cor_mat)] <- rhos
-  cor_mat[lower.tri(cor_mat)] <- rhos[3:1]
+  cor_mat[lower.tri(cor_mat)] <- rhos
 
   # Construct covariance matrix
   sigma <- diag(true_sds) %*% cor_mat %*% diag(true_sds)
-  true_measurements <- MASS::mvrnorm(n_animals, true_means, sigma)
+  true_measurements <- rmvnorm(n_animals, true_means, sigma)
 
   # Measurement error for each pic
   measurements <- matrix(0, nrow = n_animals * n_photos, ncol = 3)
