@@ -9,18 +9,16 @@
 "_PACKAGE"
 
 ## usethis namespace: start
-#' @importFrom stats model.matrix pnorm dnorm qnorm cov2cor predict vcov
-#' @importFrom utils head tail setTxtProgressBar txtProgressBar
+#' @importFrom stats pnorm qnorm predict vcov
+#' @importFrom utils setTxtProgressBar txtProgressBar
 #' @importFrom Matrix bdiag
 #' @importFrom mvtnorm dmvnorm rmvnorm
-#' @importFrom RTMB MakeADFun sdreport
-#' @importFrom nlme lme lmeControl fixef getData groupedData corSymm varIdent
+#' @importFrom nlme lme lmeControl getData groupedData corSymm varIdent
 #' @importFrom lmeInfo Fisher_info extract_varcomp
 #' @importFrom graphics plot.new plot.window box axis title points lines par abline
 #' @importFrom grDevices hcl.colors
-#' @importFrom parallel makeCluster stopCluster clusterExport clusterEvalQ
+#' @importFrom parallel makeCluster stopCluster clusterExport
 #' @importFrom pbapply pblapply
-#' @importFrom numDeriv hessian
 #' @importFrom stats nlminb reformulate
 ## usethis namespace: end
 NULL

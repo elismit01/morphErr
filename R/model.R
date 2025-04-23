@@ -160,7 +160,7 @@ fit.morph <- function(data, method = "REML", intercept = FALSE){
   data <- data[order(data$dim), ]
     
   # Set up groups
-  gdata <- nlme::groupedData(measurement ~ 1 | animal.id / photo.id, data = data)
+  gdata <- groupedData(measurement ~ 1 | animal.id / photo.id, data = data)
 
   # Set up fixed effects formula
   if (intercept){
@@ -170,13 +170,13 @@ fit.morph <- function(data, method = "REML", intercept = FALSE){
   }
 
   # Fit model
-  fit <- nlme::lme(fixed = fixed.arg,
-                   random = ~ 0 + dim | animal.id,
-                   correlation = nlme::corSymm(form = ~ 1 | animal.id / photo.id),
-                   weights = nlme::varIdent(form = ~ 1 | dim),
-                   data = gdata,
-                   control = nlme::lmeControl(maxIter = 100000, msMaxIter = 100000),
-                   method = method)
+  fit <- lme(fixed = fixed.arg,
+             random = ~ 0 + dim | animal.id,
+             correlation = corSymm(form = ~ 1 | animal.id / photo.id),
+             weights = varIdent(form = ~ 1 | dim),
+             data = gdata,
+             control = lmeControl(maxIter = 100000, msMaxIter = 100000),
+             method = method)
 
   # Add additional attributes
   fit$intercept <- intercept

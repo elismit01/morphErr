@@ -380,15 +380,15 @@ predict.obs <- function(object, ...) {
     if (nrow(obs) > 0) {
       for (j in 1:nrow(obs)) {
         obs.dims <- !is.na(obs[j, ])
-        out <- out + mvtnorm::dmvnorm(obs[j, obs.dims],
-                                      mean = t[obs.dims],
-                                      sigma = pars$xi[obs.dims, obs.dims, drop = FALSE],
+        out <- out + dmvnorm(obs[j, obs.dims],
+                             mean = t[obs.dims],
+                             sigma = pars$xi[obs.dims, obs.dims, drop = FALSE],
                                       log = TRUE)
       }
     }
 
     # Add prior
-    out <- out + mvtnorm::dmvnorm(t, mean = pars$mus, sigma = pars$sigma, log = TRUE)
+    out <- out + dmvnorm(t, mean = pars$mus, sigma = pars$sigma, log = TRUE)
     -out
   }
 

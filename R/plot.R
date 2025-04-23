@@ -187,7 +187,7 @@ plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
   }
 
   # Get data
-  data <- nlme::getData(x)
+  data <- getData(x)
 
   # Basic data plot if requested
   if (type == "data") {
