@@ -23,6 +23,7 @@ Imports:
     grDevices,
     lmeInfo,
     Matrix,
+    msm,
     mvtnorm,
     nlme,
     parallel,

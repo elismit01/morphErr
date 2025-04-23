@@ -19,12 +19,6 @@
 #'   \item{est}{Named vector of parameter estimates}
 #'   \item{varcov}{Variance-covariance matrix}
 #'
-#' @importFrom nlme getData
-#' @importFrom lmeInfo extract_varcomp Fisher_info
-#' @importFrom msm deltamethod
-#' @importFrom Matrix bdiag
-#' @importFrom utils combn
-#'
 #' @keywords internal
 vcov.lme.morph <- function(object) {
     data <- getData(object)

@@ -8,17 +8,15 @@
 #' @keywords internal
 "_PACKAGE"
 
-## usethis namespace: start
-#' @importFrom stats pnorm qnorm predict vcov
-#' @importFrom utils setTxtProgressBar txtProgressBar
-#' @importFrom Matrix bdiag
-#' @importFrom mvtnorm dmvnorm rmvnorm
-#' @importFrom nlme lme lmeControl getData groupedData corSymm varIdent
-#' @importFrom lmeInfo Fisher_info extract_varcomp
 #' @importFrom graphics plot.new plot.window box axis title points lines par abline
 #' @importFrom grDevices hcl.colors
+#' @importFrom lmeInfo Fisher_info extract_varcomp
+#' @importFrom Matrix bdiag
+#' @importFrom msm deltamethod
+#' @importFrom mvtnorm dmvnorm rmvnorm
+#' @importFrom nlme lme lmeControl getData groupedData corSymm varIdent
 #' @importFrom parallel makeCluster stopCluster clusterExport
 #' @importFrom pbapply pblapply
-#' @importFrom stats nlminb reformulate
-## usethis namespace: end
+#' @importFrom stats nlminb pnorm qnorm reformulate predict vcov
+#' @importFrom utils combn setTxtProgressBar txtProgressBar
 NULL
