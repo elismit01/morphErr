@@ -1,19 +1,21 @@
 Package: morphErr
-Title: Linear mixed-effects models for morphometric data subject to measurement error
+Title: Measurement error model 
 Version: 0.0.0.9000
 Authors@R: 
     c(
     person("Ben C", "Stevenson", email = "ben.stevenson@auckland.ac.nz", role = c("aut", "cre")),
-    person("Elizabeth C", "Smit", email = "esmi468@aucklanduni.ac.nz", role = "aut")
+    person("Elizabeth", "Smit", email = "esmi468@aucklanduni.ac.nz", role = "aut")
     )
+VignetteBuilder: knitr
 Description: Morphometric data collected on animal populations can be
     subject to measurement error, which leads to biased estimators
     using line-fitting techniques such as linear regression and
     reduced major axis. The models implemented in this package
     explicitly accommodate measurement error, allow for multivariate
-    data, and provide tests for isometric relationships between
-    dimensions. Morphometric data of the reef manta ray, collected in
-    Raja Ampat, Indonesia, are included.
+    data, estimate relationships between dimensions, and provide tests
+    for isometric relationships between dimensions. Morphometric data
+    of the reef manta ray, collected in Raja Ampat, Indonesia, are
+    included.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -34,7 +36,7 @@ Depends:
     R (>= 3.5.0),
 Suggests: 
     knitr,
-    rmarkdown,
+    xtable,
     testthat (>= 3.0.0)
 URL: https://github.com/elismit01/morphErr
 BugReports: https://github.com/elismit01/morphErr/issues

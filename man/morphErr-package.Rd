@@ -4,13 +4,66 @@
 \name{morphErr-package}
 \alias{morphErr}
 \alias{morphErr-package}
-\title{morphErr: Morphometric Analysis with Measurement Error}
+\title{morphErr: Measurement error models for morphometric data}
 \description{
-Provides tools for analysing morphometric data from wildlife populations
-when measurements are subject to error. Particularly suited for measurements
-obtained from drone footage, this package includes functions for model fitting,
-simulation, visualisation, and ratio analysis.
+The \code{morphErr} package provides functions to analyse morphometric
+data using the method proposed by Stevenson, Smit, and Setyawan (in
+submission). View the manuscript \href{../doc/model.pdf}{here}.
 }
+\section{Data requirements}{
+
+
+The \code{morphErr} package might be right for you if your data were
+collected on photogrammetry surveys (e.g., using drones) and you
+have multiple photographs of some individuals.
+
+The package might be particularly useful relative to alternative
+options if
+\itemize{
+\item you take a lot of different measurements from each photograph
+(i.e., you observe a lot of "dimensions"),
+\item observations are subject to non-negligible measurement error,
+\item the measurement errors are correlated (e.g., a photograph with
+positive measurement error for one dimension tends to have positive
+measurement errors for other dimensions),
+\item you don't necessarily measure every dimension in every photograph,
+\item you'd like to estimate relationships amongst different subsets of
+the dimensions, or
+\item you'd like to predict different dimensions for different
+individuals using different subsets of the other dimensions.
+}
+}
+
+\section{Package overview}{
+
+
+The key functions in \code{morphErr} are as follows:
+\itemize{
+\item \code{\link[=plotmorph]{plotmorph()}} to plot morphometric data from a photogrammetry
+survey.
+\item \code{\link[=fit.morph]{fit.morph()}} to fit the model described by
+\href{../doc/model.pdf}{Stevenson, Smit, and Setyawan (in
+submission)}.
+\item \code{\link[=summary.lme.morph]{summary.lme.morph()}} with \code{type = "pars"} for parameter
+estimates and standard errors.
+\item \code{\link[=summary.lme.morph]{summary.lme.morph()}} with \code{type = "betas"} for estimated
+coefficients of linear relationships to predict one dimension from
+any subset of the other dimensions.
+\item \code{\link[=summary.lme.morph]{summary.lme.morph()}} with \code{type = "betas-pca"} for estimated
+coefficients of the reduced major axis (or pricipal component axis)
+summarising the relationship between two dimensions.
+\item \code{\link[=summary.lme.morph]{summary.lme.morph()}} with \code{type = "isometric-pca"} or \code{type = "isometric-pca-boot"} to test for isometric growth between all
+pairs of dimensions.
+\item \code{\link[=plot.lme.morph]{plot.lme.morph()}} to plot estimated relationships between
+dimensions.
+\item \code{\link[=sim.measurements]{sim.measurements()}} to simulate morphometric data.
+\item \code{\link[=sim.morph]{sim.morph()}} to simulate multiple data sets and fit a model to
+each one.
+\item \code{\link[=extract.sim.morph]{extract.sim.morph()}} to extract estimates from the models
+fitted using \code{\link[=sim.morph]{sim.morph()}}.
+}
+}
+
 \seealso{
 Useful links:
 \itemize{
@@ -24,7 +77,7 @@ Useful links:
 
 Authors:
 \itemize{
-  \item Elizabeth C Smit \email{esmi468@aucklanduni.ac.nz}
+  \item Elizabeth Smit \email{esmi468@aucklanduni.ac.nz}
 }
 
 }
