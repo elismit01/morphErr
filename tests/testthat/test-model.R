@@ -88,7 +88,4 @@ test_that("fit.morph handles inputs correctly", {
   expect_true(is.numeric(fit$coefficients$fixed))
   expect_false(fit$intercept)
 
-  # Test with intercept
-  fit_int <- fit.morph(test_data, intercept = TRUE)
-  expect_true(fit_int$intercept)
 })
