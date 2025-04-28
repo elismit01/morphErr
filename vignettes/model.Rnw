@@ -1,0 +1,1801 @@
+%% Template for the submission to:
+%%   The Annals of Applied Statistics [AOAS]
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% In this template, the places where you   %%
+%% need to fill in your information are     %%
+%% indicated by '???'.                      %%
+%%                                          %%
+%% Please do not use \input{...} to include %%
+%% other tex files. Submit your LaTeX       %%
+%% manuscript as one .tex document.         %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[aoas]{imsart}
+
+%% R package vignette stuff.
+%\VignetteEngine{knitr::knitr}
+%\VignetteEncoding{UTF-8}
+%\VignetteIndexEntry{A manuscript describing the model fitted by the functions in `morphErr`}
+
+<<setup, echo = FALSE>>=
+round0 <- function(x, digits = 2) format(round(x, digits), nsmall = digits)
+format.p <- function(p, digits = 2, threshold = 0.01) ifelse(p < threshold, paste("<" , threshold), paste("=", round0(p, digits)))
+@
+
+%% Packages
+\RequirePackage{amsthm,amsmath,amsfonts,amssymb}
+\RequirePackage[authoryear]{natbib}
+\usepackage{bm}
+\usepackage{booktabs}
+\usepackage{comment}
+\usepackage{xcolor}
+%\RequirePackage[colorlinks,citecolor=blue,urlcolor=blue]{hyperref}%% uncomment this for coloring bibliography citations and linked URLs
+%\RequirePackage{graphicx}%% uncomment this for including figures
+
+\startlocaldefs
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                          %%
+%% Uncomment next line to change            %%
+%% the type of equation numbering           %%
+%%                                          %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\numberwithin{equation}{section}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                          %%
+%% For Axiom, Claim, Corollary, Hypothesis, %%
+%% Lemma, Theorem, Proposition              %%
+%% use \theoremstyle{plain}                 %%
+%%                                          %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\theoremstyle{plain}
+%\newtheorem{???}{???}
+%\newtheorem*{???}{???}
+%\newtheorem{???}{???}[???]
+%\newtheorem{???}[???]{???}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                          %%
+%% For Assumption, Definition, Example,     %%
+%% Notation, Property, Remark, Fact         %%
+%% use \theoremstyle{remark}                %%
+%%                                          %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\theoremstyle{remark}
+%\newtheorem{???}{???}
+%\newtheorem*{???}{???}
+%\newtheorem{???}{???}[???]
+%\newtheorem{???}[???]{???}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Please put your definitions here:        %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand*\readable[1]{%
+  \ifcase #1 zero\or one\or two\or three\or four\or five\or
+    six\or seven\or eight\or nine\or ten\else\num{#1} \fi}
+
+\endlocaldefs
+
+\newcommand{\ben}[1]{{\it\textcolor{blue}{[Ben: #1]}}} 
+
+\begin{document}
+
+\begin{frontmatter}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                          %%
+%% Enter the title of your article here     %%
+%%                                          %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \title{Measurement error models for morphometric data}
+%\title{A sample article title with some additional note\thanksref{T1}}
+\runtitle{Measurement error models for morphometric data}
+%\thankstext{T1}{A sample of additional note to the title.}
+
+\begin{aug}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Only one address is permitted per author. %%
+%% Only division, organization and e-mail is %%
+%% included in the address.                  %%
+%% Additional information can be included in %%
+%% the Acknowledgments section if necessary. %%
+%% ORCID can be inserted by command:         %%
+%% \orcid{0000-0000-0000-0000}               %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \author[A]{\fnms{Ben C.}~\snm{Stevenson}\ead[label=e1]{ben.stevenson@auckland.ac.nz}},
+  \author[B]{\fnms{Elizabeth}~\snm{Smit}\ead[label=e2]{esmi468@aucklanduni.ac.nz}},
+  \and
+  \author[C]{\fnms{Edy}~\snm{Setyawan}\ead[label=e3]{edy@elasmobranchinstitute.id}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Addresses                                %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \address[A]{Department of Statistics, University of Auckland\printead[presep={,\ }]{e1}}
+  \address[B]{Department of Statistics, University of Auckland\printead[presep={,\ }]{e2}}
+  \address[C]{Elasmobranch Institute Indonesia\printead[presep={,\ }]{e3}}
+
+\end{aug}
+
+\begin{abstract}
+  An understanding of the body size of individuals, and the
+  relationships between different dimensions, is critical for
+  monitoring the status and the health of a wildlife
+  population. Morphometric data have traditionally been collected by
+  physically handling and measuring individual animals. However,
+  recent technological advancements allow researchers to deploy
+  sophisticated but affordable instruments like drones and camera
+  traps to take photos of individual animals, from which morphometric
+  measurements are extracted. However, morphometric data obtained from
+  photographs can be less accurate than those from direct
+  measurement. In this paper, we describe a new method to analyse
+  morphometric data that are subject to non-negligible measurement
+  error. Our method can be used to estimate relationships between
+  dimensions, to predict the measurement of any one dimension from any
+  subset of other dimensions, to make inference on allometry,
+  including testing for allometric growth. We demonstrate the use of
+  our method with an application to morphometric data of the reef
+  manta ray {\it Mobula alfredi} collected by drones.
+
+\end{abstract}
+
+\begin{keyword}
+  \kwd{allometry, drones, linear mixed-effects models, reef manta ray {\it Mobula alfredi}}
+\end{keyword}
+
+\end{frontmatter}
+
+\section{Introduction}
+\label{sec:intro}
+
+Body sizes of individuals in a wildlife population, and relationships
+between different dimensions, are often of crucial interest to
+researchers. Body size provides insights into biological
+charactersitics such as fitness, health, survival, and reproductive
+status, thereby informing the status of a population
+\citep[e.g.,][]{Baruzzi2023, Hodgson2020}. The field of allometry has
+a long history in ecology and evolution \citep{Gayon2000} and is
+focused on how different dimensions scale with one another as overall
+body size varies \citep{Schmidt1984}. Allometry is concerned with the
+way animals' proportions vary with the overall size of the individual:
+under isometric growth, both small and large animals have dimensions
+in the same relative proportions, but under allometric growth they
+differ such that larger individuals may be taller relative to their
+width in comparison to smaller individuals, for example.
+
+In some cases, relationships between dimensions are of interest
+because we wish to predict one from the others. In this paper, we are
+motivated by the study of the reef manta ray {\it Mobula alfredi}. The
+standard way to measure the body size of manta rays is by the disc
+width \citep{Last2016}, which is the distance between the outermost
+tips of the pectoral fins \citep{Notarbartolo1987}. Using this
+dimension can be problematic \citep{Francis2006}, for example because
+an image must be captured at the exact moment of maximum extension if
+the measurement is taken from a photograph \citep{Setyawan2022}, or
+because the specimen must be perfectly flat if it is physically
+measured \citep{Notarbartolo1987}. By contrast, the disc length and
+cranial width are more straightforward dimensions to measure, and are
+highly correlated with disc width such that they can generate accurate
+predictions using a statistical model \citep{Setyawan2022}. We see
+drone-based photogrammetry surveys as a promising way to
+non-invasively collect morphometric data on manta rays. However, we
+need methods to convert between dimensions (disc width, disc length,
+and cranial width) because we might not obtain measurements for all
+dimensions for all individuals, or we might wish to make comparisons
+with previous studies that only report disc width
+measurements.
+
+Indeed, morphometric studies of a wide range of taxa are increasingly
+using non-invasive photogrammetry techniques to collect data by
+deploying camera traps \citep[e.g.,][]{Cui2020, Tarugara2019} or
+drones \citep[e.g.,][]{Bierlich2021, Setyawan2022}. However, obtaining
+measurements from photographs can introduce non-negligible measurement
+error due to uncertainty in the distance between the lens of the
+camera and the animal \citep{Bierlich2021}, the orientation of the
+animal in the image \citep{Fruciano2016}, environmental factors
+obscuring the image of the animal \citep{Bierlich2021}, and lens
+distortion \citep{Muir2012}.
+
+There has been considerable debate on how to fit lines to describe
+bivariate relationships between dimensions for allometry, and the
+topic of measurement error often arises. Two competing approaches
+include linear regression (where the line provides the expected value
+of one dimension, conditional on the value of the second) and reduced
+major axis (RMA; where the line is equivalent to the first principal
+component axis computed using the correlation matrix). The estimator
+for the slope coefficient from a simple linear regression model is
+biased towards zero when the explanatory variable is measured with
+error \citep{Fuller1987}, and so some authors
+\citep[e.g.,][]{McArdle1988} recommend using RMA when measurement
+error in the explanatory variable is suitably large.
+
+Other authors separate the decision of linear regresson versus RMA
+from the issue of measurement error. \cite{Kilmer2016} recommend
+linear regression over RMA regardless of measurement error, describing
+RMA as a ``wrong fix to a small problem'', and emphasise that
+measurement error can also introduce bias to slope esimates from
+RMA. Another group of authors has focused on additional properties of
+these methods, such as symmetry. Linear regression is asymmetric
+(i.e., switching the response and explanatory variables yields a
+fitted line that goes through different coordinates), while RMA is
+not. \citet{Warton2006} recommend using RMA if the purpose is to
+estimate the slope or to test for isometry, because inference from
+linear regression is sensitive to which dimension is selected as the
+response variable, a decision that is sometimes arbitrary. They
+recommend linear regression if the purpose is to predict one dimension
+from the other because there is a clear reason for selecting one as
+the response. Similarly, \citet{Smith2009} suggests deciding between
+linear regression and RMA based on whether the biological question is
+symmetric or asymmetric, rather than based on measurement error in the
+data.
+
+Although the literature is rich with arguments on the relative merits
+of linear regression versus RMA, and whether or not measurement error
+ought to play a role in selecting which to use, there has been
+comparatively little attention paid to developing new methods that
+explicitly model the measurement error. \citet{Warton2006} summarises
+a standard approach to account for measurement error in simple linear
+regression: the standard deviation of measurement error for both
+dimensions can be obtained by taking repeated measurements, allowing a
+methods-of-moments estimator for the slope that is free from
+bias. Similarly, \citet{Akritas1996} provide methods-of-moments
+estimators for RMA to account for measurement errors. However, issues
+with these method-of-moments estimators include poor performance of
+variance estimates in small samples, and the possibility of obtaining
+negative variance estimates \citep{Warton2006}. Additionally, they
+require an assumption that measurement error in one dimension is
+independent of the other, and violations of this assumption introduce
+bias \citep{Arnold2007}. Furthermore, the literature on statistical
+methods for allometry has focused on bivariate data, but in situations
+like ours for manta rays, we collect data on more than two
+dimensions. Attention on multivariate approaches is therefore
+warranted.
+
+For the reef manta ray, we wish to predict different dimensions for
+different individuals using different subsets of the remaining
+dimensions: we may wish to predict disc width from an individual's
+disc length and cranial width measurements, or to predict disc width
+only using the cranial width (e.g., if an individual's disc length
+measurement has not been taken), or we may wish to predict the cranial
+width from both the disc length and width, and so on. Linear
+regression methods are suitable for prediction problems, but each type
+of prediction would require a researcher to fit completely separate
+model. Likewise, if a researcher is interested in obtaining both
+linear regression and RMA estimates for different selections of
+variables, they would need to separately fit a range of models.
+
+In this paper, we propose a new method to analyse morphometric data
+subject to measurement error, with a focus on photogrammetry surveys
+on which repeated measurements are observed by taking multiple
+photographs of each individual. Our method has a number of desirable
+features relative to existing approaches. Our model (1) accommodates
+multivariate data with any number of dimensions; (2) generates
+different types of fitted lines, consistent with either linear
+regression or RMA interpretations and for different selections of
+variables, from a single model fit; (3) accommodates correlation in
+measurement error between dimensions; (4) provides tests for
+allometric growth between all pairs of dimensions; (5) does not
+require all dimensions to be measured in every single image; and (6)
+can be formulated as a linear mixed-effects model, allowing fast
+model-fitting by maximum likelihood or restricted maximum likelihood,
+thus avoiding the issues described by \citet{Warton2006} relating to
+methods-of-moments approaches.
+
+Because our model accounts for measurement error and provides fitted
+relationships with either linear regression or RMA interpretations, we
+isolate the issue of measurement error from the type of inference
+desired. Researchers can choose the type of inference based on their
+research question, rather than the magnitude of measurement error in
+their data.
+
+We describe our model in Section \ref{sec:model} and demonstrate that
+it can be formulated as a linear mixed-effects model in Section
+\ref{sec:lmm}. We derive various estimates based on our model in
+Section \ref{sec:derived-estimates}, such as estimates for equations
+of fitted relationships corresponding to either linear regression or
+RMA interpretations, and describe hypothesis tests for isometric
+growth. In Section \ref{sec:mantas}, we illustrate the use of our
+method with an application to data collected on a drone survey of the
+reef manta ray, followed by a simulation study in Section
+\ref{sec:sim}.
+
+
+\section{A measurement-error model for morphometric data}
+\label{sec:model}
+
+We consider a photogrammetry survey on which $N$ unique individual
+animals have been photographed. We have repeated photographs, but not
+necessarily the same number for each animal, such that we have $n_i$
+photographs of the $i$th individual. We obtain measurements of up to
+$D$ dimensions from each photograph, and let $y_{ijk}$ be the observed
+measurement of the $k$th dimension ($k = 1, \cdots, D$) from the $j$th
+photograph ($j = 1, \cdots, n_i$) of the $i$th individual ($i = 1,
+\cdots, N$). Let $\bm{y}_{ij} = (\bm{y}_{ij1}, \cdots, \bm{y}_{ijD})$
+be the vector of measurements obtained from the $j$th photograph of
+the $i$th individual, $\bm{y}_i = (\bm{y}_{i1}, \cdots,
+\bm{y}_{in_i})$ contain measurements from all photographs of the $i$th
+individual, and $\bm{y} = (\bm{y}_i, \cdots, \bm{y}_N)$ contain all
+measurements obtained on the survey. Throughout this manuscript, we
+use uppercase to denote a random variable and lowercase to denote a
+realisation, so that $\bm{y}$ is a multivariate observation of the
+random variable $\bm{Y}$.
+
+In our application to manta rays described in Section \ref{sec:mantas}
+we have measurements of the disc width, the disc length, and the
+cranial width, so $D = 3$. We may not obtain measurements of some
+dimensions from a given photo, or for all photos of a given
+individual; for example if a photograph of a manta ray is not captured
+at the exact moment of maximum extension of the pectoral fins, then we
+will not obtain a measurement for the disc width.
+
+Our data $\bm{y}$ are subject to measurement error, such that the
+measurements obtained from the photographs are not equal to the true
+dimensions of the individuals. Following \citet{Warton2006}, we assume
+our measurements are unbiased such that $\text{E}(Y_{ijk}) = t_{ik}$,
+where $\bm{t}_i = (t_{i1}, \cdots, t_{iD})$ is a vector containing the
+true measurements of the $D$ dimensions for the $i$th
+individual. Specifically, we assume that measurements from a
+photograph arise from an $D$-dimensional multivariate normal
+distribution centred on the true values:
+\begin{equation}
+  (\bm{Y}_{ij} \mid \bm{T}_i = \bm{t}_i) \sim \text{MVN}_D(\bm{t}_i,
+  \bm{\Xi}^*). \label{eq:y-cond-dist}
+\end{equation}
+The variance of the measurement error for the $k$th dimension is
+$\psi^2_k$ and the correlation between measurement errors of the the
+$k$th and $k^\prime$th ($k \ne k^\prime$) taken from the same
+photograph is $\phi_{kk^\prime}$. Therefore, the variance-covariance
+matrix for measurment error is
+\begin{equation}
+  \bm{\Xi^*} =
+  \begin{bmatrix}
+    \psi^2_1 & \phi_{12}\psi_{1}\psi_{2} & \cdots & \phi_{1D}\psi_1\psi_D \\
+    \phi_{12}\psi_{2}\psi_{1} & \psi^2_2 & \cdots & \phi_{2D}\psi_2\psi_{D} \\
+    \vdots & \vdots & \ddots & \vdots \\
+    \phi_{1D}\psi_{D}\psi_{1} & \phi_{2D}\psi_{D}\psi_{2} & \cdots & \psi^2_D 
+  \end{bmatrix}. \label{eq:xi-star}
+\end{equation}
+We use $\bm{\Xi^*}$ here to avoid a clash in notation with the matrix
+$\bm{\Xi}$ introduced in Section \ref{sec:lmm}, which is a related but
+different matrix. Note that we allow measurement error variance to
+differ between dimensions, because some may be easier than others to
+measure accurately. Moreover, existing approaches assume measurement
+error is independent between dimensions \citep{Warton2006,
+  Arnold2007}, implying that $\bm{\Xi}^*$ is a diagonal matrix, but
+here we explicitly model correlations between them. This feature of
+our model is important for our application to manta rays in Section
+\ref{sec:mantas}, because photographs that generate a
+larger-than-expected measurement for one dimension also tend to
+generate larger-than-expected measurements for other dimensions.
+
+We assume that the true measurements of an individual, $\bm{t}_i$,
+arise from a multivariate normal distribution, such that
+\begin{equation}
+  \bm{T}_i \sim \text{MVN}_D(\bm{\mu}, \bm{\Sigma}^*), \label{eq:t-dist}
+\end{equation}
+where the vector $\bm{\mu} = (\mu_1, \cdots, \mu_D)$ contains the
+means of the true dimension measurements across the population. The
+variance of the true measurements of the $k$th dimension across the
+population is given by $\sigma^2_k$, and the correlation between the
+$k$th and $k^\prime$th ($k \ne k^\prime$) true measurements is
+$\rho_{kk^\prime}$. Therefore, the variance-covariance matrix
+$\bm{\Sigma^*}$ is
+\begin{equation}
+  \bm{\Sigma^*} =
+  \begin{bmatrix}
+    \sigma^2_1 & \rho_{12}\sigma_{1}\sigma_{2} & \cdots & \rho_{1D}\sigma_1\sigma_D \\
+    \rho_{12}\sigma_{2}\sigma_{1} & \sigma^2_2 & \cdots & \rho_{2D}\sigma_2\sigma_{D} \\
+    \vdots & \vdots & \ddots & \vdots \\
+    \rho_{1D}\sigma_{D}\sigma_{1} & \rho_{2D}\sigma_{D}\sigma_{2} & \cdots & \sigma^2_D 
+  \end{bmatrix}. \label{eq:varcov-u}
+\end{equation}
+Again, we use the $\bm{\Sigma^*}$ to distinguish this matrix from
+$\bm{\Sigma}$, a related matrix introduced in the following section.
+
+See Figure \ref{fig:lmm-plot} for a plot of data simulated under our
+model for which $D = 2$. True measurements, $\bm{t}$, arise from a
+bivariate normal distribution centred on $\bm{\mu}$ with correlation
+between dimensions. Measurements from photographs, $\bm{y}$, arise
+from bivariate normal distributions centred on the true measurements,
+again with correlation between dimensions. Using only the observed
+photogrammetry data $\bm{y}$, we wish to estimate the parameter
+vectors $\bm{\mu}$, $\bm{\sigma}$, $\bm{\rho}$, $\bm{\psi}$, and
+$\bm{\phi}$. In the following section, we show that this model can be
+formulated as a linear-mixed effects model, allowing us to make use of
+standard linear mixed-effects model fitting algorithms and software.
+
+\section{A linear mixed-effects model}
+\label{sec:lmm}
+
+\subsection{An overview of linear mixed-effects models}
+\label{sec:lmm-overview}
+
+The standard form for a linear mixed-effects model is
+\begin{equation}
+  \bm{y} = \bm{X}\bm{\beta} + \bm{Z}\bm{u} + \bm{\epsilon}, \label{eq:standard-lmm}
+\end{equation}
+where $\bm{y}$ is a vector of observations, $\bm{X}$ is a design
+matrix containing observed covariates, $\bm{\beta}$ is a vector of
+fixed-effect parameters, $\bm{Z}$ is a design matrix for random
+effects, $\bm{u}$ is a vector of random effects, and $\bm{\epsilon}$
+is a vector of errors \citep{Jiang2007}.
+
+For a linear mixed-effects model $\bm{y}$ and $\bm{\epsilon}$ are
+vectors of length $n$, and $\bm{u}$ is a vector of length $n_u$. The
+$n \times p$ matrix $\bm{X}$ and the $n \times n_u$ matrix $\bm{Z}$
+are known, and $\bm{\beta}$ is a vector of length $p$ containing
+coefficients that are estimated by the model. The vectors $\bm{u}$ and
+$\bm{\epsilon}$ are realisations of random variables, for which we
+assume
+\begin{align}
+  \bm{U} &\sim \text{MVN}_{n_u}(\bm{0}, \bm{\Sigma}) \text{, and} \label{eq:u-dist} \\
+  \bm{\epsilon} &\sim \text{MVN}_n(\bm{0}, \bm{\Xi}). \nonumber
+\end{align}
+These assumptions imply that the response vector $\bm{y}$ is a
+realisation of the multivariate random variable
+\begin{equation*}
+  \bm{Y} \sim \text{MVN}_n(\bm{X}\bm{\beta}, \bm{Z}\bm{\Sigma}\bm{Z}^{\rm T} + \bm{\Xi}).
+\end{equation*}
+The key difference from a linear model is that we do not have
+independence between the observations in $\bm{y}$, and instead we have
+covariance dictated by $\bm{Z}$, $\bm{\Sigma}$, and $\bm{\Xi}$.
+
+\subsection{Our method as a linear mixed-effects model}
+\label{sec:our-lmm}
+
+This general formulation describes a wide range of models that vary
+depending on the specifications of $\bm{X}$, $\bm{Z}$, $\bm{\Sigma}$,
+and $\bm{\Xi}$. Here, we show that the model described in Section
+\ref{sec:model} can be formulated as a linear mixed-effects model by
+specifying these matrices for our scenario. To illustrate how this
+works, we consider a simple example in Appendix A to accompany the
+description below. See Figure \ref{fig:lmm-plot} for a plot of
+simulated data generated by our model, with annotations to explain our
+notation.
+
+As an overview, under the linear mixed-effects formulation of our
+model: (1) we have a fixed effect for each dimension in $\bm{\beta}$,
+to account for some dimensions being larger, on average, than others;
+(2) each individual has a random effect for each dimension in
+$\bm{u}$, where $u_{ik} = t_{ik} - \mu_k$ is the difference between
+the $i$th individual's true measurement for the $k$th dimension and
+the population mean; and (3) measurement error is represented by
+$\bm{\epsilon}$, the difference between the observed measurement and
+the true measurement. We provide further details on each term below.
+
+<<lmm-plot, fig.cap = "A plot of simulated data under our model to aid explanations of our notation. True dimension sizes, $\\bm{t}$, (black dots) were simulated from a bivariate normal distribution with expectation vector $\\bm{\\mu}$ (black cross). In our linear mixed-effects model, the latent variables $\\bm{u}$ are the differences between the true measurements and the expectation, represented as arrows in this plot. The errors $\\bm{\\epsilon}$ are the differences between the measurements obtained from photographs (open circles) and the true measurements (black dots), and are represented as dashed lines. Note that we have positive covariance between the two dimensions for both the true values and for the errors. The covariance for the true values is subject to the variance-covariance matrix $\\bm{\\Sigma}$, and the covariance for the errors is subject to $\\bm{\\Xi}$.", echo = FALSE>>=
+calc.bearings <- function(points1, points2){
+    x.diff <- apply(points2, 1, function(x) x[1] - points1[, 1])
+    y.diff <- apply(points2, 1, function(x) x[2] - points1[, 2])
+    out <- atan(x.diff/y.diff)
+    out[y.diff < 0] <- out[y.diff < 0] + pi
+    out[y.diff >= 0 & x.diff < 0] <- out[y.diff >= 0 & x.diff < 0] + 2*pi
+    out
+}
+library(mvtnorm)
+par(mar = c(2, 2, 0, 0))
+plot.new()
+plot.window(xlim = c(0, 1), ylim = c(0, 1))
+mtext("Dimension 1", side = 1, line = 1)
+mtext("Dimension 2", side = 2, line = 1)
+box()
+points(0.5, 0.5, pch = 3, cex = 1.5, lwd = 4)
+text(0.5, 0.5, labels = expression(mu), adj = c(-1.25, 1.25))
+set.seed(1212)
+t <- rmvnorm(5, sigma = matrix(2*c(0.075, 0.0725, 0.0725, 0.075), nrow = 2))
+t[, 1] <- t[, 1] - mean(t[, 1]) + 0.5
+t[, 2] <- t[, 2] - mean(t[, 2]) + 0.5
+points(t, pch = 16)
+text(t, labels = c(expression(t[1]),
+                   expression(t[2]),
+                   expression(t[3]),
+                   expression(t[4]),
+                   expression(t[5])), adj = c(-2.0, 0.5))
+arrows(rep(0.5, 5), rep(0.5, 5), t[, 1], t[, 2], length = 0.1)
+u.loc <- t(apply(t, 1, function(x) c(mean(c(x[1], 0.5)), mean(c(x[2], 0.5)))))
+b <- calc.bearings(matrix(c(0.5, 0.5), nrow = 1), t) + 0.5*pi
+perp.dist <- 0.025
+u.loc[, 1] <- u.loc[, 1] + perp.dist*sin(b)
+u.loc[, 2] <- u.loc[, 2] + perp.dist*cos(b)
+text(u.loc, labels = c(expression(u[1]),
+                       expression(u[2]),
+                       expression(u[3]),
+                       expression(u[4]),
+                       expression(u[5])))
+set.seed(2929)
+for (i in 1:5){
+    y <- rmvnorm(5, sigma = matrix(0.35*c(0.01, 0.009, 0.009, 0.01), nrow = 2))
+    y[, 1] <- y[, 1] + t[i, 1]
+    y[, 2] <- y[, 2] + t[i, 2]
+    points(y)
+    segments(t[i, 1], t[i, 2], y[, 1], y[, 2], lty = "dashed")
+}
+@ 
+
+\subsubsection{Fixed effects}
+
+Under the linear mixed-effects formulation of our model, the
+fixed-effects coefficients $\bm{\beta}$ are the population means of
+the true dimesion measurements, such that $\bm{\beta} \equiv
+\bm{\mu}$. We use $\bm{\beta}$ and $\bm{\mu}$ interchangeably, using
+$\bm{\mu}$ to emphasise that these parameters are population means (Eq
+\eqref{eq:t-dist}) or $\bm{\beta}$ to emphasise they are coefficients
+in a linear mixed-effects model (Eq \eqref{eq:standard-lmm}). As per
+Section \ref{sec:lmm-overview}, the matrix $\bm{X}$ has a row for each
+observed measurement and a column for every element in $\bm{\beta}$. A
+row in $\bm{X}$ corresponding to an observed measurement of dimension
+$k$ has a $1$ in the $k$th column and a $0$ in the remaining
+columns. Therefore, the term $\bm{X}\bm{\beta}$ is a vector of length
+$N$ where an element corresponding to a mesurement of the $k$th
+dimension is equal to its population mean, $\beta_k \equiv \mu_k$ (Eq
+\eqref{eq:app-xb}).
+
+\subsubsection{Random effects}
+
+The random effects vector $\bm{u} = (\bm{u}_1, \cdots, \bm{u}_N)$
+contains $D$ elements for each of the $N$ individuals. For the $i$th
+individual we have $\bm{u}_i = (u_{i1}, \cdots, u_{iD})$, where
+$u_{ik}$ is the difference between the true measurement of the $k$th
+dimension of the $i$th animal and the population mean $\mu_k$, so that
+the true measurements of the $i$th individual are given by $\bm{t}_i =
+\bm{\mu} + \bm{u}_i$ (Figure \ref{fig:lmm-plot}). Because $\bm{U}_i$
+is a centred version of $\bm{T}_i$, it is multivariate normal with
+expectation $\text{E}(\bm{U}_i) = \bm{0}$ and variance-covariance
+matrix $\text{Var}(\bm{U}_i) = \text{Var}(\bm{T}_i) = \bm{\Sigma}^*$
+(Eq \eqref{eq:t-dist}).
+
+The joint distribution of the full collection of random effects is
+$\bm{U} \sim \text{MVN}_{ND}(\bm{0}, \bm{\Sigma})$. The
+variance-covariance matrix $\bm{\Sigma}$ is block diagonal with a
+block for every individual, because we assume independence between
+individuals. We have
+\begin{equation*}
+  \bm{\Sigma} =
+  \begin{bmatrix}
+    \bm{\Sigma}^* & \bm{0} & \cdots & \bm{0} \\
+    \bm{0} & \bm{\Sigma}^* & \cdots & \bm{0} \\
+    \vdots & \vdots & \ddots & \vdots \\
+    \bm{0} & \bm{0} & \cdots & \bm{\Sigma}^*
+  \end{bmatrix}, \label{eq:sigma}
+\end{equation*}
+where every $\bm{0}$ is an $D \times D$ submatrix full of zeroes.
+
+The matrix $\bm{Z}$ has a row for each observed measurement and a
+column for every element in $\bm{u}$. For the row corresponding to the
+measurement $y_{ijk}$, the element in the column corresponding to
+$u_{ik}$ is $1$ and all others are $0$. Therefore, the term
+$\bm{Z}\bm{u}$ is a vector of length $N$ where an element
+corresponding to a measurement of the $k$th dimension of the $i$th
+individual is equal to $u_{ik}$, the difference between the true
+measurement and the population mean of the $k$th dimension for the
+$i$th dimension (Eq \eqref{eq:app-Zu}).
+
+\subsubsection{Errors}
+
+The final term in the linear mixed-effects model specification is
+$\bm{\epsilon} = (\bm{\epsilon}_1, \cdots, \bm{\epsilon}_N)$, and
+represents measurement error. Let $\bm{\epsilon}_i =
+(\bm{\epsilon}_{i1}, \cdots, \bm{\epsilon}_{in_i})$ be the measurement
+errors from all photographs of the $i$th individual, and
+$\bm{\epsilon}_{ij} = (\epsilon_{ij1}, \cdots, \epsilon_{ijD})$ be the
+measurement errors for the $D$ dimensions in the $j$th photo of the
+$i$th individual. From Eq \eqref{eq:y-cond-dist}, the measurement
+errors in the $j$th photograph of the $i$th individual are
+multivariate normal with expectation $\text{E}(\bm{\epsilon}_{ij}) =
+\bm{0}$ and variance-covariance matrix $\text{Var}(\bm{\epsilon}_{ij})
+= \bm{\Xi}^*$.
+
+The joint distribution of the full collection of measurement errors is
+$\bm{\epsilon} \sim \text{MVN}(\bm{0}, \bm{\Xi})$. Similar to
+$\bm{\Sigma}$, above, the variance-covariance matrix $\bm{\Xi}$ is
+block diagonal, but with a block for every photograph rather than for
+every individual, because we assume independence in measurement error
+between photographs. We have
+\begin{equation*}
+  \bm{\Xi} =
+  \begin{bmatrix}
+    \bm{\Xi}^* & \bm{0} & \cdots & \bm{0} \\
+    \bm{0} & \bm{\Xi}^* & \cdots & \bm{0} \\
+    \vdots & \vdots & \ddots & \vdots \\
+    \bm{0} & \bm{0} & \cdots & \bm{\Xi}^*
+  \end{bmatrix}, \label{eq:xi}
+\end{equation*}
+where again every $\bm{0}$ is an $D \times D$ submatrix full of
+zeroes.
+
+These specifications for $\bm{X}$, $\bm{\beta}$, $\bm{Z}$, $\bm{u}$,
+and $\bm{\epsilon}$ ensure that $\bm{X}\bm{\beta} + \bm{Z}\bm{u} +
+\bm{\epsilon}$ has the same distribution as the marginal distribution
+of $\bm{y}$ in Section \ref{sec:model}. Our model can be fitted by
+maximum likelihood or restricted maximum likelihood. We provide
+further details in Section \ref{sec:morphErr}.
+
+\section{Further inference}
+\label{sec:derived-estimates}
+
+Our model estimates the multivariate distribution of true dimension
+measurements (Eq \eqref{eq:t-dist}) via the vectors
+$\widehat{\bm{\mu}}$ (population means for the dimension),
+$\widehat{\bm{\sigma}}$ (population standard deviations for the
+dimensions), and $\widehat{\bm{\rho}}$ (correlations between
+dimensions). Using this estimated multivariate distribution, we can be
+generate inference on various aspects of relationships between true
+dimension sizes.
+
+We consider the following: (1) equations of lines with the same
+interpretation offered by linear regression, providing the expected
+value of one dimension conditional on specified measurements from any
+subset of the remaining dimensions; (2) equations of lines with the
+same interpretation offered by RMA; (3) the expected value of the
+ratio of any pair of dimensions, conditional on a specified
+measurement for the denominator, which is of interest because
+isometric growth implies that the expected ratio will not depend on
+the denominator; and (4) hypothesis tests for isometric growth.
+
+\subsection{Linear regression estimates}
+\label{sec:linear-regression}
+
+A linear regression equation provides the expectation of a response
+variable, given specified values of predictor variable(s). Here, a
+vector of true measurements $\bm{T}_i$ is multivariate normal, and so
+the dimensions are linearly related to one another. We provide linear
+equations for the expected value of one response dimension given
+specified values of any subset of the remaining dimensions.
+
+Let $p \in \{1, \cdots, D\}$ be the selection of the response
+dimension, and $\bm{q} \subset \{1, \cdots, D\}$, $p \not\in \bm{q}$,
+be a vector of $s$ selected predictor dimensions. Thus, $T_p$ is a
+random variable for the selected response dimension, and let
+$t_{\bm{q}}$ be a vector containing specified values of the dimensions
+in $\bm{q}$. For example, if we wish to compute the expected value of
+the first dimension given specified true values of the second and
+third, then $p = 1$ and $\bm{q} = (2, 3)$, $s = 2$, and
+$\bm{t}_{\bm{q}} = (t_2, t_3)$.
+
+Using standard theoretical results relating to the multivariate normal
+distribution \citep[see][pp.\ 116--119]{Eaton1983}, the expected value
+of $T_p$ conditional on $\bm{t}_{\bm{q}}$ is $\text{E}(T_{p} \mid
+\bm{T}_{\bm{q}} = \bm{t}_{\bm{q}}) = \mu_p +
+\bm{\Sigma}^*_{p\bm{q}}\bm{\Sigma}_{\bm{q}\bm{q}}^{*-1}(\bm{t}_{\bm{q}}
+- \bm{\mu}_{\bm{q}})$. Here, $\bm{\Sigma}^*_{p\bm{q}}$ is a vector
+containing the elements of $\bm{\Sigma}^*$ in the $p$th row and the
+$s$ columns specified by $\bm{q}$. Similarly,
+$\bm{\Sigma}^*_{\bm{q}\bm{q}}$ is the $s \times s$ submatrix,
+containing the elements in the rows and columns specified in $\bm{q}$.
+
+With a little rearrangment, we can specify the equation with a linear
+regression interpretation relating dimensions $\bm{q}$ to dimension
+$p$ in the form
+\begin{equation}
+f_{p\bm{q}}^{\text{(LR)}}(\bm{t}_{\bm{q}}) = (\mu_{p} -
+\bm{\Sigma}^*_{p\bm{q}}\bm{\Sigma}_{\bm{q}\bm{q}}^{*-1} \bm{\mu}_{\bm{q}}) + \bm{\Sigma}^*_{p\bm{q}}\bm{\Sigma}_{\bm{q}\bm{q}}^{*-1}
+\bm{t}_{\bm{q}}, \label{eq:linear-lm}
+\end{equation}
+where the first term in parentheses is the intercept (i.e., the
+expected value of dimension $p$ when all $\bm{q}$ dimensions are equal
+to zero) and the remaining term comprises a linear combination of true
+measurments $\bm{t}_{\bm{q}}$, with a coefficient for each in the
+vector $\bm{\Sigma}^*_{p\bm{q}}\bm{\Sigma}_{\bm{q}\bm{q}}^{*-1}$.
+
+After fitting a single model to compute the estimates
+$\widehat{\bm{\mu}}$ and $\widehat{\bm{\Sigma}}^*$, we can therefore
+make any selections for $p$ and $\bm{q}$ to generate linear equations
+for the expected value of any dimension using any subset of the
+others. We do not need to refit the model to generate linear equations
+for different selections for the response or predictor variables.
+
+\subsection{RMA estimates}
+\label{sec:rma}
+
+The RMA approach to bivariate line fitting is equivalent to taking the
+first principal component axis using the correlation matrix
+\citep{Warton2006}. The standard approach is to compute this matrix
+directly from the observed data using the Pearson correlation
+coefficient. In our case, the observed data $\bm{y}$ does not directly
+provide appropriate estimates of correlations between true
+measurements, because $\bm{y}$ is subject to measurement error.
+
+However, our model estimates the variance-covariance matrix for true
+measurements, $\bm{\Sigma}^*$, while accounting for measurement error.
+We convert $\widehat{\bm{\Sigma}}^*$ into a correlation matrix, from
+which the first principal axis can be obtained, providing a fitted
+line with the same interpretation as that from RMA. An RMA line for a
+pair of selected dimensions, $p$ and $q$, computed from
+$\bm{\Sigma}^*$ has intercept $\mu_p - \mu_q\sigma_p/\sigma_q$ and
+slope $\text{sign}(\rho_{pq})\sigma_p/\sigma_q$
+\citep{Sokal2012}. Thus, the linear equation associating dimension $p$
+with dimension $q$ that has an RMA interpretation is
+\begin{equation}
+  f_{pq}^{\text{(RMA)}}(t_q) = \mu_p - \mu_q\sigma_p/\sigma_q +
+  \text{sign}(\rho_{pq})\sigma_pt_q/\sigma_q \label{eq:linear-rma}
+\end{equation}
+
+%% \subsection{Ratio distributions}
+%% \label{sec:ratios}
+
+%% Here we consider the distribution of the random variable $R_{pq} =
+%% T_{ip}/T_{iq}$, the ratio of the $p$th and $q$th true dimension
+%% measurements from a randomly selected individual in the
+%% population. This random variable is a ratio of normally distributed
+%% random variables---and therefore is conceptually similar to a Cauchy
+%% random variable. However, a Cauchy distribution arises from a ratio of
+%% independent normal random variables, and here $T_{ip}$ and $T_{iq}$
+%% have nonzero correlation $\rho_{pq}$.
+
+%% Like the Cauchy, the moments of the distribution of $r_{pq}$ do not
+%% exist because the support of the denominator's distribution contains
+%% zero. \citet{Marsaglia2006} provides the probability density function
+%% (PDF) for a distribution that serves as an excellent practical
+%% approximation in scenarios like ours, where the denominator is not
+%% expected to reach zero, which is given by
+%% \begin{equation}
+%%   f(r_{pq}) = f_{\text{norm}}\left(\frac{r_{pq}\mu_q -
+%%     \mu_p}{\sqrt{\sigma_p^2 - 2r_{pq}\sigma_p\sigma_q\rho_{pq} +
+%%       r^2\sigma_q^2}}\right) \frac{\mu_q\sigma_p^2 -
+%%     \sigma_p\sigma_q\rho_{pq}\mu_p + r(\mu_p\sigma_q^2 -
+%%     \sigma_p\sigma_q\rho_{pq}\mu_q)}{\sqrt{(\sigma_p^2 -
+%%       2r_{pq}\sigma_p\sigma_q\rho_{pq} + r_{pq}^2\sigma_q^2)^3}}. \label{eq:pdf-ratio}
+%% \end{equation}
+%% Here, $f_\text{norm}(x)$ is the PDF of the standard normal
+%% distribution. \citet{Marsaglia2006} provides expressions for the
+%% practical mean and variance of the ratio, applicable when the
+%% denominator is not expected to reach zero. We use these expressions to
+%% compute estimated mean ratios in our analysis (Section
+%% \ref{sec:mantas}), but do not reproduce them here for brevity.
+
+\subsection{Ratios as a function of the denominator}
+\label{sec:ratios-denom}
+
+So far we have described two ways of obtaining fitted lines from our
+model to describe the relationship between two dimensions, which are
+consistent with interpretations of linear regression (Section
+\ref{sec:linear-regression}) and RMA (Section \ref{sec:rma})
+approaches. In this section we describe a way to infer how the ratio
+between two dimensions varies with respect to the
+denominator---thereby allowing us to explore allometry. Under
+isometric growth, the ratio of dimensions $p$ and $q$ will not vary
+with dimension $q$. However, if the ratio increases with dimension
+$q$, for example, then larger individuals do not have the same
+relative proportions as smaller animals, and so we have allometric
+growth.
+
+By simplifying the linear regression equation for multiple predictor
+variables (Eq \eqref{eq:linear-lm}) to a scenario with a single
+predictor variable, a line with a linear regression interpretation
+for the bivariate relationship between dimensions $p$ and $q$ is given
+by
+\begin{equation*}
+f_{pq}^{\text{(LR)}}(t_{q}) = \mu_p - \frac{\mu_q\rho_{pq}\sigma_p +
+  t_q\rho_{pq}\sigma_p}{\sigma_q}.
+\end{equation*}
+The expected ratio between dimensions $p$ and $q$ implied by this
+equation, given the individual has true measurement $t_q$ for
+dimension $q$, is therefore
+\begin{equation}
+r_{pq}^{\text{(LR)}}(t_q) = \text{E}(T_p/T_q \mid T_q = t_q) = 
+\frac{f_{pq}^{\text{(LR)}}(t_q)}{t_q} = \frac{\mu_p}{t_q} +
+\frac{\rho_{pq}\sigma_p(1 - \mu_q/t_q)}{\sigma_q}. \label{eq:ratio-lm}
+\end{equation}
+
+Similarly, the ratio implied by the RMA equation (Eq
+\eqref{eq:linear-rma}) given the individual has true measurement $t_q$
+for dimension $q$, is
+\begin{equation}
+  r_{pq}^{\text{(RMA)}}(t_q) =
+  \frac{f_{pq}^{\text{(RMA)}}(t_q)}{t_q} = \frac{\mu_p}{t_q}
+  + \frac{\sigma_p(1 - \mu_q/t_q)}{\sigma_q}. \label{eq:ratio-rma}
+\end{equation}
+
+Following model fitting, we can replace $\bm{\mu}$, $\bm{\sigma}$, and
+$\bm{\rho}$ in these equations with estimates, then plot the functions
+$r_{pq}^{\text{(LR)}}(t_q)$ and $r_{pq}^{\text{(LR)}}(t_q)$ to make
+inference on allometry. If we observe increasing functions, then
+dimension $p$ increases disproportionatly to $q$ as animals grow
+(i.e., larger individuals have a large dimension $p$ relative to $q$
+in comparison to small animals), and vice versa for decreasing
+functions. There is debate in the literature as to whether to use
+linear regression or RMA estimate to make inference on allometry
+\citep{Warton2006, Kilmer2016}, so we provide formulae for both
+options here.
+
+\subsection{Tests for isometry}
+\label{sec:isometry-tests}
+
+If the function $r_{pq}(t_q)$ is constant with respect to $t_q$ (i.e.,
+the first derivative is zero for all $t_q$) then we have isometric
+growth for dimensions $p$ and $q$: the size of dimension $p$ relative
+to $q$ is the same for individuals of all sizes. Thus, under isometry
+between dimensions $p$ and $q$, and, if we use RMA rather than linear
+regression to test for isometry \citep[following][]{Warton2006}, then
+under the null hypothesis of isometric growth we have
+\begin{align*}
+  \frac{\mathrm{d} r_{pq}^{\text{(RMA)}}(t_q)}{\mathrm{d} t_q} &= 0
+  \\ \frac{\sigma_p \mu_q}{\sigma_q t_q^2} - \frac{\mu_p}{t_q^2} &= 0,
+\end{align*}
+and, following some rearrangement, we obtain $\mu_p\sigma_q -
+\mu_q\sigma_p = 0$.
+
+Thus, we can specify our hypotheses for tests of isometry as
+\begin{align}
+  H_0: & \mu_p\sigma_q - \mu_q\sigma_p = 0 \text{ (i.e., growth in dimensions $p$ and $q$ is isometric),} \label{eq:allometry-test}
+  \\ H_1: & \mu_p\sigma_q - \mu_q\sigma_p \ne 0 \text{ (i.e., growth in
+  dimensions $p$ and $q$ is allometric).} \nonumber
+\end{align}
+To compute a $p$-value to test the null hypothesis of isometric
+growth, we divide $\widehat{\mu}_p\widehat{\sigma}_q -
+\widehat{\mu}_q\widehat{\sigma}_p$ by its standard error, available
+via the delta method, to obtain a $z$-test statistic, from which the
+$p$-value is obtained by calculating the tail probability from a
+standard normal distribution. Empirically, we find that this test
+statistic is well approximated by a normal distribution.
+
+\subsection{Estimating true dimension measurements from observations subject to error}
+
+Sections \ref{sec:linear-regression} and \ref{sec:rma} dealt with
+inference about relationships between true measurements of
+dimensions. For example, Eq \eqref{eq:linear-lm} provides the expected
+value of one dimension, given true measurements of a subset of other
+dimensions. In some cases, however, we may wish to estimate the true
+dimension measurements of an individual's dimensions, $\bm{t}_i$,
+based on measurements from photographs that are subject to error,
+$\bm{y}_i$.
+
+Here our inference is about the quantity $\bm{t}_i = \bm{\mu} +
+\bm{u}_i$, the sum of a fixed effect and a random effect. The standard
+approach to estimating random effects for linear mixed-effects models
+like ours is via the best linear unbiased predictor (BLUP), calculated
+by finding the mode of the PDF for the random variable $(\bm{T}_i \mid
+\bm{Y}_i = \bm{y}_i)$. This PDF is proportional to the product of the
+PDFs for $(\bm{Y}_i \mid T_i = \bm{t}_i)$ and $\bm{T}_i$, both of
+which are multivariate normal, as per Eqs \eqref{eq:y-cond-dist} and
+\eqref{eq:t-dist}. See \citet[pp.\ 71]{Pinheiro2000} for further
+details.
+
+\section{Model fitting and software}
+\label{sec:morphErr}
+
+Our original model-fitting software comprised a custom-written
+likelihood function that we maximised numerically. Although it was not
+immediately obvious to us, we subsequently recognised that our model
+can be fitted using the \texttt{lme()} function in the \texttt{nlme} R
+package \citep{Pinheiro2000, Pinheiro2023}. While \texttt{lme()} does
+not allow user-specified $\bm{X}$ or $\bm{Z}$ matrices, and only
+certain forms of covariance structures for $\bm{u}$ and
+$\bm{\epsilon}$ are available, the software is sufficiently flexible
+to accommodate our model. We include details of how to achieve this in
+Appendix B. Using \texttt{lme()} comes with multiple advantages
+relative to bespoke code for a likelihood function that is maximised
+using general-purpose numerical algorithms
+\citep[see][]{Lindstrom1988,Pinheiro1996}. By contrast, the R package
+\texttt{lme4} cannot be used to fit our model, because it does not
+allow models with heterogeneous error variance (i.e., different
+elements on the diagonal of $\bm{\Xi}$).
+
+Rather than using \texttt{nlme} directly to fit our model, we
+recommend using our R package \texttt{morphErr} \citep{morphErr}. The
+\texttt{morphErr} package includes functions to fit the model we
+describe in Sections \ref{sec:model} and \ref{sec:our-lmm} with an
+internal call to the \texttt{lme()} from the \texttt{nlme} package,
+saving the user from directly specifying the linear mixed-effects
+model in \texttt{lme()}. Additional functions are available to
+generate inference on relationships between dimensions as per Section
+\ref{sec:derived-estimates}, and create data visualisations that
+include fitted relationships. We provide further details in Appendix
+C.
+
+\section{An application to the reef manta ray}
+\label{sec:mantas}
+
+\subsection{Survey scenario}
+
+<<echo = FALSE>>=
+library(morphErr)
+load("manta-fit.RData")
+s <- summary(fit)
+mu.est <- s[1:3, 1]
+sigma.est <- s[4:6, 1]
+rho.est <- s[7:9, 1]
+psi.est <- s[10:12, 1]
+phi.est <- s[13:15, 1]
+@ 
+
+We conducted an aerial survey of reef manta rays \emph{Mobula
+alfredi}, recording video footage from a drone. Images of
+\Sexpr{length(unique(data$animal.id))} unique individuals at the water
+surface were extracted from the video footage. Each individual
+appeared in between \Sexpr{min(tapply(data$photo.id, data$animal.id,
+  length)/3)} and \Sexpr{max(tapply(data$photo.id, data$animal.id,
+  length)/3)} images.
+
+Measurements of three dimensions were extracted from each image using
+the open-source software Tracker \citep{Brown2009}, in line with the
+definitions provided by \citet{Notarbartolo1987}, as follows: (1) the
+disc length, measured from the midpoint of the rostral margin to the
+free rear tip of the pectoral fin; (2) the disc width, measured
+between the outermost tips of the pectoral fins; and (3) the cranial
+width, the maximal dorsal width between the antorbital processes. By
+deploying a floating PVC pipe of known length as a reference scale and
+ensuring it appeared in each image, we converted measurements in the
+image (in number of pixels) to dimension measurements in centimetres.
+
+As with many surveys that obtain dimension measurements from
+photogrammetry, our observations are subject to measurement error,
+such that measurements taken of the same individual will vary between
+photographs. For example, error will be introduced to disc width
+measurements if the individual's pectoral fins are not quite fully
+extended, and to disc length measurements if the indivdiual is not
+perfectly flat at the water surface, at the moment the still image is
+taken.
+
+Moreover, the apparent size of the reference PVC pipe introduces
+measurement errors within a single photograph that are positively
+correlated. For example, if the length of the PVC pipe in the image
+appears shorter than it ought to (e.g., because the pipe is not
+perfectly flat on the water surface), then we may expect positive
+measurement error in measurements of all dimensions. Existing methods
+are unable to handle this type of correlated measurement error
+\citep{Arnold2007}, but our model explicitly accommodates these
+correlations via the parameter vector $\bm{\phi}$.
+
+\subsection{Model fitting}
+
+We fitted the model described in Sections \ref{sec:model} and
+\ref{sec:our-lmm}. Estimates of $\bm{\mu}$, $\bm{\sigma}$,
+$\bm{\rho}$, $\bm{\psi}$, $\bm{\rho}$ are available in Table
+\ref{tab:ests}, along with standard errors. In particular, we
+highlight the large estimated correlations between all pairs of true
+dimension measurements (all elements of $\widehat{\bm{\rho}}$ are at
+least \Sexpr{round(min(rho.est), 2)}), indicating that we can
+accurately predict the true measurement of any one dimension of a
+manta ray based on the true measurement of any other
+dimension. Moreover, parameter estimates for the elements of
+$\bm{\phi}$ are all positive and significantly different from zero,
+indicating that we have positively correlated measurement
+errors---this feature of our data would lead to bias using previously
+proposed methods.
+
+<<estimates, echo = FALSE, results = "asis">>=
+suppressMessages(library(xtable))
+s <- summary(fit)
+parnames <- c("$\\mu_{\\text{DW}}$",
+              "$\\mu_{\\text{DL}}$",
+              "$\\mu_{\\text{CW}}$",
+              "$\\sigma_{\\text{DW}}$",
+              "$\\sigma_{\\text{DL}}$",
+              "$\\sigma_{\\text{CW}}$",
+              "$\\rho_{\\text{DW}, \\text{DL}}$",
+              "$\\rho_{\\text{DW}, \\text{CW}}$",
+              "$\\rho_{\\text{DL}, \\text{CW}}$",
+              "$\\psi_{\\text{DW}}$",
+              "$\\psi_{\\text{DL}}$",
+              "$\\psi_{\\text{CW}}$",
+              "$\\phi_{\\text{DW}, \\text{DL}}$",
+              "$\\phi_{\\text{DW}, \\text{CW}}$",
+              "$\\phi_{\\text{DL}, \\text{CW}}$")
+ests <- s[, 1]
+ses <- s[, 2]
+x <- data.frame(parnames, ests, ses)
+names(x) <- c("Parameter", "Estimate", "Standard Error")
+digits.mat <- cbind(rep(1, 15), rep(1, 15), rep(2, 15), rep(3, 15))
+table <- xtable(x, label = "tab:ests", align = c("l", "l", "r", "r"), digits = digits.mat,
+                caption = "Estimates of $\\bm{\\mu}$, $\\bm{\\sigma}$, $\\bm{\\rho}$, $\\bm{\\psi}$, and $\\bm{\\phi}$ obtained by fitting our model to the reef manta ray data. Instead of using numerical subscripts for the three dimensions, for clarity we instead use the acronyms DW (disc width), DL (disc length), and CW (cranial width). Metres are used as the unit for $\\bm{\\mu}$, $\\bm{\\sigma}$, and $\\bm{\\psi}$.")
+print(table, type = "latex",  include.rownames = FALSE, caption.placement = "top", 
+      sanitize.text.function = identity, booktabs = TRUE, table.placement = "tb",
+      math.style.negative = TRUE)
+@ 
+
+Our principal goals are to (1) produce a regression equation to
+predict a manta ray's disc width from its disc length and cranial
+width, and (2) explore allometry between pairs of the three
+dimensions. Below, we illustrate that fitting our model allows us to
+meet these goals by using the inference approaches described in
+Section \ref{sec:derived-estimates}.
+
+\subsection{Linear regression equations to predict disc width}
+\label{sec:app-lr}
+
+Despite disc width being the standard way to measure manta ray body
+size \citep{Last2016}, it is the most difficult of our three
+dimensions to observe \citep{Francis2006}. We therefore require a way
+to predict disc width using the more readily available disc length and
+cranial width measurements, and indeed our model can generate
+predictions of one dimension based on any subset of the others.
+
+Via the methods described in Section \ref{sec:linear-regression}, we
+used our fitted model to provide regression equations for the
+estimated expected disc width of a manta ray using (1) its disc length
+only, (2) its cranial width only, and (3) both its disc length and
+cranial width. Equations for all three scenarios are necessary,
+because we may not have measurements for both dimensions for a given
+manta ray for which we wish to predict a disc width
+measurement. Estimated coefficients and standard errors for each of
+these three equations are provided in Table \ref{tab:lm-ests}.
+
+<<lm-estimates, echo = FALSE, results = "asis">>=
+lm.ests1 <- summary(fit, type = "betas", y.dim = 2, x.dim = 1)
+lm.ests2 <- summary(fit, type = "betas", y.dim = 2, x.dim = 3)
+lm.ests3 <- summary(fit, type = "betas", y.dim = 2, x.dim = c(1, 3))
+lm.ests <- c(lm.ests1[, 1], lm.ests2[, 1], lm.ests3[, 1])
+lm.ses <- c(lm.ests1[, 2], lm.ests2[, 2], lm.ests3[, 2])
+preds <- c("DL", "", "CW","", "DL, CW", rep("", 2))
+parnames <- c("Intercept",
+              "DL",
+              "Intercept",
+              "CW",
+              "Intercept",
+              "DL",
+              "CW")
+x <- data.frame(preds, parnames, lm.ests, lm.ses)
+names(x) <- c("Predictor(s)", "Coefficient", "Estimate", "Standard Error")
+digits.mat <- cbind(rep(1, 7), rep(1, 7), rep(1, 7), rep(2, 7), rep(2, 7))
+table <- xtable(x, label = "tab:lm-ests",
+                align = c("l", "l", "l", "r", "r"), digits = digits.mat,
+                caption = "Estimates of coefficients for regression equations to predict disc width based on (1) its disc length only, (2) its cranial width only, and (3) both its disc length and cranial width.")
+print(table, type = "latex",  include.rownames = FALSE, caption.placement = "top", 
+      sanitize.text.function = identity, booktabs = TRUE, table.placement = "tb",
+      math.style.negative = TRUE, hline.after = c(-1, 0, 2, 4, 7))
+@ 
+
+\subsection{Allometry between pairs of dimensions}
+
+<<isometry-tests-pvals, echo = FALSE>>=
+s.iso <- summary(fit, type = "isometric-pca")
+iso.p.dl.dw <- s.iso[1, 3]
+iso.p.dl.cw <- s.iso[4, 3]
+iso.p.dw.cw <- s.iso[2, 3]
+@ 
+
+We used our model, via methods described in Sections \ref{sec:rma},
+\ref{sec:ratios-denom}, and \ref{sec:isometry-tests}, to explore
+allometry among the three dimensions. Following the advice of
+\citet{Warton2006}, we use fitted lines with the same interpretation
+as that from RMA for this purpose, which are plotted in Figures
+\ref{fig:data-plots}(a)--(c).
+
+<<data-plots, fig.cap = "Top row, (a)--(c): Plots of the observed data for each pair of dimensions, with measurements of the same manta ray obtained from different photos plotted using the same colour. The RMA fitted line for the two dimensions (Eq \\eqref{eq:linear-rma}), with 95\\% confidence intervals, is overlain. Bottom row, (d)--(f): Fitted lines for $r^{\\text{(RMA)}}_{pq}(t_q)$, the ratio between each pair of dimensions plotted against the denominator implied by the fitted RMA in the top row (Eq \\eqref{eq:ratio-rma}), with 95\\% confidence intervals.", fig.height = 6, echo = FALSE>>=
+par(mfrow = c(2, 3), mar = c(4, 4, 1, 1) + 0.1, xaxt = "n")
+plot(fit, dims = c(2, 1), line.type = "pca", ylab = "DW", xlab = "DL")
+usr <- par("usr")
+text(usr[1] + 0.1*(usr[2] - usr[1]), usr[4] - 0.1*(usr[4] - usr[3]), "(a)")
+par(xaxt = "s")
+axis(1, at = seq(0, 1000, by = 20))
+par(xaxt = "n")
+plot(fit, dims = c(3, 1), line.type = "pca", ylab = "DW", xlab = "CW")
+usr <- par("usr")
+text(usr[1] + 0.1*(usr[2] - usr[1]), usr[4] - 0.1*(usr[4] - usr[3]), "(b)")
+par(xaxt = "s")
+axis(1, at = seq(0, 1000, by = 10))
+par(xaxt = "n")
+plot(fit, dims = c(3, 2), line.type = "pca", ylab = "DL", xlab = "CW")
+usr <- par("usr")
+text(usr[1] + 0.1*(usr[2] - usr[1]), usr[4] - 0.1*(usr[4] - usr[3]), "(c)")
+par(xaxt = "s")
+axis(1, at = seq(0, 1000, by = 10))
+par(xaxt = "n")
+plot(fit, dims = c(2, 1), type = "ratio", line.type = "pca", plot.data = FALSE,
+     ylab = "DW/DL", xlab = "DL")
+usr <- par("usr")
+text(usr[1] + 0.1*(usr[2] - usr[1]), usr[4] - 0.1*(usr[4] - usr[3]), "(d)")
+par(xaxt = "s")
+axis(1, at = seq(0, 1000, by = 20))
+par(xaxt = "n")
+plot(fit, dims = c(3, 1), type = "ratio", line.type = "pca", plot.data = FALSE,
+     ylab = "DW/CW", xlab = "CW")
+usr <- par("usr")
+text(usr[1] + 0.1*(usr[2] - usr[1]), usr[4] - 0.1*(usr[4] - usr[3]), "(e)")
+par(xaxt = "s")
+axis(1, at = seq(0, 1000, by = 10))
+par(xaxt = "n")
+plot(fit, dims = c(3, 2), type = "ratio", line.type = "pca", plot.data = FALSE, ylab = "DL/CW", xlab = "CW")
+usr <- par("usr")
+text(usr[1] + 0.1*(usr[2] - usr[1]), usr[4] - 0.1*(usr[4] - usr[3]), "(f)")
+par(xaxt = "s")
+axis(1, at = seq(0, 1000, by = 10))
+@ 
+
+
+Using the test described in Section \ref{sec:isometry-tests}, we found
+strong evidence against the null hypothesis of isometric growth
+between disc width and disc length ($p$-value
+\Sexpr{format.p(iso.p.dl.dw)}) and between disc width and cranial
+width ($p$-value \Sexpr{format.p(iso.p.dw.cw)}), but no evidence
+against the null hypothesis of isometric growth between disc length
+and cranial width ($p$-value \Sexpr{format.p(iso.p.dl.cw)}).
+
+In Figures \ref{fig:data-plots}(d)--(f), we plot
+$r_{pq}^{(RMA)}(t_q)$, the estimated function describing how the
+expected ratio between each pair of dimensions varies with respect to
+the denominator under fitted model (Eq \eqref{eq:ratio-rma}). As manta
+rays grow, we estimate the disc width decreases relative to both the
+disc length (Figure \ref{fig:data-plots}(d)) and cranial width (Figure
+\ref{fig:data-plots}(e)), such that larger individuals are narrower
+relative to their lengths, and narrower relative to their cranial
+widths, than smaller individuals. On the other hand, the flat fitted
+line in Figure \ref{fig:data-plots}(f) reveals that estimated disc
+length does not appreciably change in size relative to the cranial
+width: the estimated disc length is approximately 75\% larger than the
+cranial width for manta rays of any size. This fitted line is
+consistent with the hypothesis test result, above, which did not
+provide evidence against the null hypothesis of isometric growth
+between these two dimensions.
+
+%% \subsection{Ratio distributions}
+
+%% In Figure \ref{fig:ratio-dist}, we display estimated PDFs for ratios
+%% between true dimension measurements across the population of manta
+%% rays, as estimated by our model. These PDFs are obtained via
+%% substituting parameter estimates (Table \ref{tab:ests}) into Eq
+%% \eqref{eq:pdf-ratio}.
+
+% <<ratio-dist, fig.cap = "Estimated PDFs for ratios between true measurements for all pairs of dimensions.">>=
+% par(mfrow = c(2, 3), mar = c(4, 4, 1, 1) + 0.1)
+% plot(fit, dims = c(1, 2), type = "ratio-pdf")
+% plot(fit, dims = c(1, 3), type = "ratio-pdf")
+% plot(fit, dims = c(2, 3), type = "ratio-pdf")
+% @ 
+
+\section{A simulation study}
+\label{sec:sim}
+
+<<load-sim, echo = FALSE>>=
+load("sim-study.RData")
+settings <- results$settings
+results <- results[-length(results)]
+mus <- TRUE_PARAMS$mus
+sigmas <- TRUE_PARAMS$sigmas
+rhos <- TRUE_PARAMS$rhos
+psis <- TRUE_PARAMS$psis
+phis <- TRUE_PARAMS$phis
+names(rhos) <- names(phis) <- c("dims1,2", "dims1,3", "dims2,3")
+n.animals <- SAMPLE_SIZES
+n.photos <- N_PHOTOS
+n.sims <- N_SIMS
+relationship.perc.bias <- 100*results$`25`$relationship_bias/TRUE_RELATIONSHIPS
+ests <- results$`25`$parameter_estimates
+names(results$`25`)[11:12] <- c("lr_coefs_perc_bias", "lr_coefs_coverage")
+lr.coefs.perc.bias <- results$`25`$lr_coefs_perc_bias
+lr.coefs.coverage <- results$`25`$lr_coefs_coverage
+@ 
+
+We conducted a simulation study to explore the performance of our
+method. Because inference on many aspects of morphometry is available
+with our approach, for brevity, we only consider (1) linear regression
+estimators to predict disc width from disc length, cranial width, or
+both; (2) estimators of RMA relationships, both
+$f_{pq}^{\text{(RMA)}}(t_q)$ and $r_{pq}^{\text{(RMA)}}(t_q)$, for all
+pairs of dimensions; and (3) hypothesis tests for isometry between all
+pairs of dimensions. These aspects were of primary interest in our
+application (Section \ref{sec:mantas}).
+
+We considered a simulation scenario similar to the manta ray
+application in Section \ref{sec:mantas}. However, to test our model
+under a more demanding situation, we increased variation in true
+measurements, decreased correlation between true measurments,
+increased measurement error variance, and decreased the number of
+photographs taken of each individual. True parameter values were set
+as follows: $\bm{\mu} = (\Sexpr{paste(mus, collapse = ", ")})$,
+$\bm{\sigma} = (\Sexpr{paste(sigmas, collapse = ", ")})$, $\bm{\rho} =
+(\Sexpr{paste(round0(rhos, 2), collapse = ", ")})$, $\bm{\psi} =
+(\Sexpr{paste(round0(psis, 1), collapse = ", ")})$, and $\bm{\phi} =
+(\Sexpr{paste(phis, collapse = ", ")})$. For each individual, we
+simulated observed measurements from only \readable{\Sexpr{n.photos}}
+images (cf.\ an average of
+$\Sexpr{round0(mean(table(data$animal.id)/3), 1)}$ photos per
+individual in the real data). We set $N$, the number of unique
+animals, to $25$.
+
+\subsection{Linear regression estimates}
+
+Similar to our real data application (Section \ref{sec:app-lr}; Table
+\ref{tab:lm-ests}), here we focus on estimates of linear regression
+equations to predict disc width from disc length, cranial width, or
+both. From our simulations, estimators for all coefficients have
+minimal bias, with confidence intervals that have close to nominal
+coverage (Table \ref{tab:sim-lm-ests}).
+
+<<sim-lm-estimates, echo = FALSE, results = "asis">>=
+preds <- c("DL", "", "CW","", "DL, CW", rep("", 2))
+parnames <- c("Intercept",
+              "DL",
+              "Intercept",
+              "CW",
+              "Intercept",
+              "DL",
+              "CW")
+x <- data.frame(preds, parnames, unlist(lr.coefs.perc.bias), 100*unlist(lr.coefs.coverage))
+names(x) <- c("Predictor(s)", "Coefficient", "Bias (\\%)", "CI coverage (\\%)")
+digits.mat <- cbind(rep(1, 7), rep(1, 7), rep(1, 7), rep(1, 7), rep(1, 7))
+table <- xtable(x, label = "tab:sim-lm-ests",
+                align = c("l", "l", "l", "r", "r"), digits = digits.mat,
+                caption = "Bias and 95\\% confidence interval coverage for estimators of coefficients for regression equations to predict disc width based on (1) its disc length only, (2) its cranial width only, and (3) both its disc length and cranial width.")
+print(table, type = "latex",  include.rownames = FALSE, caption.placement = "top", 
+      sanitize.text.function = identity, booktabs = TRUE, table.placement = "tb",
+      math.style.negative = TRUE, hline.after = c(-1, 0, 2, 4, 7))
+@ 
+
+\subsection{RMA estimates}
+
+RMA estimators from our method are negligibly biased, with the fitted
+lines for both $f_{pq}^{\text{(RMA)}}(t_q)$ and
+$r_{pq}^{\text{(RMA)}}(t_q)$ corresponding closely with the true
+relationship for all pairs of dimensions (Figure
+\ref{fig:sim-rma}). From our simulations, we estimate percentage bias
+of the slope parameter estimators to be
+$\Sexpr{round0(relationship.perc.bias["dim1 vs dim2 (RMA)"], 1)}\%$
+(disc width vs disc length),
+$\Sexpr{round0(relationship.perc.bias["dim1 vs dim3 (RMA)"], 1)}\%$
+(disc width vs cranial width), and
+$\Sexpr{round0(relationship.perc.bias["dim2 vs dim3 (RMA)"], 1)}\%$
+(disc length vs cranial width).
+
+<<sim-rma, fig.cap = "Simulation results for RMA relationships. In each plot, estimated relationships from each simulated data set are plotted (grey lines, plotted with transparency), along with their mean (solid red line), and the true relationship under our simulation scenraio. For all plots, the mean of the fitted relationships corresponds closely to the true relationship. Top row, (a)--(c): RMA lines for every pair of dimensions. Bottom row, (d)--(f): Lines for the ratio between each pair of dimensions, plotted against the denominator. The true line for the relationship between CW and DL/CW has a slope of zero, because these dimensions have an isometric relationship.", fig.height = 6, echo = FALSE>>=
+par(mfrow = c(2, 3), mar = c(4, 4, 1, 1) + 0.1, xaxs = "i")
+lims.mat <- cbind(mus - 2*sigmas, mus + 2*sigmas)
+labs <- c("DW", "DL", "CW")
+plot.labs <- c("(a)", "(b)", "(c)", "(d)", "(e)", "(f)")
+ii <- 1
+## For the top row.
+for (i in 1:2){
+    for (j in (i + 1):3){
+        plot.new()
+        plot.window(xlim = lims.mat[j, ], ylim = lims.mat[i, ])
+        title(xlab = labs[j], ylab = labs[i])
+        box()
+        if (i == 1 & j == 2){
+            axis(1, at = seq(0, 1000, by = 20))
+        } else {
+            axis(1)
+        }
+        axis(2)
+        est.mu.i <- ests[paste0("mu", i), ]
+        est.mu.j <- ests[paste0("mu", j), ]
+        est.sigma.i <- ests[paste0("sigma", i), ]
+        est.sigma.j <- ests[paste0("sigma", j), ]
+        est.rho.ij <- ests[paste0("rho", i, ",", j), ]
+        coefs <- rbind(est.mu.i - est.mu.j*est.sigma.i/est.sigma.j,
+                       sign(est.rho.ij)*est.sigma.i/est.sigma.j)
+        for (k in 1:ncol(coefs)){
+            abline(coefs[1, k], coefs[2, k], col = rgb(0, 0, 0, alpha = 15/ncol(coefs)))
+        }
+        ## Mean line.
+        abline(mean(coefs[1, ]), mean(coefs[2, ]), col = "red", lwd = 2)
+        ## True line.
+        abline(mus[i] - mus[j]*sigmas[i]/sigmas[j], sign(rhos[paste0("dims", i, ",", j)])*sigmas[i]/sigmas[j],
+               col = "blue", lty = "dashed", lwd = 2)
+        if (i == 1 & j == 2){
+            legend("bottomright", legend = c("Estimate", "Mean", "True"), lty = c(1, 1, 3), lwd = c(1, 2, 2), col = c(rgb(0, 0, 0, alpha = 0.5), "red", "blue"))
+        }
+        usr <- par("usr")
+        text(usr[1] + 0.1*(usr[2] - usr[1]), usr[4] - 0.1*(usr[4] - usr[3]), plot.labs[[ii]])
+        ii <- ii + 1
+    }
+}
+## For the second row.
+for (i in 1:2){
+    for (j in (i + 1):3){
+        xx <- seq(lims.mat[j, 1], lims.mat[j, 2], length.out = 1000)
+        ratio.mat <- matrix(0, nrow = ncol(ests), ncol = 1000)
+        est.mu.i <- ests[paste0("mu", i), ]
+        est.mu.j <- ests[paste0("mu", j), ]
+        est.sigma.i <- ests[paste0("sigma", i), ]
+        est.sigma.j <- ests[paste0("sigma", j), ]
+        for (k in 1:ncol(ests)){
+            ratio.mat[k, ] <- est.mu.i[k]/xx + est.sigma.i[k]*(1 - est.mu.j[k]/xx)/est.sigma.j[k]
+        }
+        plot.new()
+        plot.window(xlim = lims.mat[j, ], ylim = range(ratio.mat))
+        title(xlab = labs[j], ylab = paste(labs[i], labs[j], sep = "/"))
+        box()
+        if (i == 1 & j == 2){
+            axis(1, at = seq(0, 1000, by = 20))
+        } else {
+            axis(1)
+        }
+        axis(2)
+        for (k in 1:ncol(ests)){
+            lines(xx, ratio.mat[k, ], col = rgb(0, 0, 0, alpha = 15/ncol(coefs)))
+        }
+        ## Mean line.
+        lines(xx, apply(ratio.mat, 2, mean), col = "red", lwd = 2)
+        ## True line.
+        true.ratio <- mus[i]/xx + sigmas[i]*(1 - mus[j]/xx)/sigmas[j]
+        lines(xx, true.ratio, col = "blue", lty = "dashed", lwd = 2)
+        usr <- par("usr")
+        text(usr[1] + 0.1*(usr[2] - usr[1]), usr[4] - 0.1*(usr[4] - usr[3]), plot.labs[[ii]])
+        ii <- ii + 1
+    }
+}
+@ 
+
+Confidence intervals for these slopes also performed well. With the
+nominal coverage level set at 95\%, the percentage of iterations that
+captured the true slope was
+$\Sexpr{round0(100*results$`25`$relationships_ci_coverage["dim1 vs dim2 (RMA)"], 1)}\%$ (disc width vs disc length),
+$\Sexpr{round0(100*results$`25`$relationships_ci_coverage["dim1 vs dim3 (RMA)"], 1)}\%$ (disc width vs cranial width), and
+$\Sexpr{round0(100*results$`25`$relationships_ci_coverage["dim2 vs dim3 (RMA)"], 1)}\%$ (disc length vs cranial width).
+
+\subsection{Tests for isometry}
+
+Under the parameter values listed above, the relationship between the
+second and third dimensions, corresponding to disc length and cranial
+width, is isometric: $\mu_2\sigma_3 - \mu_3\sigma_2 = 0$, consistent
+with the null hypothesis listed in Section
+\ref{sec:isometry-tests}. The relationships between the disc width and
+disc length, and between the disc width and cranial width, however,
+are allometric. Therefore, by conducting our test for isometry on each
+pair of dimensions for each data set, we can explore if our test has
+the correct rejection rate under the null hypothesis (for
+relationships between disc length and cranial width), and the power of
+our test to detect allometric relationships (for those involving the
+disc width). We were interested in testing performance across a range
+of sample sizes, so in addition to considering $N = 25$, we also
+considered $N$ set to 15, 50, and 100.
+
+Overall, our proposed hypothesis tests performed well. The test for
+isometric growth between disc length and cranial width, for which the
+null hypothesis is true, had a rejection rate close to the nominal
+rate of 5\% regardless of sample size (Figure
+\ref{fig:isometry-tests}). As expected, the power of detecting
+allometric growth between disc width and disc length, and between disc
+width and cranial width, increased with sample size.
+
+<<isometry-tests, fig.cap = "Rejection rates for tests of isometry under our simulation scenarios, with tests conducted at the 5\\% significance level. The null hypothesis of isometric growth is true for the disc width vs cranial width comparison, but not for disc width vs disc length and disc width vs cranial width. When the null hypothesis is true (black line) rejection rates are close to the nominal significance level (dotted line). When the null hypthothesis is false, the power of the test increases with the number of animals in the sample.", fig.height = 4, echo = FALSE>>=
+par(mar = c(4, 4, 1, 0) + 0.1, yaxs = "i")
+plot.new()
+plot.window(xlim = range(n.animals), ylim = c(0, 1))
+box()
+axis(1, at = n.animals)
+axis(2)
+cols <- c("black", "blue", "red")
+title(xlab = "Number of animals", ylab = "Rejection rate")
+abline(h = 0.05, lty = "dotted")
+for (i in 1:3){
+    points(n.animals, sapply(results, function(x) x$isometry_rejection[i]), col = cols[i], pch = 16)
+    lines(n.animals, sapply(results, function(x) x$isometry_rejection[i]), col = cols[i])
+}
+order <- c(2, 3, 1)
+legend("topleft", legend = c("DL vs CW", "DW vs DL", "DW vs CW", "Nominal significance level")[order], col = cols[order], pch = rep(16, 3),
+       lty = c(rep(1, 3), 2), bg = "white")
+@ 
+
+\section{Discussion}
+
+We have proposed a new method to analyse morphometric data subject to
+measurement error, illustrating its usefulness with an application to
+a population of the reef manta ray. Our simulation study demonstrates
+that our method performs well under a scenario for which there is
+considerable measurement error. Estimates of both linear regression
+and RMA relationships have negligible bias, confidence intervals have
+coverage close to their nominal levels, and our hypothesis tests for
+isometry have good power to detect allometric relationships and
+rejection rates close to their nominal levels when the relationship is
+isometric. Unlike other available methods, ours allows for
+multivariate rather than bivariate data, accounts for correlation in
+measurement error between dimensions, can generate fitted
+relationships consistent with either linear regression or RMA
+interpretations, can provide fitted relationships between any subset
+of dimensions from a single model fit, and provides tests for
+isometric growth between all pairs of dimensions.
+
+Below we discuss further extensions to our method, and other methods
+that have been proposed specifically for drone-based photogrammetry
+surveys.
+
+\subsection{Log transformations}
+\label{sec:log-transformations}
+
+<<log-pvals, echo = FALSE>>=
+rma.slope.12 <- summary(fit.log, y.dim = 1, x.dim = 2, type = "betas-pca")[2, ]
+z.12 <- (rma.slope.12[1] - 1)/rma.slope.12[2]
+p.12 <- 2*pnorm(-abs(z.12))
+rma.slope.13 <- summary(fit.log, y.dim = 1, x.dim = 3, type = "betas-pca")[2, ]
+z.13 <- (rma.slope.13[1] - 1)/rma.slope.13[2]
+p.13 <- 2*pnorm(-abs(z.13))
+rma.slope.23 <- summary(fit.log, y.dim = 2, x.dim = 3, type = "betas-pca")[2, ]
+z.23 <- (rma.slope.23[1] - 1)/rma.slope.23[2]
+p.23 <- 2*pnorm(-abs(z.23))
+@ 
+
+Researchers commonly log-transform morphometric data prior to
+analysis, a practice we have not yet discussed. \citet{Warton2006}
+mention some advantages of log-transformations. For example,
+log-transformed dimensions are on a multiplicative scale, which can be
+sensible given that growth is a multiplicative process. Additionally,
+there is a matter of mathematical convenience: under isometric growth,
+log-transformed true measurements will be linearly related with a
+slope equal to 1. Testing for allometry can therefore be achieved by
+estimating a slope coefficient for a bivariate relationship between
+dimensions, and testing the null hypothesis that it is equal to 1.
+
+However, \citet{Warton2006} also highlight that ``it may not be
+considered desirable to log-transform''. So far, we have only
+considered modelling untransformed measurements---an approach that is
+suitable for the reef manta ray data we have considered. Nevertheless,
+our model still provides suitable inference when $\bm{Y}$ is
+considered to be the log-transformed observed measurements, under the
+following adjustments:
+\begin{enumerate}
+\item Instead of assuming that the observed measurements are unbiased
+  with respect to the true measurements, we assume that the
+  log-transformed observed measurements unbiased with respect to the
+  log-transformed true measurements.
+\item The functions $f_{p\bm{q}}^{\text{(LR)}}(\bm{t}_{\bm{q}})$ in Eq
+  \eqref{eq:linear-lm} and $f_{pq}^{\text{(RMA)}}(t_q)$ in Eq
+  \eqref{eq:linear-rma} refer to relationships between
+  log-transformations of true measurements, rather than true
+  measurements themselves.
+\item Similarly, the functions $r_{pq}^{\text{(LR)}}(t_q)$ in Eq
+  \eqref{eq:ratio-lm} and $r_{pq}^{\text{(RMA)}}(t_q)$ in Eq
+  \eqref{eq:ratio-rma} refer to ratios of log-transformed true
+  measurements, and are therefore unhelpful for understanding
+  allometry. For example, these functions are undefined at $t_q = 0$,
+  corresponding to an individual with a true measurement of dimension
+  $q$ that is equal to 1 unit.
+\item To test for isometry, instead of using the null hypothesis
+  $\mu_p\sigma_q - \mu_q\sigma_p = 0$ in Eq \eqref{eq:allometry-test},
+  we can use the null hypothesis that the slope coefficient for the
+  fitted function $f_{pq}^{\text{(RMA)}}(t_q)$ for a bivariate
+  relationship is equal to $1$.
+\end{enumerate}
+
+We refitted our model to the log-transformed reef manta ray data, and
+received inference that was consistent with what we presented in
+Section \ref{sec:mantas}. For example, pairwise tests for isometry
+conducted by comparing slope coefficients to $1$ provided $p$-values
+(with corresponding $p$-values from our original analysis of the
+untransformed data for comparison in parentheses) of
+$\Sexpr{signif(p.12, 2)}$ ($\Sexpr{signif(iso.p.dl.dw, 2)}$),
+$\Sexpr{signif(p.13, 2)}$ ($\Sexpr{signif(iso.p.dw.cw, 2)}$), and
+$\Sexpr{signif(p.23, 2)}$ ($\Sexpr{signif(iso.p.dl.cw, 2)}$), for disc
+width vs disc length, disc width vs cranial width, and disc length vs
+cranial width comparisons, respectively.
+
+\subsection{Related methods for drone-based photogrammetry surveys}
+
+The issues we have focused on in this paper, such as measurement
+error, and the use of linear regression versus RMA, apply quite
+generally across morphometric studies, regardless of how body
+measurements are obtained. However, recent statistical methods have
+been proposed to specifically analyse morphometric data collected by
+drones using photogrammetry, and are therefore relevant to our
+work. Most notably, \citet{Bierlich2021} proposed a model to account
+for measurement error in morphometric data of cetaceans collected by
+drones. Their model fitting followed a Bayesian approach using Markov
+chan Monte Carlo methods (MCMC). While their method is related to
+ours, it differs in the following ways.
+
+First, instead of using repeated measurements from multiple
+photographs of each individual to estimate measurement error, they
+conducted a calibration experiment by measuring an object of known
+size from different altitudes. Their model predicts the size of an
+animal in a photograph using on-board altimeter measurements, while
+accounting for measurement error in both the altimeter and due to
+environmental conditions and/or orientation of the animal. By using
+altimeter readings, only a single photograph is needed for each
+animal. This advantage is particularly helpful for studies of large
+cetaceans, because individuals may only be visible at the ocean
+surface for a brief time between long dives. One disadvantage is that
+the quality of inference is subject to the precision of the altimeter:
+on our surveys of manta rays, barometric altimeter readings from the
+drones were too inaccurate to predict the size of an individual with
+any reasonable precision.
+
+A second difference is that \citet{Bierlich2021} embedded a linear
+regression interpretation for bivariate relationships within their
+method, rather than applying a multivariate distribution to true
+measurements. While their method could be extended to accommodate more
+than one predictor variable, making predictions for different
+dimensions and/or using different predictor variables would require
+refitting the model each time. This exercise can be time-consuming for
+models fitted by MCMC, not only in terms of computation time, but also
+because the user may need to select MCMC tuning parameters to ensure
+suitable mixing, and conduct manual checks for MCMC chain convergence
+for each one. By contrast, our method can produce any regression
+equation, such as the three displayed in Table \ref{tab:lm-ests}, from
+a single model fit. An opportunity for further methodological
+development would be to combine advantages from both approaches by
+specifying a multivariate distribution for true dimensions within the
+method of \citet{Bierlich2021}.
+
+\subsection{Concluding remarks}
+
+We have developed a linear mixed-effects model to account for
+measurement error in morphometric studies of animal populations. Our
+method relies on a multivariate normal distribution for true
+measurements centred on the population mean, and a multivariate normal
+distribution for an individual's observed measurements centred on its
+true measurements. While our model fits well to our motivating reef
+manta ray data set, we foresee a number of possible extensions. We
+describe three below.
+
+First, because we have a linear mixed-effects model, a straightforward
+extension is to include additional fixed or random effects. For
+example, adding sex as a fixed effect allows the researcher to explore
+differences between males and females---noting that interaction
+effects are probably necessary, because differences in measurements
+between sexes are not likely to be constant across dimensions. Adding
+additional random effects for randomly selected subpopulations of a
+species, for example, may allow the research to explore geographical
+differences in animal size.
+
+Second, the multivariate normal distribution applied to true
+measurements may not be suitable for all animal populations.
+Modelling log-transformed data (Section \ref{sec:log-transformations})
+allows some leeway in terms of assuming multivariate normality of the
+log-transformed true measurements instead, although using a copula
+\citep{Nelsen2006} would allow the researcher a great deal of
+flexibility in specifying the multivariate distribution of true
+measurements. However, the mathematical functions we derived allowing
+inference about relationships between dimensions and tests for
+isometric growth (Section \ref{sec:derived-estimates}) all hinge on
+the multivariate normal assumption, and generalising these to a
+selected copula may be challenging.
+
+Third, we assume that observed measurements are unbiased relative to
+true measurements, but they may be biased for some surveys. For
+example, in our study of the reef manta ray, if the floating PVC pipe
+is not perfectly flat on the water surface at the moment an images are
+captured, then the observed manta ray measurements may be larger than
+the true values (Section \ref{sec:mantas}). However, there is no
+corresponding mechanism by which the PVC pipe's orientation leads to
+measurements that are too small, potentially leading to positive
+bias. We do not believe this is an issue for our study, because
+measurements were obtained in calm water. However, on surveys where
+bias may be of concern, we recommend a calibration experiment similar
+to that conducted by \citet{Bierlich2021}. If objects of known size
+are measured in the same way observations are taken on the survey,
+then bias can be estimated. Once the bias has been calculated, it can
+be used in place of $\bm{0}$ as the mean vector for $\bm{U}$ in Eq
+\eqref{eq:u-dist}.
+
+Much of the debate on the appropriateness of linear regression and
+RMA---which provide fitted relationships with different
+interpretations---has focused on whether these methods are robust to
+measurement error. Our model provides fitted relationships for either
+interpretation while explicitly modelling measurement error, thereby
+separating the issue of measurement error from the type of inference
+desired. Following \citet{Warton2006} and \citet{Smith2009}, we
+recommend selecting between the two options based on the questions
+being asked rather than the nature of the data---which is what our
+method allows the researcher to do.
+
+\section*{Acknowledgement}
+
+We thank Rochelle Constantine, Mark Erdmann, and Michael Walker for
+discussion that aided the development of the ideas presented here;
+Tiago Marques for feedback and accommodation while this research was
+undertaken; and Charlotte Jones-Todd for suggestions that improved an
+initial draft of this manuscript.
+
+\section*{Appendix A}
+
+In this appendix, we demonstrate how to specify the $\bm{X}$,
+$\bm{Z}$, $\bm{\Sigma}$, and $\bm{\Xi}$ for a simple
+scernario. Consider a survey on which $N = 2$ individuals have been
+measured, we have $n_1 = n_2 = 2$ photographs of each, and we have $D
+= 3$ dimensions. From Section \ref{sec:our-lmm},
+\begin{equation}
+  \bm{y} =
+  \begin{bmatrix}
+    y_{111} \\ y_{112} \\ y_{113} \\ y_{121} \\ y_{122} \\ y_{123} \\ y_{211} \\ y_{212} \\ y_{213} \\ y_{221} \\ y_{222} \\ y_{223}
+  \end{bmatrix},
+  \bm{X} =
+  \begin{bmatrix}
+    1 & 0 & 0 \\
+    0 & 1 & 0 \\
+    0 & 0 & 1 \\
+    1 & 0 & 0 \\
+    0 & 1 & 0 \\
+    0 & 0 & 1 \\
+    1 & 0 & 0 \\
+    0 & 1 & 0 \\
+    0 & 0 & 1 \\
+    1 & 0 & 0 \\
+    0 & 1 & 0 \\
+    0 & 0 & 1 
+  \end{bmatrix},
+  \bm{\beta} =
+  \begin{bmatrix}
+    \beta_1 \\ \beta_2 \\ \beta_3
+  \end{bmatrix} \text{, and so }
+  \bm{X}\bm{\beta} =
+  \begin{bmatrix}
+    \beta_1 \\ \beta_2 \\ \beta_3 \\ \beta_1 \\ \beta_2 \\ \beta_3 \\ \beta_1 \\ \beta_2 \\ \beta_3 \\\beta_1 \\ \beta_2 \\ \beta_3
+  \end{bmatrix} \equiv
+  \begin{bmatrix}
+    \mu_1 \\ \mu_2 \\ \mu_3 \\ \mu_1 \\ \mu_2 \\ \mu_3 \\ \mu_1 \\ \mu_2 \\ \mu_3 \\\mu_1 \\ \mu_2 \\ \mu_3
+  \end{bmatrix}.
+  \label{eq:app-xb}
+\end{equation}
+
+As per Section \ref{sec:our-lmm}, we also have
+\begin{equation}
+  \bm{Z} =
+  \begin{bmatrix}
+    1 & 0 & 0 & 0 & 0 & 0 \\
+    0 & 1 & 0 & 0 & 0 & 0 \\
+    0 & 0 & 1 & 0 & 0 & 0 \\
+    1 & 0 & 0 & 0 & 0 & 0 \\
+    0 & 1 & 0 & 0 & 0 & 0 \\
+    0 & 0 & 1 & 0 & 0 & 0 \\
+    0 & 0 & 0 & 1 & 0 & 0 \\
+    0 & 0 & 0 & 0 & 1 & 0 \\
+    0 & 0 & 0 & 0 & 0 & 1 \\
+    0 & 0 & 0 & 1 & 0 & 0 \\
+    0 & 0 & 0 & 0 & 1 & 0 \\
+    0 & 0 & 0 & 0 & 0 & 1
+  \end{bmatrix},
+  \bm{u} =
+  \begin{bmatrix}
+    u_{11} \\ u_{12} \\ u_{13} \\ u_{21} \\ u_{22} \\ u_{23} 
+  \end{bmatrix} \text{, and so }
+  \bm{Z}\bm{u} =
+  \begin{bmatrix}
+    u_{11} \\ u_{12} \\ u_{13} \\ u_{11} \\ u_{12} \\ u_{13} \\ u_{21} \\ u_{22} \\ u_{23} \\ u_{21} \\ u_{22} \\ u_{23} 
+  \end{bmatrix}.
+  \label{eq:app-Zu}
+\end{equation}
+
+Thus, expanding the linear mixed-effects equation $\bm{y} =
+\bm{X}\bm{\beta} + \bm{Z}\bm{u} + \bm{\epsilon}$ for our model,
+\begin{equation}
+  \begin{bmatrix}
+    y_{111} \\ y_{112} \\ y_{113} \\ y_{121} \\ y_{122} \\ y_{123} \\ y_{211} \\ y_{212} \\ y_{213} \\ y_{221} \\ y_{222} \\ y_{223}
+  \end{bmatrix} =
+  \begin{bmatrix}
+    \mu_1 \\ \mu_2 \\ \mu_3 \\ \mu_1 \\ \mu_2 \\ \mu_3 \\ \mu_1 \\ \mu_2 \\ \mu_3 \\\mu_1 \\ \mu_2 \\ \mu_3
+  \end{bmatrix} +
+  \begin{bmatrix}
+    u_{11} \\ u_{12} \\ u_{13} \\ u_{11} \\ u_{12} \\ u_{13} \\ u_{21} \\ u_{22} \\ u_{23} \\ u_{21} \\ u_{22} \\ u_{23} 
+  \end{bmatrix} +
+  \begin{bmatrix}
+    \epsilon_{111} \\ \epsilon_{112} \\ \epsilon_{113} \\ \epsilon_{121} \\ \epsilon_{122} \\ \epsilon_{123} \\ \epsilon_{211} \\ \epsilon_{212} \\ \epsilon_{213} \\ \epsilon_{221} \\ \epsilon_{222} \\ \epsilon_{223}
+  \end{bmatrix}.
+\end{equation}
+And so the observed measurement $y_{ijk}$ is the true measurement
+($t_{ik} = \mu_k + u_{ik}$) plus measurement error
+($\epsilon_{ijk}$). The marginal distribution of $\bm{Y}$ is
+multivariate normal with expectation vector $\text{E}(\bm{Y}) =
+\bm{X}\bm{\beta}$ and variance-covariance matrix $\text{Var}(\bm{Y}) =
+\bm{Z}\bm{\Sigma}\bm{Z}^{\rm T} + \bm{\Xi}$.
+
+\section*{Appendix B}
+
+Although it was not initially obvious to us, our linear mixed-effects
+model can be fitted using the \texttt{nlme} package. Here we
+illustrate how to correctly specify $\bm{X}$, $\bm{Z}$, $\bm{\Sigma}$,
+and $\bm{\Xi}$ in \text{lme()}. First, we consider that the data are
+available in an R data frame named \texttt{data} with a row for every
+individual measurement obtained from a photograph, and a column for
+each of the following variables: (1) \texttt{animal.id}, a factor
+indicating which animal the measurement was taken from; (2)
+\texttt{photo.id}, a factor indicating which photograph the
+measurement was taken from; (3) \texttt{dim}, a factor indicating
+which dimension the measurement relates to; and (4)
+\texttt{measurement}, the observed measurement itself.
+
+Our model can be fitted using the following call to \texttt{nlme}:
+<<nlme-call, eval = FALSE>>=
+lme(fixed = measurement ~ 0 + dim,
+    random = ~ 0 + dim | animal.id,
+    correlation = corSymm(form = ~ 1 | animal.id / photo.id),
+    weights = varIdent(form = ~ 1 | dim),
+    data = data)
+@ 
+
+The role of each argument is as follows:
+\begin{itemize}
+\item[\texttt{fixed}:] Specifies $\bm{X}$ as per Eq \eqref{eq:app-xb},
+  so that the element of $\bm{\mu}$ corresponding to observation
+  $y_{ijk}$ is $\mu_k$, its expectation.
+\item[\texttt{random}:] Specifies $\bm{Z}$ as per Eq
+  \eqref{eq:app-Zu}, so that the element of the vector $\bm{Zu}$
+  corresponding to the observation $y_{ijk}$ is $u_{ik}$. This element
+  is equal to the difference between the $i$th individual's true
+  measurement for the dimension, $t_{ik}$, and the population mean,
+  $\mu_k$. By default, the random effects within an individual are
+  assumed to be correlated, but with independence between random
+  effects for different individuals, as per the block-diagonal
+  structure of $\bm{\Sigma}$ in Eq \eqref{eq:sigma}.
+\item[\texttt{correlation}:] Specifies the correlation structure of
+  $\bm{\epsilon}$, such that errors in measurements from the same
+  photograph are correlated, but with independence between errors from
+  different photographs, as per the block-diagonal structure of
+  $\bm{\Xi}$ in Eq \eqref{eq:xi}.
+\item[\texttt{weights}:] Specifies heterogeneity in error variance.
+  The diagonal elements of $\bm{\Xi}$ are not all equal, but instead
+  we have a different variance for each dimension, as per the diagonal
+  elements in Eq \eqref{eq:varcov-u}.
+\end{itemize}
+
+\section*{Appendix C}
+
+Our R package \texttt{morphErr} \citep{morphErr} provides a a
+user-friendly experience by internally fitting the model with
+\texttt{lme()}. Fitting the model is easily achieved using the
+following code:
+
+<<morphErr-example, eval = FALSE>>=
+library(morphErr)
+fit <- fit.morph(data)
+@
+
+Subsequently, coefficients for linear regression and RMA fitted
+relationships are available with \texttt{summary()}. For example, the
+following code returns estimated coefficients and standard errors for
+a linear regression equation to predict the first dimension from the
+second and third dimensions:
+
+<<morphErr-summary, eval = FALSE>>=
+summary(fit, y.dim = 1, x.dim = c(2, 3), type = "betas")
+@
+
+Estimated coefficients for fitted lines with an RMA interpretation are
+available by adjusting the \texttt{type} argument. Plots, such as
+those in Figure \ref{fig:data-plots}, can be generated using
+\texttt{plot(fit)}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Please use \tableofcontents for articles %%
+%% with 50 pages and more                   %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\tableofcontents
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%% Main text entry area:
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Appendix---Please move all appendices to %%
+%% a Supplementary file.                    %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Support information, if any,             %%
+%% should be provided in the                %%
+%% Acknowledgements section.                %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\begin{acks}[Acknowledgments]
+% The authors would like to thank ...
+%\end{acks}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Funding information, if any,             %%
+%% should be provided in the                %%
+%% funding section.                         %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\begin{funding}
+% The first author was supported by ...
+%
+% The second author was supported in part by ...
+%\end{funding}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Supplementary Material, including data   %%
+%% sets and code, should be provided in     %%
+%% {supplement} environment with title      %%
+%% and short description. It cannot be      %%
+%% available exclusively as external link.  %%
+%% All Supplementary Material must be       %%
+%% available to the reader on Project       %%
+%% Euclid with the published article.       %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\begin{supplement}
+%\stitle{???}
+%\sdescription{???.}
+%\end{supplement}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                  The Bibliography                       %%
+%%                                                         %%
+%%  imsart-nameyear.bst  will be used to                   %%
+%%  create a .BBL file for submission.                     %%
+%%                                                         %%
+%%  Note that the displayed Bibliography will not          %%
+%%  necessarily be rendered by Latex exactly as specified  %%
+%%  in the online Instructions for Authors.                %%
+%%                                                         %%
+%%  MR numbers will be added by VTeX.                      %%
+%%                                                         %%
+%%  Use \cite{...} to cite references in text.             %%
+%%                                                         %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% if your bibliography is in bibtex format, uncomment commands:
+\bibliographystyle{imsart-nameyear} % Style BST file
+\bibliography{lmm-morphometrics}       % Bibliography file (usually '*.bib')
+
+
+\end{document}
