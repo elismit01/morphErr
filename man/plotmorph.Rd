@@ -16,19 +16,17 @@ plotmorph(
 )
 }
 \arguments{
-\item{data}{A data frame containing the following columns:
-\itemize{
-\item animal.id: Factor indicating the animal.
-\item photo.id: Factor indicating the photo.
-\item dim: Factor indicating the dimension.
-\item measurement: The observed measurement.
-}}
+\item{data}{A data frame containing the morphometric data. See
+'Details'.}
 
-\item{dims}{Integer vector of length 2, selecting which dimensions to plot.}
+\item{dims}{Integer vector of length 2, selecting which dimensions
+to plot.}
 
-\item{plot.data}{Logical. If FALSE, the plotting area is set up but points aren't plotted.}
+\item{plot.data}{Logical. If \code{FALSE}, the plotting area is set up
+but points aren't plotted.}
 
-\item{ratios}{Logical. If TRUE, y-axis represents the ratio between dimensions.}
+\item{ratios}{Logical. If TRUE, y-axis represents the ratio between
+dimensions.}
 
 \item{xlim}{The x-axis limits of the plot.}
 
@@ -41,4 +39,36 @@ plotmorph(
 \description{
 Creates scatter plots of morphometric measurements, with options for
 different dimension combinations and plotting of ratios.
+}
+\details{
+The \code{\link{manta}} object is an example of a correctly formatted
+\code{data} argument. Itmust be a data frame with the following
+columns:
+
+\describe{
+
+\item{\code{animal.id}}{An individual identification number. Rows
+with the same \code{animal.id} correspond to
+measurements of the same individual manta ray.}
+
+\item{\code{photo.id}}{A photo identification number. Rows with
+the same \code{photo.id} correspond to
+measurements taken from the same image.}
+
+\item{\code{photo.id}}{An integer indicating the dimension the
+measurement is for.}
+
+\item{\code{measurement}}{The corresponding measurement.}
+
+}
+}
+\examples{
+## Plotting dimensions 1 and 2.
+plotmorph(manta)
+## Plotting dimensions 1 and 3.
+plotmorph(manta, dims = c(1, 3))
+## Plotting the ratio of dimension 2 divided by dimension 1 on the
+## y-axis.
+plotmorph(manta, ratios = TRUE)
+
 }
