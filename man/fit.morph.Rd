@@ -4,45 +4,76 @@
 \alias{fit.morph}
 \title{Fit Morphometric Model}
 \usage{
-fit.morph(data, method = "REML", intercept = FALSE)
+fit.morph(
+  data,
+  method = "REML",
+  control = list(maxIter = 1e+05, msMaxIter = 1e+05)
+)
 }
 \arguments{
-\item{data}{A data frame containing:
-\itemize{
-\item animal.id: factor indicating which animal the measurement is from
-\item photo.id: factor indicating which photo the measurement is from
-\item dim: factor indicating which dimension is measured
-\item measurement: the observed morphometric measurement
-}}
+\item{data}{A data frame containing the morphometric data. See the
+section below on the correct formatting of this argument.}
 
-\item{method}{Character, either "ML" for maximum likelihood or "REML" for
-restricted maximum likelihood}
+\item{method}{A character string indicating the objective function
+used to fit the model. Either \code{"ML"} for maximum likelihood or
+\code{"REML"} for restricted maximum likelihood.}
 
-\item{intercept}{Logical, whether to include an intercept in fixed effects}
+\item{control}{A list of control values for the estimation
+algorithm to replace the default values returned by the
+function \code{\link[nlme:lmeControl]{nlme::lmeControl()}}.}
 }
 \value{
-An object of class "lme.morph" containing:
-\itemize{
-\item coefficients: Model coefficients
-\item vcov: Variance-covariance matrix
-\item residuals: Model residuals
-\item fitted: Fitted values
-}
+An object of classes \code{lme.morph} (specific to this package)
+and \code{lme} (inherited from \code{\link[nlme:lme]{nlme::lme()}}). The object is the
+list returned by \code{\link[nlme:lme]{nlme::lme()}} with a couple of additional
+components.
+
+Rather than inspecting the object directly, the best way to extract
+understandable output from the object is using the S3 methods
+\code{\link[=summary.lme.morph]{summary.lme.morph()}}, \code{\link[=plot.lme.morph]{plot.lme.morph()}}, and
+\code{\link[=predict.lme.morph]{predict.lme.morph()}} via the generic functions \code{summary()},
+\code{plot()}, and \code{predict()}. Other S3 methods for the \code{lme} class are
+availble via \code{nlme}, such as \code{\link[nlme:coef.lme]{nlme::coef.lme()}}.
 }
 \description{
-Fits a linear mixed-effects model to morphometric data accounting for measurement error.
+Fits the model described by \href{../doc/model.pdf}{Stevenson,
+Smit, and Setyawan (in submission)} to morphometric data.
 }
+\details{
+This is a special case of a linear mixed-effects model, and is
+fitted via a call to \code{\link[nlme:lme]{nlme::lme()}}. Some arguments of
+\code{fit.morph()} are directly passed to \code{\link[nlme:lme]{nlme::lme()}}.
+}
+\section{The \code{data} argument}{
+
+
+The \code{\link{manta}} object is an example of a correctly formatted
+\code{data} argument. It must be a data frame with the following
+columns:
+
+\describe{
+
+\item{\code{animal.id}}{An individual identification number. Rows
+with the same \code{animal.id} correspond to
+measurements of the same individual manta ray.}
+
+\item{\code{photo.id}}{A photo identification number. Rows with
+the same \code{photo.id} correspond to
+measurements taken from the same image.}
+
+\item{\code{photo.id}}{An integer indicating the dimension the
+measurement is for.}
+
+\item{\code{measurement}}{The corresponding measurement.}
+
+}
+}
+
 \examples{
 \dontrun{
-# Simulate some data
-data <- sim.measurements(n.animals = 10, n.photos = rep(5, 10), m = 3,
-                        c(290, 130, 75, 45, 25, 15,
-                          0.85, 0.90, 0.95,
-                          2.00, 1.50, 1.00,
-                          0.40, 0.50, 0.60))
-
-# Fit the model
-fit <- fit.morph(data, method = "REML")
+## Fitting model to manta ray data.
+fit <- fit.morph(manta)
+## Usint maximum likelihood instead of REML.
+fit <- fit.morph(manta, method = "ML")
 }
-
 }

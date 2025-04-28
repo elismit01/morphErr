@@ -23,7 +23,7 @@ measurement is for. Here, \code{1} is for disc width,
 \code{2} is for disc length, and \code{3} is for
 cranial width.}
 
-\item{measurement}{The measurement in centimetres.}
+\item{\code{measurement}}{The measurement in centimetres.}
 
 }
 }

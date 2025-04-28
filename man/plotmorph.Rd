@@ -16,8 +16,8 @@ plotmorph(
 )
 }
 \arguments{
-\item{data}{A data frame containing the morphometric data. See
-'Details'.}
+\item{data}{A data frame containing the morphometric data. See the
+section below on the correct formatting of this argument.}
 
 \item{dims}{Integer vector of length 2, selecting which dimensions
 to plot.}
@@ -25,22 +25,20 @@ to plot.}
 \item{plot.data}{Logical. If \code{FALSE}, the plotting area is set up
 but points aren't plotted.}
 
-\item{ratios}{Logical. If \code{TRUE}, the y-axis represents the ratio between
-dimensions.}
+\item{ratios}{Logical. If \code{TRUE}, the y-axis represents the ratio
+between dimensions.}
 
-\item{xlim}{The x-axis limits of the plot.}
+\item{xlim, ylim}{Limits for the axes.}
 
-\item{ylim}{The y-axis limits of the plot.}
-
-\item{xlab}{A title for the x-axis.}
-
-\item{ylab}{A title for the y-axis.}
+\item{xlab, ylab}{Titles for the axes.}
 }
 \description{
 Creates scatter plots of morphometric measurements, with options for
 different dimension combinations and plotting of ratios.
 }
-\details{
+\section{The \code{data} argument}{
+
+
 The \code{\link{manta}} object is an example of a correctly formatted
 \code{data} argument. It must be a data frame with the following
 columns:
@@ -62,6 +60,7 @@ measurement is for.}
 
 }
 }
+
 \examples{
 ## Plotting dimensions 1 and 2.
 plotmorph(manta)
