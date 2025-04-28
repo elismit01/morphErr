@@ -51,7 +51,7 @@
 #' plotmorph(manta, dims = c(1, 3))
 #' ## Plotting the ratio of dimension 2 divided by dimension 1 on the
 #' ## y-axis.
-#' plotmorph(manta, dimes = c(1, 2), ratios = TRUE)
+#' plotmorph(manta, dims = c(1, 2), ratios = TRUE)
 #' 
 #' @export
 plotmorph <- function(data, dims = c(1, 2), plot.data = TRUE, ratios = FALSE,

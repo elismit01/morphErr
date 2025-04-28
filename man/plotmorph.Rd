@@ -25,7 +25,7 @@ to plot.}
 \item{plot.data}{Logical. If \code{FALSE}, the plotting area is set up
 but points aren't plotted.}
 
-\item{ratios}{Logical. If TRUE, y-axis represents the ratio between
+\item{ratios}{Logical. If \code{TRUE}, the y-axis represents the ratio between
 dimensions.}
 
 \item{xlim}{The x-axis limits of the plot.}
@@ -42,7 +42,7 @@ different dimension combinations and plotting of ratios.
 }
 \details{
 The \code{\link{manta}} object is an example of a correctly formatted
-\code{data} argument. Itmust be a data frame with the following
+\code{data} argument. It must be a data frame with the following
 columns:
 
 \describe{
@@ -69,6 +69,6 @@ plotmorph(manta)
 plotmorph(manta, dims = c(1, 3))
 ## Plotting the ratio of dimension 2 divided by dimension 1 on the
 ## y-axis.
-plotmorph(manta, ratios = TRUE)
+plotmorph(manta, dims = c(1, 2), ratios = TRUE)
 
 }
