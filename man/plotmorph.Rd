@@ -19,8 +19,8 @@ plotmorph(
 \item{data}{A data frame containing the morphometric data. See the
 section below on the correct formatting of this argument.}
 
-\item{dims}{Integer vector of length 2, selecting which dimensions
-to plot.}
+\item{dims}{An integer vector of length two, indicating which
+dimensions will appear on the x- and y-axes, respectively.}
 
 \item{plot.data}{Logical. If \code{FALSE}, the plotting area is set up
 but points aren't plotted.}

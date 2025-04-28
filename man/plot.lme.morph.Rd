@@ -2,13 +2,13 @@
 % Please edit documentation in R/plot.R
 \name{plot.lme.morph}
 \alias{plot.lme.morph}
-\title{Plot Method for Morphometric Model Fits}
+\title{Plot Morphometric Data and Estimated Relationships}
 \usage{
 \method{plot}{lme.morph}(
   x,
   dims = c(1, 2),
   type = "data",
-  line.type = "none",
+  line.type = "lm",
   confints = !add,
   add = FALSE,
   reverse.axes = FALSE,
@@ -21,41 +21,44 @@
 )
 }
 \arguments{
-\item{x}{An object of class "lme.morph" returned by fit.morph()}
+\item{x}{An object of class "lme.morph", returned by
+\code{\link[=fit.morph]{fit.morph()}}.}
 
-\item{dims}{Integer vector of length 2, selecting which dimensions to plot}
+\item{dims}{An integer vector of length two, indicating which
+dimensions will appear on the x- and y-axes, respectively.}
 
-\item{type}{Character string specifying plot type:
-\itemize{
-\item "data": plots the raw data
-\item "ratio": plots ratios between dimensions
-}}
+\item{type}{Character string specifying plot type. If \code{"ratio"},
+then the y-axis represents the ratio between measurements of
+the two dimensions. If \code{"data"}, then the raw data are plotted.}
 
-\item{line.type}{Character string specifying type of line to overlay:
-\itemize{
-\item "none": no line
-\item "lm": linear regression line
-\item "pca": principal components line
-}}
+\item{line.type}{A character string specifying type of fitted line
+to overlay. If \code{"lm"}, then a line with the same interpretation
+as linear regression is plotted. If \code{"pca"}, then the reduced
+major axis (or principal component axis) summarising the
+relationship is plotted.}
 
-\item{confints}{Logical; if TRUE, includes confidence intervals}
+\item{confints}{Logical. If \code{TRUE}, then confidence intervals are
+plotted.}
 
-\item{add}{Logical; if TRUE, adds to existing plot}
+\item{add}{Logical. If \code{TRUE}, then fitted lines are added to an
+existing plot.}
 
-\item{reverse.axes}{Logical; if TRUE, swaps x and y interpretations}
+\item{reverse.axes}{Logical. If \code{TRUE}, then a line of type \code{"lm"}
+will provide the expected value of the x-axis variable
+conditional on the y-axis variable, rather than the other way
+around.}
 
-\item{plot.data}{Logical; if FALSE, only plots fitted lines}
+\item{plot.data}{Logical. If \code{FALSE} then the data are not plotted.}
 
-\item{xlim, ylim}{Numeric vectors of length 2 giving plot limits}
+\item{xlim, ylim}{Limits for the axes.}
 
-\item{xlab, ylab}{Character strings giving axis labels}
+\item{xlab, ylab}{Titles for the axes.}
 
-\item{...}{Additional arguments passed to plotting functions}
-}
-\value{
-NULL (invisibly). Creates a plot as a side effect.
+\item{...}{Additional arguments passed to \code{\link[graphics:abline]{graphics::abline()}}
+and \code{\link[graphics:lines]{graphics::lines()}} to modify the appearance of the lines
+for estimated relationships between dimensions.}
 }
 \description{
-S3 method for plotting fitted morphometric models. Supports various plot types
-and can overlay fitted lines on data.
+An S3 model that plots morphometric data, estimated relationships
+between dimensions, or both.
 }
