@@ -10,27 +10,61 @@
 #' Creates scatter plots of morphometric measurements, with options for
 #' different dimension combinations and plotting of ratios.
 #'
-#' @param data A data frame containing the following columns:
-#'   \itemize{
-#'     \item animal.id: Factor indicating the animal.
-#'     \item photo.id: Factor indicating the photo.
-#'     \item dim: Factor indicating the dimension.
-#'     \item measurement: The observed measurement.
-#'   }
-#' @param dims Integer vector of length 2, selecting which dimensions to plot.
-#' @param plot.data Logical. If FALSE, the plotting area is set up but points aren't plotted.
+#'  The [`manta`] object is an example of a correctly formatted
+#' \code{data} argument. It must be a data frame with the following
+#' columns:
+#'
+#' \describe{
+#' 
+#'  \item{\code{animal.id}}{An individual identification number. Rows
+#'                    with the same \code{animal.id} correspond to
+#'                    measurements of the same individual manta ray.}
+#'
+#'  \item{\code{photo.id}}{A photo identification number. Rows with
+#'                   the same \code{photo.id} correspond to
+#'                   measurements taken from the same image.}
+#'
+#'  \item{\code{photo.id}}{An integer indicating the dimension the
+#'              measurement is for.}
+#'
+#'  \item{\code{measurement}}{The corresponding measurement.}
+#' 
+#' }
+#'
+#' @param data A data frame containing the morphometric data. See
+#'     'Details'.
+#' @param dims Integer vector of length 2, selecting which dimensions
+#'     to plot.
+#' @param plot.data Logical. If `FALSE`, the plotting area is set up
+#'     but points aren't plotted.
 #' @param xlim The x-axis limits of the plot.
 #' @param ylim The y-axis limits of the plot.
-#' @param ratios Logical. If TRUE, y-axis represents the ratio between dimensions.
+#' @param ratios Logical. If `TRUE`, the y-axis represents the ratio between
+#'     dimensions.
 #' @param xlab A title for the x-axis.
 #' @param ylab A title for the y-axis.
+#'
+#' @examples
+#' ## Plotting dimensions 1 and 2.
+#' plotmorph(manta)
+#' ## Plotting dimensions 1 and 3.
+#' plotmorph(manta, dims = c(1, 3))
+#' ## Plotting the ratio of dimension 2 divided by dimension 1 on the
+#' ## y-axis.
+#' plotmorph(manta, dimes = c(1, 2), ratios = TRUE)
+#' 
 #' @export
 plotmorph <- function(data, dims = c(1, 2), plot.data = TRUE, ratios = FALSE,
-                       xlim = NULL, ylim = NULL, xlab = NULL, ylab = NULL){
+                      xlim = NULL, ylim = NULL, xlab = NULL, ylab = NULL){
 
   # Input validation
   if (!is.data.frame(data)) {
-    stop("Columns missing from data frame. See ?plotmorph for column requirements.")
+    stop("The data argument must be a data frame. See ?plotmorph for column requirements.")
+  }
+
+  # Turning dim into a factor if it is isn't already.
+  if (!is.factor(data$dim)){
+    data$dim <- factor(data$dim)
   }
 
   # Check required columns exist
@@ -38,7 +72,7 @@ plotmorph <- function(data, dims = c(1, 2), plot.data = TRUE, ratios = FALSE,
   missing_cols <- setdiff(required_cols, names(data))
   if (length(missing_cols) > 0) {
     stop(
-      "Missing required columns in data frame:\n",
+      "Missing required columns in data:\n",
       paste0("  - '", missing_cols, "'", collapse = "\n")
     )
   }
