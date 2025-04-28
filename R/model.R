@@ -111,43 +111,48 @@ construct.varcov <- function(sds, cors, n.blocks, m, block.only){
 
 #' Fit Morphometric Model
 #'
-#' Fits a linear mixed-effects model to morphometric data accounting for measurement error.
+#' Fits the model described by \href{../doc/model.pdf}{Stevenson,
+#' Smit, and Setyawan (in submission)} to morphometric data.
 #'
-#' @param data A data frame containing:
-#'   \itemize{
-#'     \item animal.id: factor indicating which animal the measurement is from
-#'     \item photo.id: factor indicating which photo the measurement is from
-#'     \item dim: factor indicating which dimension is measured
-#'     \item measurement: the observed morphometric measurement
-#'   }
-#' @param method Character, either "ML" for maximum likelihood or "REML" for
-#'   restricted maximum likelihood
-#' @param intercept Logical, whether to include an intercept in fixed effects
+#' @details
+#' 
+#' This is a special case of a linear mixed-effects model, and is
+#' fitted via a call to [`nlme::lme()`]. Some arguments of
+#' `fit.morph()` are directly passed to [`nlme::lme()`].
+#' 
+#' @param method A character string indicating the objective function
+#'     used to fit the model. Either `"ML"` for maximum likelihood or
+#'     `"REML"` for restricted maximum likelihood.
+#' @param control A list of control values for the estimation
+#'     algorithm to replace the default values returned by the
+#'     function [`nlme::lmeControl()`].
 #'
-#' @return An object of class "lme.morph" containing:
-#'   \itemize{
-#'     \item coefficients: Model coefficients
-#'     \item vcov: Variance-covariance matrix
-#'     \item residuals: Model residuals
-#'     \item fitted: Fitted values
-#'   }
+#' @return An object of classes `lme.morph` (specific to this package)
+#'     and `lme` (inherited from [`nlme::lme()`]). The object is the
+#'     list returned by [`nlme::lme()`] with a couple of additional
+#'     components.
+#'
+#' Rather than inspecting the object directly, the best way to extract
+#' understandable output from the object is using the S3 methods
+#' [`summary.lme.morph()`], [`plot.lme.morph()`], and
+#' [`predict.lme.morph()`] via the generic functions `summary()`,
+#' `plot()`, and `predict()`. Other S3 methods for the `lme` class are
+#' availble via `nlme`, such as [`nlme::coef.lme()`].
 #'
 #' @examples
 #' \dontrun{
-#' # Simulate some data
-#' data <- sim.measurements(n.animals = 10, n.photos = rep(5, 10), m = 3,
-#'                         c(290, 130, 75, 45, 25, 15,
-#'                           0.85, 0.90, 0.95,
-#'                           2.00, 1.50, 1.00,
-#'                           0.40, 0.50, 0.60))
-#'
-#' # Fit the model
-#' fit <- fit.morph(data, method = "REML")
+#' ## Fitting model to manta ray data.
+#' fit <- fit.morph(manta)
+#' ## Usint maximum likelihood instead of REML.
+#' fit <- fit.morph(manta, method = "ML")
 #' }
-#'
+#' @inheritSection plotmorph The `data` argument
+#' @inheritParams plotmorph
 #' @export
-fit.morph <- function(data, method = "REML", intercept = FALSE){
-  # Ensure input sare factors
+fit.morph <- function(data, method = "REML",
+                      control = list(maxIter = 100000,
+                                     msMaxIter = 100000)){
+  # Ensure inputs are factors.
   for (i in c("animal.id", "photo.id", "dim")){
     if (!is.factor(data[, i])){
       data[, i] <- factor(data[, i])
@@ -163,11 +168,7 @@ fit.morph <- function(data, method = "REML", intercept = FALSE){
   gdata <- groupedData(measurement ~ 1 | animal.id / photo.id, data = data)
 
   # Set up fixed effects formula
-  if (intercept){
-    fixed.arg <- measurement ~ dim
-  } else {
-    fixed.arg <- measurement ~ 0 + dim
-  }
+  fixed.arg <- measurement ~ 0 + dim
 
   # Fit model
   fit <- lme(fixed = fixed.arg,
@@ -175,11 +176,11 @@ fit.morph <- function(data, method = "REML", intercept = FALSE){
              correlation = corSymm(form = ~ 1 | animal.id / photo.id),
              weights = varIdent(form = ~ 1 | dim),
              data = gdata,
-             control = lmeControl(maxIter = 100000, msMaxIter = 100000),
+             control = control,
              method = method)
 
   # Add additional attributes
-  fit$intercept <- intercept
+  fit$intercept <- FALSE
   class(fit) <- c("lme.morph", class(fit))
   fit$vcov <- vcov(fit)
 
