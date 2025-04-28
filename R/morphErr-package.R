@@ -82,3 +82,19 @@
 #' @importFrom stats nlminb pnorm qnorm reformulate predict vcov
 #' @importFrom utils combn setTxtProgressBar txtProgressBar
 NULL
+
+#' Manta ray morphometric data
+#'
+#' Data collected on a drone photogrammetry survey of the reef manta
+#' ray \emph{Mobula alfredi} in Raja Ampat, Indonesia.
+#'
+#' @format ## `manta`
+#' A data frame with four columns. Each row corresponds to a single
+#' photograph taken of a manta ray.
+#' \describe{
+#'   \item{id}{An individual identification number. Rows with the same \code{id} are photographs of the same individual manta ray.}
+#'   \item{DW}{The disc width, in centimetres.}
+#'   \item{DW}{The disc length, in centimetres.}
+#'   \item{CW}{The cranial width, in centimetres.}
+#' }
+"manta"

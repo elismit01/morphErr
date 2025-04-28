@@ -38,6 +38,7 @@ Suggests:
     knitr,
     xtable,
     testthat (>= 3.0.0)
+LazyData: true
 URL: https://github.com/elismit01/morphErr
 BugReports: https://github.com/elismit01/morphErr/issues
 Config/testthat/edition: 3
