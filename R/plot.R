@@ -35,8 +35,8 @@
 #'
 #' @param data A data frame containing the morphometric data. See the
 #'     section below on the correct formatting of this argument.
-#' @param dims Integer vector of length 2, selecting which dimensions
-#'     to plot.
+#' @param dims An integer vector of length two, indicating which
+#'     dimensions will appear on the x- and y-axes, respectively.
 #' @param plot.data Logical. If `FALSE`, the plotting area is set up
 #'     but points aren't plotted.
 #' @param ratios Logical. If `TRUE`, the y-axis represents the ratio
@@ -171,36 +171,38 @@ plotmorph <- function(data, dims = c(1, 2), plot.data = TRUE, ratios = FALSE,
 
 # -------------------------------------------------------------------------------------------------------
 
-#' Plot Method for Morphometric Model Fits
+#' Plot Morphometric Data and Estimated Relationships
 #'
-#' S3 method for plotting fitted morphometric models. Supports various plot types
-#' and can overlay fitted lines on data.
+#' An S3 model that plots morphometric data, estimated relationships
+#' between dimensions, or both.
 #'
-#' @param x An object of class "lme.morph" returned by fit.morph()
-#' @param dims Integer vector of length 2, selecting which dimensions to plot
-#' @param type Character string specifying plot type:
-#'   \itemize{
-#'     \item "data": plots the raw data
-#'     \item "ratio": plots ratios between dimensions
-#'   }
-#' @param line.type Character string specifying type of line to overlay:
-#'   \itemize{
-#'     \item "none": no line
-#'     \item "lm": linear regression line
-#'     \item "pca": principal components line
-#'   }
-#' @param confints Logical; if TRUE, includes confidence intervals
-#' @param add Logical; if TRUE, adds to existing plot
-#' @param reverse.axes Logical; if TRUE, swaps x and y interpretations
-#' @param plot.data Logical; if FALSE, only plots fitted lines
-#' @param xlim,ylim Numeric vectors of length 2 giving plot limits
-#' @param xlab,ylab Character strings giving axis labels
-#' @param ... Additional arguments passed to plotting functions
+#' @param x An object of class "lme.morph", returned by
+#'     [`fit.morph()`].
+#' @param type Character string specifying plot type. If `"ratio"`,
+#'     then the y-axis represents the ratio between measurements of
+#'     the two dimensions. If `"data"`, then the raw data are plotted.
+#' @param line.type A character string specifying type of fitted line
+#'     to overlay. If `"lm"`, then a line with the same interpretation
+#'     as linear regression is plotted. If `"pca"`, then the reduced
+#'     major axis (or principal component axis) summarising the
+#'     relationship is plotted.
+#' @param confints Logical. If `TRUE`, then confidence intervals are
+#'     plotted.
+#' @param add Logical. If `TRUE`, then fitted lines are added to an
+#'     existing plot.
+#' @param reverse.axes Logical. If `TRUE`, then a line of type `"lm"`
+#'     will provide the expected value of the x-axis variable
+#'     conditional on the y-axis variable, rather than the other way
+#'     around.
+#' @param plot.data Logical. If `FALSE` then the data are not plotted.
+#' @param ... Additional arguments passed to [`graphics::abline()`]
+#'     and [`graphics::lines()`] to modify the appearance of the lines
+#'     for estimated relationships between dimensions.
 #'
-#' @return NULL (invisibly). Creates a plot as a side effect.
+#' @inheritParams plotmorph
 #' @export
 plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
-                           line.type = "none", confints = !add,
+                           line.type = "lm", confints = !add,
                            add = FALSE, reverse.axes = FALSE,
                            plot.data = TRUE, xlim = NULL, ylim = NULL,
                            xlab = NULL, ylab = NULL, ...) {
@@ -303,13 +305,13 @@ plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
                                       newdata.x.dim = xx,
                                       type = line.type)
       if (is.matrix(preds)) {
-        lines(xx, preds[, 1])
+        lines(xx, preds[, 1], ...)
 
         if (confints) {
           lines(xx, preds[, 1] + qnorm(0.975)*preds[, 2],
-                lty = "dotted")
+                lty = "dotted", ...)
           lines(xx, preds[, 1] - qnorm(0.975)*preds[, 2],
-                lty = "dotted")
+                lty = "dotted", ...)
         }
       }
     }
