@@ -176,16 +176,17 @@ plotmorph <- function(data, dims = c(1, 2), plot.data = TRUE, ratios = FALSE,
 #' An S3 method that plots morphometric data, estimated relationships
 #' between dimensions, or both, from a fitted model object.
 #'
-#' @param x An object of class "lme.morph", returned by
+#' @param x An object of class `lme.morph`, returned by
 #'     [`fit.morph()`].
-#' @param type Character string specifying plot type. If `"ratio"`,
-#'     then the y-axis represents the ratio between measurements of
-#'     the two dimensions. If `"data"`, then the raw data are plotted.
-#' @param line.type A character string specifying type of fitted line
-#'     to overlay. If `"lm"`, then a line with the same interpretation
-#'     as linear regression is plotted. If `"pca"`, then the reduced
-#'     major axis (or principal component axis) summarising the
-#'     relationship is plotted.
+#' @param type A character string specifying the plot type. If
+#'     `"ratio"`, then the y-axis represents the ratio between
+#'     measurements of the two dimensions. If `"data"`, then the raw
+#'     data are plotted.
+#' @param line.type A character string specifying the type of fitted
+#'     line to overlay. If `"lm"`, then a line with the same
+#'     interpretation as linear regression is plotted. If `"pca"`,
+#'     then the reduced major axis (or principal component axis)
+#'     summarising the relationship is plotted.
 #' @param confints Logical. If `TRUE`, then confidence intervals are
 #'     plotted.
 #' @param add Logical. If `TRUE`, then fitted lines are added to an
@@ -196,8 +197,8 @@ plotmorph <- function(data, dims = c(1, 2), plot.data = TRUE, ratios = FALSE,
 #'     around.
 #' @param plot.data Logical. If `FALSE` then the data are not plotted.
 #' @param ... Additional arguments passed to [`graphics::abline()`]
-#'     and [`graphics::lines()`] to modify the appearance of the lines
-#'     for estimated relationships between dimensions.
+#'     and [`graphics::lines()`] to modify the appearance of the
+#'     fitted lines.
 #'
 #' @inheritParams plotmorph
 #' @export
