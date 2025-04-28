@@ -173,8 +173,8 @@ plotmorph <- function(data, dims = c(1, 2), plot.data = TRUE, ratios = FALSE,
 
 #' Plot Morphometric Data and Estimated Relationships
 #'
-#' An S3 model that plots morphometric data, estimated relationships
-#' between dimensions, or both.
+#' An S3 method that plots morphometric data, estimated relationships
+#' between dimensions, or both, from a fitted model object.
 #'
 #' @param x An object of class "lme.morph", returned by
 #'     [`fit.morph()`].
