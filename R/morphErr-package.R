@@ -105,7 +105,7 @@ NULL
 #'              \code{2} is for disc length, and \code{3} is for
 #'              cranial width.}
 #' 
-#'   \item{measurement}{The measurement in centimetres.}
+#'   \item{\code{measurement}}{The measurement in centimetres.}
 #' 
 #' }
 "manta"

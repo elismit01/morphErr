@@ -10,6 +10,8 @@
 #' Creates scatter plots of morphometric measurements, with options for
 #' different dimension combinations and plotting of ratios.
 #'
+#' @section The `data` argument:
+#' 
 #'  The [`manta`] object is an example of a correctly formatted
 #' \code{data} argument. It must be a data frame with the following
 #' columns:
@@ -31,18 +33,16 @@
 #' 
 #' }
 #'
-#' @param data A data frame containing the morphometric data. See
-#'     'Details'.
+#' @param data A data frame containing the morphometric data. See the
+#'     section below on the correct formatting of this argument.
 #' @param dims Integer vector of length 2, selecting which dimensions
 #'     to plot.
 #' @param plot.data Logical. If `FALSE`, the plotting area is set up
 #'     but points aren't plotted.
-#' @param xlim The x-axis limits of the plot.
-#' @param ylim The y-axis limits of the plot.
-#' @param ratios Logical. If `TRUE`, the y-axis represents the ratio between
-#'     dimensions.
-#' @param xlab A title for the x-axis.
-#' @param ylab A title for the y-axis.
+#' @param ratios Logical. If `TRUE`, the y-axis represents the ratio
+#'     between dimensions.
+#' @param xlim,ylim Limits for the axes.
+#' @param xlab,ylab Titles for the axes.
 #'
 #' @examples
 #' ## Plotting dimensions 1 and 2.
