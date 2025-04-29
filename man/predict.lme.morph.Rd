@@ -7,22 +7,67 @@
 \method{predict}{lme.morph}(object, y.dim, newdata = NULL, type = c("lm", "pca"), ...)
 }
 \arguments{
-\item{object}{A fitted model object from fit.morph()}
+\item{object}{An object of class \code{lme.morph}, returned by
+\code{\link[=fit.morph]{fit.morph()}}.}
 
 \item{y.dim}{Integer specifying which dimension to predict}
 
-\item{newdata}{A data frame of other dimensions to use for prediction. Column names
-must be of the form "dimX" where X is the dimension number. Can contain
-multiple rows for multiple predictions.}
+\item{newdata}{A data frame of other dimensions to use for
+prediction. Column names must be of the form "dimX" where X is
+the dimension number.}
 
-\item{type}{Either "lm" or "pca" for prediction type}
+\item{type}{Either \code{"lm"} or \code{"pca"} for the type of prediction.}
 
 \item{...}{Additional arguments passed to methods}
 }
 \value{
-A matrix with Estimate and Std.Error columns for each prediction
+A matrix with estimated true sizes and standard
+errors. Note that these are standard errors, not prediction
+errors.
 }
 \description{
-Makes predictions for one dimension based on true measurements of other dimensions.
-Can handle multiple predictions simultaneously.
+Calculates model predictions for the true size of a
+dimension based on true values for any subset of the remaining
+dimensions. Predictions for multiple individuals are available
+from a single call to the function.
+}
+\details{
+This function computes estimated coefficients for the
+appropriate linear function (as per \code{\link[=summary.lme.morph]{summary.lme.morph()}}
+with \code{type = "betas-lm"} or \code{type = "betas-pca"}), and then
+evaluates the function for the provided \code{newdata}. For \code{type = "pca"}, only a single column can be provided in \code{newdata}.
+}
+\section{Prediction functions in \code{morphErr}}{
+
+
+There are three key differences between \code{\link[=predict.lme.morph]{predict.lme.morph()}} and \code{\link[=predictblup]{predictblup()}}.
+\itemize{
+\item \code{\link[=predict.lme.morph]{predict.lme.morph()}} only generates estimates for one
+dimension based on true values for other dimensions, whereas
+\code{\link[=predictblup]{predictblup()}} can generate estimates from true values, observed
+values (i.e., subject to measurement error), or a combination of
+both.
+\item \code{\link[=predict.lme.morph]{predict.lme.morph()}} can generate estimates for multiple
+individuals, whereas \code{\link[=predictblup]{predictblup()}} only provides estimates for
+a single individual.
+\item \code{\link[=predict.lme.morph]{predict.lme.morph()}} provides standard errors, but
+\code{\link[=predictblup]{predictblup()}} does not.
+}
+}
+
+\examples{
+## Fitting model to manta ray data.
+fit <- fit.morph(manta)
+## Predicting dimension 2 for a single individual with a true value
+## of 90 for dimension 3.
+predict(fit, y.dim = 2, newdata = data.frame(dim3 = 90))
+## Predicting dimension 1 from dimensions 2 and 3 for two
+## individuals, one with true values of 130 and 60 for dimensions 2
+## and 3, respectively, and one with true values of 140 and 70.
+predict(fit, y.dim = 1, newdata = data.frame(dim2 = c(130, 140),
+                                             dim3 = c(60, 70)))
+
+}
+\seealso{
+\code{\link[=predictblup]{predictblup()}}
 }

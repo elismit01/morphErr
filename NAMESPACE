@@ -2,12 +2,12 @@
 
 S3method(plot,lme.morph)
 S3method(predict,lme.morph)
-S3method(predict,obs)
 S3method(print,summary.lme.morph)
 S3method(summary,lme.morph)
 export(extract.sim.morph)
 export(fit.morph)
 export(plotmorph)
+export(predictblup)
 export(sim.measurements)
 export(sim.morph)
 importFrom(Matrix,bdiag)
