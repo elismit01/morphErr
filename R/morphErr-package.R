@@ -97,7 +97,7 @@ NULL
 #' ray \emph{Mobula alfredi} in Raja Ampat, Indonesia.
 #'
 #' @format ## `manta`
-#' A data frame with four columns.
+#' A data frame with four columns:
 #' \describe{
 #' 
 #'   \item{\code{animal.id}}{An individual identification number. Rows
@@ -108,12 +108,13 @@ NULL
 #'                   the same \code{photo.id} correspond to
 #'                   measurements taken from the same image.}
 #' 
-#'   \item{\code{photo.id}}{An integer indicating the dimension the
+#'   \item{\code{dim}}{An integer indicating the dimension the
 #'              measurement is for. Here, \code{1} is for disc width,
 #'              \code{2} is for disc length, and \code{3} is for
 #'              cranial width.}
 #' 
-#'   \item{\code{measurement}}{The measurement in centimetres.}
+#'   \item{\code{measurement}}{The observed measurement value in
+#'                             centimetres.}
 #' 
 #' }
 "manta"
