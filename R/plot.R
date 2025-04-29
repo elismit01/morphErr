@@ -12,7 +12,7 @@
 #'
 #' @section The `data` argument:
 #' 
-#'  The [`manta`] object is an example of a correctly formatted
+#' The [`manta`] object is an example of a correctly formatted
 #' \code{data} argument. It must be a data frame with the following
 #' columns:
 #'
@@ -20,7 +20,7 @@
 #' 
 #'  \item{\code{animal.id}}{An individual identification number. Rows
 #'                    with the same \code{animal.id} correspond to
-#'                    measurements of the same individual manta ray.}
+#'                    measurements of the saime individual manta ray.}
 #'
 #'  \item{\code{photo.id}}{A photo identification number. Rows with
 #'                   the same \code{photo.id} correspond to
