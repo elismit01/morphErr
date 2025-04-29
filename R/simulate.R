@@ -46,6 +46,9 @@
 #'     for the dimensions. See 'Details' for the correct order for the
 #'     correlations.
 #'
+#' @seealso [`sim.morph()`] to conduct a simulation study by
+#'     simulating multiple data sets and fitting a model to each one.
+#'
 #' @return
 #' A data frame with four columns:
 #' \describe{
@@ -121,49 +124,46 @@ sim.measurements <- function(n.animals, n.photos, m, mus, sigmas,
 
 # -------------------------------------------------------------------------------------------------------
 
-#' Simulation Study for Morphometric Models
+#' Conduct a Simulation Study for Morphometric Models
 #'
-#' Simulates multiple datasets and fits models to each one.
+#' Simulates multiple datasets and fits a model to each one.
 #'
-#' @param n.sims Integer, number of datasets to simulate
-#' @param n.animals Integer, number of animals to simulate
-#' @param n.photos Integer vector or scalar, number of photos per animal
-#' @param mus Numeric vector of mean parameters for each dimension
-#' @param sigmas Numeric vector of standard deviations for each dimension
-#' @param rhos Numeric vector of correlations between dimensions
-#' @param psis Numeric vector of measurement error SDs
-#' @param phis Numeric vector of measurement error correlations
-#' @param method Character, either "ML" or "REML"
-#' @param progressbar Logical, whether to show a progress bar
-#' @param n.cores Integer, number of cores for parallel processing
+#' @param n.sims Integer. The number of data sets to simulate.
+#' @param progressbar Logical. If `TRUE` a progress bar will be
+#'     displayed.
+#' @param n.cores Integer. The number of cores for parallel processing.
+#' @inheritParams sim.measurements
+#' @inheritParams fit.morph
 #'
-#' @return An object of class "lme.morph.sim" containing:
-#'   \itemize{
-#'     \item settings: List of simulation parameters
-#'     \item fits: List of fitted models
-#'   }
+#' @return An object of class `lme.morph.sim`. The best way to extract
+#'     results from this object is to use [`extract.sim.morph()`]. See
+#'     the example below.
+#'
+#' @seealso [`extract.sim.morph()`] to extract results from the object
+#'     returned by this function.
 #'
 #' @examples
-#' \dontrun{
-#' # Small simulation study
-#' results <- sim.morph(
-#'   n.sims = 5,
-#'   n.animals = 10,
-#'   n.photos = 3,
-#'   mus = c(315, 150, 100),
-#'   sigmas = c(25, 15, 10),
-#'   rhos = c(0.85, 0.80, 0.75),
-#'   psis = c(10, 6, 4),
-#'   phis = c(0.5, 0.4, 0.3),
-#'   method = "REML",
-#'   n.cores = 1
-#' )
-#' }
+#' ## Running a small simulation study.
+#' sim.fits <- sim.morph(n.sims = 5,
+#'                       n.animals = 10,
+#'                       n.photos = 3,
+#'                       mus = c(315, 150, 100),
+#'                       sigmas = c(25, 15, 10),
+#'                       rhos = c(0.85, 0.80, 0.75),
+#'                       psis = c(10, 6, 4),
+#'                       phis = c(0.5, 0.4, 0.3),
+#'                       method = "REML",
+#'                       progressbar = FALSE,
+#'                       n.cores = 1)
+#' ## Extracting p-values from tests for isometry from each model
+#' ## fit.
+#' iso.p <- function(x) summary(x, type = "isometric-pca")[, 3]
+#' extract.sim.morph(sim.fits, FUN = iso.p)
 #'
 #' @export
 sim.morph <- function(n.sims, n.animals, n.photos, mus, sigmas, rhos, psis, phis,
                       method = "REML", progressbar = TRUE, n.cores = 1){
-  # If n.photos is scalar, then aply it to all individuals
+  # If n.photos is scalar, then apply it to all individuals
   if (length(n.photos) == 1){
     n.photos <- rep(n.photos, n.animals)
   } else {
@@ -247,33 +247,22 @@ sim.morph <- function(n.sims, n.animals, n.photos, mus, sigmas, rhos, psis, phis
 
 # -------------------------------------------------------------------------------------------------------
 
-#' Extract Results from Simulation Study
+#' Extract Results from a Morphometric Simulation Study
 #'
-#' Extracts specific results from each model fit in a simulation study.
+#' Extracts results from each model fitted in a simulation study
+#' conducted using [`sim.morph()`].
 #'
-#' @param sim.res An object of class "lme.morph.sim" returned by sim.morph()
-#' @param FUN Function to apply to each model fit. Default is summary.
-#' @param n.cores Integer, number of cores for parallel processing.
+#' @param sim.res An object of class `lme.morph.sim`, returned by
+#'     [`sim.morph()`]
+#' @param FUN A function to apply to each model fit. Defaults to
+#'     [`summary.lme.morph()`], which extracts parameter estimates and
+#'     standard errors.
+#' @inheritParams sim.morph
 #'
-#' @return An array containing the results of applying FUN to each model fit.
+#' @return An array containing the results of applying FUN to each
+#'     model fit.
 #'
-#' @examples
-#' \dontrun{
-#' # Run simulation study
-#' results <- sim.morph(
-#'   n.sims = 5,
-#'   n.animals = 10,
-#'   n.photos = 3,
-#'   mus = c(315, 150, 100),
-#'   sigmas = c(25, 15, 10),
-#'   rhos = c(0.85, 0.80, 0.75),
-#'   psis = c(10, 6, 4),
-#'   phis = c(0.5, 0.4, 0.3)
-#' )
-#'
-#' # Extract summaries
-#' summaries <- extract.sim.morph(results)
-#' }
+#' @inherit sim.morph examples
 #'
 #' @export
 extract.sim.morph <- function(sim.res, FUN = summary, n.cores = 1){
