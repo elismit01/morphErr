@@ -33,6 +33,24 @@ values, conditional on any provided values for true dimension
 sizes, dimension measurements observed with error, or a
 combination of both.
 }
+\section{Prediction functions in \code{morphErr}}{
+
+
+There are three key differences between \code{\link[=predict.lme.morph]{predict.lme.morph()}} and \code{\link[=predictblup]{predictblup()}}.
+\itemize{
+\item \code{\link[=predict.lme.morph]{predict.lme.morph()}} only generates estimates for one
+dimension based on true values for other dimensions, whereas
+\code{\link[=predictblup]{predictblup()}} can generate estimates from true values, observed
+values (i.e., subject to measurement error), or a combination of
+both.
+\item \code{\link[=predict.lme.morph]{predict.lme.morph()}} can generate estimates for multiple
+individuals, whereas \code{\link[=predictblup]{predictblup()}} only provides estimates for
+a single individual.
+\item \code{\link[=predict.lme.morph]{predict.lme.morph()}} provides standard errors, but
+\code{\link[=predictblup]{predictblup()}} does not.
+}
+}
+
 \examples{
 ## Fitting model to manta ray data.
 fit <- fit.morph(manta)
