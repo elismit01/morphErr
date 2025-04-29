@@ -5,11 +5,11 @@ create_test_data <- function() {
     n.animals = 10,
     n.photos = 3,
     m = 3,
-    pars = c(315, 150, 100,    # means
-             25, 15, 10,       # SDs
-             0.85, 0.80, 0.75,  # correlations
-             10, 6, 4,    # measurement SDs
-             0.5, 0.4, 0.3)  # measurement correlations
+    mus = c(315, 150, 100),
+    sigmas = c(25, 15, 10),
+    rhos = c(0.85, 0.80, 0.75),
+    psis = c(10, 6, 4),
+    phis = c(0.5, 0.4, 0.3)
   )
 }
 

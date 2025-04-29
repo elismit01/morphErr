@@ -10,7 +10,7 @@ test_that("calc.betas handles input validation", {
   phis <- c(0.5, 0.4, 0.3)
   pars <- c(mus, sigmas, rhos, psis, phis)
 
-  data <- sim.measurements(10, rep(5, 10), 3, pars)
+  data <- sim.measurements(10, rep(5, 10), 3, mus, sigmas, rhos, psis, phis)
   fit <- fit.morph(data)
 
   # Test PCA with multiple predicters
@@ -36,7 +36,7 @@ test_that("calc.betas handles different types correctly", {
   phis <- c(0.5, 0.4, 0.3)
   pars <- c(mus, sigmas, rhos, psis, phis)
 
-  data <- sim.measurements(10, rep(5, 10), 3, pars)
+  data <- sim.measurements(10, rep(5, 10), 3, mus, sigmas, rhos, psis, phis)
   fit <- fit.morph(data)
 
   # Test lm type
@@ -64,7 +64,7 @@ test_that("predict.lme.morph handles input validation correctly", {
   phis <- c(0.5, 0.4, 0.3)
   pars <- c(mus, sigmas, rhos, psis, phis)
 
-  data <- sim.measurements(10, rep(5, 10), 3, pars)
+  data <- sim.measurements(10, rep(5, 10), 3, mus, sigmas, rhos, psis, phis)
   fit <- fit.morph(data)
 
   # Test invalid object class
@@ -98,7 +98,7 @@ test_that("predict.lme.morph handles predictions correctly", {
   phis <- c(0.5, 0.4, 0.3)
   pars <- c(mus, sigmas, rhos, psis, phis)
 
-  data <- sim.measurements(10, rep(5, 10), 3, pars)
+  data <- sim.measurements(10, rep(5, 10), 3, mus, sigmas, rhos, psis, phis)
   fit <- fit.morph(data)
 
   # Test pred with newdata
@@ -126,7 +126,7 @@ test_that("predict.lme.morph handles no measurements case correctly", {
   phis <- c(0.5, 0.4, 0.3)
   pars <- c(mus, sigmas, rhos, psis, phis)
 
-  data <- sim.measurements(10, rep(5, 10), 3, pars)
+  data <- sim.measurements(10, rep(5, 10), 3, mus, sigmas, rhos, psis, phis)
   fit <- fit.morph(data)
 
   # Test pred with no measurements
@@ -150,7 +150,7 @@ test_that("predict.lme.morph calculates standard errors correctly", {
   phis <- c(0.5, 0.4, 0.3)
   pars <- c(mus, sigmas, rhos, psis, phis)
 
-  data <- sim.measurements(10, rep(5, 10), 3, pars)
+  data <- sim.measurements(10, rep(5, 10), 3, mus, sigmas, rhos, psis, phis)
   fit <- fit.morph(data)
 
   # Test w/newdata
@@ -173,7 +173,7 @@ test_that("predict.lme.morph handles multiple predictions correctly", {
   phis <- c(0.5, 0.4, 0.3)
   pars <- c(mus, sigmas, rhos, psis, phis)
 
-  data <- sim.measurements(10, rep(5, 10), 3, pars)
+  data <- sim.measurements(10, rep(5, 10), 3, mus, sigmas, rhos, psis, phis)
   fit <- fit.morph(data)
 
   # Create multiple row newdata (6 vals each)
@@ -201,12 +201,13 @@ test_that("predict.lme.morph handles multiple predictions correctly", {
 test_that("predict.lme.morph handles edge cases in multiple predictions", {
   # Setup
   set.seed(1234)
-  pars = c(315, 150, 100,    # means
-           25, 15, 10,       # SDs
-           0.85, 0.80, 0.75,  # correlations
-           10, 6, 4,    # measurement SDs
-           0.5, 0.4, 0.3)  # measurement correlations
-  data <- sim.measurements(10, rep(5, 10), 3, pars)
+  mus <- c(315, 150, 100)
+  sigmas <- c(25, 15, 10)
+  rhos <- c(0.85, 0.80, 0.75)
+  psis <- c(10, 6, 4)
+  phis <- c(0.5, 0.4, 0.3)
+  pars <- c(mus, sigmas, rhos, psis, phis)
+  data <- sim.measurements(10, rep(5, 10), 3, mus, sigmas, rhos, psis, phis)
   fit <- fit.morph(data)
 
   # Test single row newdata works same
@@ -237,12 +238,13 @@ test_that("predict.lme.morph handles edge cases in multiple predictions", {
 test_that("predictblup handles input validation correctly", {
   # Setup
   set.seed(1234)
-  pars = c(315, 150, 100,    # means
-           25, 15, 10,       # SDs
-           0.85, 0.80, 0.75,  # correlations
-           10, 6, 4,    # measurement SDs
-           0.5, 0.4, 0.3)  # measurement correlations
-  data <- sim.measurements(10, rep(5, 10), 3, pars)
+  mus <- c(315, 150, 100)
+  sigmas <- c(25, 15, 10)
+  rhos <- c(0.85, 0.80, 0.75)
+  psis <- c(10, 6, 4)
+  phis <- c(0.5, 0.4, 0.3)
+  pars <- c(mus, sigmas, rhos, psis, phis)
+  data <- sim.measurements(10, rep(5, 10), 3, mus, sigmas, rhos, psis, phis)
   fit <- fit.morph(data)
 
   # Test invalid model object
@@ -269,12 +271,13 @@ test_that("predictblup handles input validation correctly", {
 test_that("predictblup handles predictions correctly", {
   # Setup
   set.seed(1234)
-  pars = c(315, 150, 100,    # means
-           25, 15, 10,       # SDs
-           0.85, 0.80, 0.75,  # correlations
-           10, 6, 4,    # measurement SDs
-           0.5, 0.4, 0.3)  # measurement correlations
-  data <- sim.measurements(10, rep(5, 10), 3, pars)
+  mus <- c(315, 150, 100)
+  sigmas <- c(25, 15, 10)
+  rhos <- c(0.85, 0.80, 0.75)
+  psis <- c(10, 6, 4)
+  phis <- c(0.5, 0.4, 0.3)
+  pars <- c(mus, sigmas, rhos, psis, phis)
+  data <- sim.measurements(10, rep(5, 10), 3, mus, sigmas, rhos, psis, phis)
   fit <- fit.morph(data)
 
   # Test with named params

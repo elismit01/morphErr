@@ -8,11 +8,11 @@ test_that("calc.conditional.ratio produces expected results", {
     n.animals = 50,
     n.photos = rep(10, 50),
     m = 3,
-    pars = c(315, 150, 100,    # means
-             25, 15, 10,       # SDs
-             0.85, 0.80, 0.75,  # correlations
-             10, 6, 4,    # measurement SDs
-             0.5, 0.4, 0.3)  # measurement correlations
+    mus = c(315, 150, 100),
+    sigmas = c(25, 15, 10),
+    rhos = c(0.85, 0.80, 0.75),
+    psis = c(10, 6, 4),
+    phis = c(0.5, 0.4, 0.3)
   )
 
   # Fit model to test data
@@ -74,11 +74,11 @@ test_that("calc.conditional.ratio handles edge cases", {
     n.animals = 5,         # More animals for better convergence
     n.photos = rep(3, 5),  # More pics per animal
     m = 3,
-    pars = c(150, 100, 50, #Smallee means
-             30, 20, 10,  # Smaller SDs
-             0.5, 0.5, 0.5, # Correlations
-             1.2, 1.0, 0.8, # Much smaller measurement SDs
-             0.2, 0.2, 0.2) # Smaller measurement correlations
+    mus = c(150, 100, 50), #Smaller means
+    sigmas = c(30, 20, 10),  # Smaller SDs
+    rhos = c(0.5, 0.5, 0.5), # Correlations
+    psis = c(1.2, 1.0, 0.8), # Much smaller measurement SDs
+    phis = c(0.2, 0.2, 0.2) # Smaller measurement correlations
   )
 
     fit <- fit.morph(test_data)

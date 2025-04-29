@@ -2,14 +2,14 @@
 
 test_that("sim.measurements handles inputs correctly", {
   # Test 1: basic functionality with equal photos
-  pars = c(315, 150, 100,    # means
-           25, 15, 10,       # SDs
-           0.85, 0.80, 0.75,  # correlations
-           10, 6, 4,    # measurement SDs
-           0.5, 0.4, 0.3)  # measurement correlations
+  mus <- c(315, 150, 100)
+  sigmas <- c(25, 15, 10)
+  rhos <- c(0.85, 0.80, 0.75)
+  psis <- c(10, 6, 4)
+  phis <- c(0.5, 0.4, 0.3)
 
   # 3 animals, 2 photos each:
-  data1 <- sim.measurements(3, 2, 3, pars)
+  data1 <- sim.measurements(3, 2, 3, mus, sigmas, rhos, psis, phis)
 
   # Basic structure checkss
   expect_s3_class(data1, "data.frame")
@@ -18,12 +18,12 @@ test_that("sim.measurements handles inputs correctly", {
 
   # Test 2: dif numbers of photos per animal
   n_photos <- c(2, 3, 1)
-  data2 <- sim.measurements(3, n_photos, 3, pars)
+  data2 <- sim.measurements(3, n_photos, 3, mus, sigmas, rhos, psis, phis)
   expect_equal(nrow(data2), sum(n_photos) * 3)  # total_photos * n_dims
 
   # Test 3: error handling
   expect_error(
-    sim.measurements(2, c(2, 2, 2), 3, pars),
+    sim.measurements(2, c(2, 2, 2), 3, mus, sigmas, rhos, psis, phis),
     "length of 'n.photos' should be equal to 'n.animals'"
   )
 })
