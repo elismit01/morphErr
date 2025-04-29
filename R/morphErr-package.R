@@ -91,7 +91,7 @@
 #' @importFrom utils combn setTxtProgressBar txtProgressBar
 NULL
 
-#' Manta ray morphometric data
+#' Manta Ray Morphometric Data
 #'
 #' Data collected on a drone photogrammetry survey of the reef manta
 #' ray \emph{Mobula alfredi} in Raja Ampat, Indonesia.
