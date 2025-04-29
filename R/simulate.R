@@ -8,40 +8,77 @@
 
 #' Simulate Morphometric Measurements
 #'
-#' Simulates data from a morphometric survey, including measurement error.
+#' Simulates morphometric data from a photogrammetry survey, with
+#' observations subject to measurement error, under the model
+#' described by \href{../doc/model.pdf}{Stevenson, Smit, and Setyawan
+#' (in submission)}.
 #'
-#' @param n.animals Integer, number of animals to simulate
-#' @param n.photos Integer vector specifying number of photos per animal.
-#'   If scalar, that number of photos is used for all animals.
-#' @param m Integer, number of dimensions to measure
-#' @param pars Numeric vector of parameters in the order:
-#'   \itemize{
-#'     \item mus: mean parameters (length m)
-#'     \item sigmas: standard deviations (length m)
-#'     \item rhos: correlations (length m*(m-1)/2)
-#'     \item psis: measurement error SDs (length m)
-#'     \item phis: measurement error correlations (length m*(m-1)/2)
-#'   }
+#' @details For arguments `rhos` and `phis`, the elements must be
+#'     ordered so that all \eqn{m - 1} correlations involving
+#'     dimension 1 appear first in ascending numerical order, followed
+#'     by all remaining \eqn{m - 2} correlations involving dimension
+#'     2, and so on.
 #'
-#' @return A data frame with columns:
-#'   \itemize{
-#'     \item animal.id: Factor indicating which animal
-#'     \item photo.id: Factor indicating which photo
-#'     \item dim: Factor indicating which dimension
-#'     \item measurement: The simulated measurement value
-#'   }
+#' For example, if `m = 4`, then the first three elements are the
+#' correlations between dimension 1 and dimensions 2, 3, and 4,
+#' respectively. The following two elements are correlations between
+#' dimension 2 and dimensions 3 and 4, respectively. The final element
+#' is the correlation between dimension 3 and 4.
+#'
+#' @param n.animals Integer. The number of animals in the sample.
+#' @param n.photos Integer vector. If there are `n.animals` elements,
+#'     each one specifies the number of photos for an individual. If
+#'     there is one element, then that number of photos is used for
+#'     all animals.
+#' @param m Integer. The number of dimensions.
+#' @param mus A vector with `m` elements providing the means of the
+#'     true dimension sizes in the population.
+#' @param sigmas A vector with `m` elements providing the standard
+#'     deviations for true dimension sizes in the population.
+#' @param rhos A vector, with one element for each pair of dimensions,
+#'     providing the pairwise correlations between true dimension
+#'     sizes in the population. See 'Details' for the correct order
+#'     for the correlations.
+#' @param psis A vector with `m` elements, providing the standard
+#'     deviations of measurement errors for the dimensions.
+#' @param phis A vector, with one element for each pair of dimensions,
+#'     providing the pairwise correlations between measurement errors
+#'     for the dimensions. See 'Details' for the correct order for the
+#'     correlations.
+#'
+#' @return
+#' A data frame with four columns:
+#' \describe{
+#' 
+#'   \item{\code{animal.id}}{An individual identification number. Rows
+#'                    with the same \code{animal.id} correspond to
+#'                    measurements of the same individual.}
+#' 
+#'   \item{\code{photo.id}}{A photo identification number. Rows with
+#'                   the same \code{photo.id} correspond to
+#'                   measurements taken from the same image.}
+#' 
+#'   \item{\code{dim}}{An integer indicating the dimension the
+#'              measurement is for.}
+#' 
+#'   \item{\code{measurement}}{The observed measurement value.}
+#' 
+#' }
 #'
 #' @examples
-#' # Simulate data for 2 animals, 2 photos each, measuring 3 dimensions
-#' pars <- c(315, 150, 100,  # means for dimensions 1, 2, and 3
-#'           25, 15, 10,  # standard deviations
-#'           0.85, 0.80, 0.75,  # correlations between dimensions
-#'           10, 6, 4,  # measurement error SDs
-#'           0.5, 0.4, 0.3) # measurement error correlations
-#' data <- sim.measurements(2, rep(2, 2), 3, pars)
+#' ## Simulating data for ten animals, with two photos each, measuring
+#' ## three dimensions.
+#' data <- sim.measurements(n.animals = 10, n.photos = 2, m = 3,
+#'                          mus = c(315, 150, 100),
+#'                          sigmas = c(25, 15, 10),
+#'                          rhos = c(0.85, 0.80, 0.75),
+#'                          psis = c(10, 6, 4),
+#'                          phis = c(0.5, 0.4, 0.3))
+#' head(data)
 #'
 #' @export
-sim.measurements <- function(n.animals, n.photos, m, pars){
+sim.measurements <- function(n.animals, n.photos, m, mus, sigmas,
+                             rhos, psis, phis){
   # If n.photos is scalar, repliicate for all animals
   if (length(n.photos) == 1){
     n.photos <- rep(n.photos, n.animals)
@@ -50,6 +87,8 @@ sim.measurements <- function(n.animals, n.photos, m, pars){
       stop("The length of 'n.photos' should be equal to 'n.animals'.")
     }
   }
+
+  pars <- c(mus, sigmas, rhos, psis, phis)
 
   # Organise parameters into useful components
   par.list <- organise.pars(pars, n.animals, n.photos, m, block.only = TRUE)
@@ -155,7 +194,7 @@ sim.morph <- function(n.sims, n.animals, n.photos, mus, sigmas, rhos, psis, phis
 
   # Function for parallel processing
   sim_one <- function(x, n.animals, n.photos, m, pars, method){
-    data <- sim.measurements(n.animals, n.photos, m, pars)
+    data <- sim.measurements(n.animals, n.photos, m, mus, sigmas, rhos, psis, phis)
     try(fit.morph(data, method = method), silent = TRUE)
   }
 
