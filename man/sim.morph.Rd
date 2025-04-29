@@ -2,7 +2,7 @@
 % Please edit documentation in R/simulate.R
 \name{sim.morph}
 \alias{sim.morph}
-\title{Simulation Study for Morphometric Models}
+\title{Conduct a Simulation Study for Morphometric Models}
 \usage{
 sim.morph(
   n.sims,
@@ -19,53 +19,71 @@ sim.morph(
 )
 }
 \arguments{
-\item{n.sims}{Integer, number of datasets to simulate}
+\item{n.sims}{Integer. The number of data sets to simulate.}
 
-\item{n.animals}{Integer, number of animals to simulate}
+\item{n.animals}{Integer. The number of animals in the sample.}
 
-\item{n.photos}{Integer vector or scalar, number of photos per animal}
+\item{n.photos}{Integer vector. If there are \code{n.animals} elements,
+each one specifies the number of photos for an individual. If
+there is one element, then that number of photos is used for
+all animals.}
 
-\item{mus}{Numeric vector of mean parameters for each dimension}
+\item{mus}{A vector with \code{m} elements providing the means of the
+true dimension sizes in the population.}
 
-\item{sigmas}{Numeric vector of standard deviations for each dimension}
+\item{sigmas}{A vector with \code{m} elements providing the standard
+deviations for true dimension sizes in the population.}
 
-\item{rhos}{Numeric vector of correlations between dimensions}
+\item{rhos}{A vector, with one element for each pair of dimensions,
+providing the pairwise correlations between true dimension
+sizes in the population. See 'Details' for the correct order
+for the correlations.}
 
-\item{psis}{Numeric vector of measurement error SDs}
+\item{psis}{A vector with \code{m} elements, providing the standard
+deviations of measurement errors for the dimensions.}
 
-\item{phis}{Numeric vector of measurement error correlations}
+\item{phis}{A vector, with one element for each pair of dimensions,
+providing the pairwise correlations between measurement errors
+for the dimensions. See 'Details' for the correct order for the
+correlations.}
 
-\item{method}{Character, either "ML" or "REML"}
+\item{method}{A character string indicating the objective function
+used to fit the model. Either \code{"ML"} for maximum likelihood or
+\code{"REML"} for restricted maximum likelihood.}
 
-\item{progressbar}{Logical, whether to show a progress bar}
+\item{progressbar}{Logical. If \code{TRUE} a progress bar will be
+displayed.}
 
-\item{n.cores}{Integer, number of cores for parallel processing}
+\item{n.cores}{Integer. The number of cores for parallel processing.}
 }
 \value{
-An object of class "lme.morph.sim" containing:
-\itemize{
-\item settings: List of simulation parameters
-\item fits: List of fitted models
-}
+An object of class \code{lme.morph.sim}. The best way to extract
+results from this object is to use \code{\link[=extract.sim.morph]{extract.sim.morph()}}. See
+the example below.
 }
 \description{
-Simulates multiple datasets and fits models to each one.
+Simulates multiple datasets and fits a model to each one.
 }
 \examples{
-\dontrun{
-# Small simulation study
-results <- sim.morph(
-  n.sims = 5,
-  n.animals = 10,
-  n.photos = 3,
-  mus = c(315, 150, 100),
-  sigmas = c(25, 15, 10),
-  rhos = c(0.85, 0.80, 0.75),
-  psis = c(10, 6, 4),
-  phis = c(0.5, 0.4, 0.3),
-  method = "REML",
-  n.cores = 1
-)
-}
+## Running a small simulation study.
+sim.fits <- sim.morph(n.sims = 5,
+                      n.animals = 10,
+                      n.photos = 3,
+                      mus = c(315, 150, 100),
+                      sigmas = c(25, 15, 10),
+                      rhos = c(0.85, 0.80, 0.75),
+                      psis = c(10, 6, 4),
+                      phis = c(0.5, 0.4, 0.3),
+                      method = "REML",
+                      progressbar = FALSE,
+                      n.cores = 1)
+## Extracting p-values from tests for isometry from each model
+## fit.
+iso.p <- function(x) summary(x, type = "isometric-pca")[, 3]
+extract.sim.morph(sim.fits, FUN = iso.p)
 
+}
+\seealso{
+\code{\link[=extract.sim.morph]{extract.sim.morph()}} to extract results from the object
+returned by this function.
 }

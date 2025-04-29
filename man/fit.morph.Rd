@@ -70,10 +70,9 @@ measurement is for.}
 }
 
 \examples{
-\dontrun{
 ## Fitting model to manta ray data.
 fit <- fit.morph(manta)
 ## Using maximum likelihood instead of REML.
 fit <- fit.morph(manta, method = "ML")
-}
+
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{summary.lme.morph}
 \alias{summary.lme.morph}
-\title{Summarising Morphometric Model Fits}
+\title{Summarise Morphometric Model Fits}
 \usage{
 \method{summary}{lme.morph}(object, ..., type = "pars", y.dim, x.dim, B = 1000)
 }

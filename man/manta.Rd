@@ -3,7 +3,7 @@
 \docType{data}
 \name{manta}
 \alias{manta}
-\title{Manta ray morphometric data}
+\title{Manta Ray Morphometric Data}
 \format{
 \subsection{\code{manta}}{
 

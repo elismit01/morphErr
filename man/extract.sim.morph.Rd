@@ -2,39 +2,44 @@
 % Please edit documentation in R/simulate.R
 \name{extract.sim.morph}
 \alias{extract.sim.morph}
-\title{Extract Results from Simulation Study}
+\title{Extract Results from a Morphometric Simulation Study}
 \usage{
 extract.sim.morph(sim.res, FUN = summary, n.cores = 1)
 }
 \arguments{
-\item{sim.res}{An object of class "lme.morph.sim" returned by sim.morph()}
+\item{sim.res}{An object of class \code{lme.morph.sim}, returned by
+\code{\link[=sim.morph]{sim.morph()}}}
 
-\item{FUN}{Function to apply to each model fit. Default is summary.}
+\item{FUN}{A function to apply to each model fit. Defaults to
+\code{\link[=summary.lme.morph]{summary.lme.morph()}}, which extracts parameter estimates and
+standard errors.}
 
-\item{n.cores}{Integer, number of cores for parallel processing.}
+\item{n.cores}{Integer. The number of cores for parallel processing.}
 }
 \value{
-An array containing the results of applying FUN to each model fit.
+An array containing the results of applying FUN to each
+model fit.
 }
 \description{
-Extracts specific results from each model fit in a simulation study.
+Extracts results from each model fitted in a simulation study
+conducted using \code{\link[=sim.morph]{sim.morph()}}.
 }
 \examples{
-\dontrun{
-# Run simulation study
-results <- sim.morph(
-  n.sims = 5,
-  n.animals = 10,
-  n.photos = 3,
-  mus = c(315, 150, 100),
-  sigmas = c(25, 15, 10),
-  rhos = c(0.85, 0.80, 0.75),
-  psis = c(10, 6, 4),
-  phis = c(0.5, 0.4, 0.3)
-)
-
-# Extract summaries
-summaries <- extract.sim.morph(results)
-}
+## Running a small simulation study.
+sim.fits <- sim.morph(n.sims = 5,
+                      n.animals = 10,
+                      n.photos = 3,
+                      mus = c(315, 150, 100),
+                      sigmas = c(25, 15, 10),
+                      rhos = c(0.85, 0.80, 0.75),
+                      psis = c(10, 6, 4),
+                      phis = c(0.5, 0.4, 0.3),
+                      method = "REML",
+                      progressbar = FALSE,
+                      n.cores = 1)
+## Extracting p-values from tests for isometry from each model
+## fit.
+iso.p <- function(x) summary(x, type = "isometric-pca")[, 3]
+extract.sim.morph(sim.fits, FUN = iso.p)
 
 }

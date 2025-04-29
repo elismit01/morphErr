@@ -85,3 +85,7 @@ data <- sim.measurements(n.animals = 10, n.photos = 2, m = 3,
 head(data)
 
 }
+\seealso{
+\code{\link[=sim.morph]{sim.morph()}} to conduct a simulation study by
+simulating multiple data sets and fitting a model to each one.
+}
