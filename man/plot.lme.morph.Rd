@@ -21,21 +21,22 @@
 )
 }
 \arguments{
-\item{x}{An object of class "lme.morph", returned by
+\item{x}{An object of class \code{lme.morph}, returned by
 \code{\link[=fit.morph]{fit.morph()}}.}
 
 \item{dims}{An integer vector of length two, indicating which
 dimensions will appear on the x- and y-axes, respectively.}
 
-\item{type}{Character string specifying plot type. If \code{"ratio"},
-then the y-axis represents the ratio between measurements of
-the two dimensions. If \code{"data"}, then the raw data are plotted.}
+\item{type}{A character string specifying the plot type. If
+\code{"ratio"}, then the y-axis represents the ratio between
+measurements of the two dimensions. If \code{"data"}, then the raw
+data are plotted.}
 
-\item{line.type}{A character string specifying type of fitted line
-to overlay. If \code{"lm"}, then a line with the same interpretation
-as linear regression is plotted. If \code{"pca"}, then the reduced
-major axis (or principal component axis) summarising the
-relationship is plotted.}
+\item{line.type}{A character string specifying the type of fitted
+line to overlay. If \code{"lm"}, then a line with the same
+interpretation as linear regression is plotted. If \code{"pca"},
+then the reduced major axis (or principal component axis)
+summarising the relationship is plotted.}
 
 \item{confints}{Logical. If \code{TRUE}, then confidence intervals are
 plotted.}
@@ -55,10 +56,28 @@ around.}
 \item{xlab, ylab}{Titles for the axes.}
 
 \item{...}{Additional arguments passed to \code{\link[graphics:abline]{graphics::abline()}}
-and \code{\link[graphics:lines]{graphics::lines()}} to modify the appearance of the lines
-for estimated relationships between dimensions.}
+and \code{\link[graphics:lines]{graphics::lines()}} to modify the appearance of the
+fitted lines.}
 }
 \description{
-An S3 model that plots morphometric data, estimated relationships
-between dimensions, or both.
+An S3 method that plots morphometric data, estimated relationships
+between dimensions, or both, from a fitted model object returned by
+\code{\link[=fit.morph]{fit.morph()}}.
+}
+\examples{
+## Fitting model to manta ray data.
+fit <- fit.morph(manta)
+## Plotting dimensions 1 and 2 with a fitted linear regression
+## line.
+plot(fit)
+## Same again, but plotting the reduced major axis (or principal
+## component axis) for dimensions 1 and 3.
+plot(fit, dims = c(1, 3), line.type = "pca")
+## A plot showing how the ratio between dimensions 2 and 3 changes
+## with the size of dimension 3. Because the line is quite flat,
+## it's plausible the relationship is isometric.
+plot(fit, dims = c(3, 2), type = "ratio", line.type = "pca")
+## On the other hand, the relationship between dimensions 1 and 2
+## is clearly allometric.
+plot(fit, dims = c(3, 1), type = "ratio", line.type = "pca")
 }

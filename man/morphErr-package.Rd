@@ -10,6 +10,15 @@ The \code{morphErr} package provides functions to analyse morphometric
 data using the method proposed by Stevenson, Smit, and Setyawan (in
 submission). View the manuscript \href{../doc/model.pdf}{here}.
 }
+\details{
+Two common ways of analysing morphometric data are to fit a linear
+regression models or find the reduced major axis (i.e., the
+principal component axis). However, these methods are known to
+perform poorly when observations are subject to non-negligible
+measurement error. The model implemented in this package provides
+the same inference you receive from these alternatives, but
+explicitly accounts for measurement error.
+}
 \section{Data requirements}{
 
 

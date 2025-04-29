@@ -73,7 +73,7 @@ measurement is for.}
 \dontrun{
 ## Fitting model to manta ray data.
 fit <- fit.morph(manta)
-## Usint maximum likelihood instead of REML.
+## Using maximum likelihood instead of REML.
 fit <- fit.morph(manta, method = "ML")
 }
 }

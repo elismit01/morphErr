@@ -2,45 +2,113 @@
 % Please edit documentation in R/utils.R
 \name{summary.lme.morph}
 \alias{summary.lme.morph}
-\title{Summary Method for Morphometric Models}
+\title{Summarising Morphometric Model Fits}
 \usage{
-\method{summary}{lme.morph}(
-  object,
-  ...,
-  type = "pars",
-  y.dim,
-  x.dim,
-  B = 1000,
-  boot.invert = FALSE
-)
+\method{summary}{lme.morph}(object, ..., type = "pars", y.dim, x.dim, B = 1000)
 }
 \arguments{
-\item{object}{A fitted model of class "lme.morph"}
+\item{object}{An object of class \code{lme.morph}, returned by
+\code{\link[=fit.morph]{fit.morph()}}.}
 
-\item{...}{Additional arguments passed to methods}
+\item{...}{Other parameters (for S3 generic compatibility).}
 
-\item{type}{Character string specifying type of summary:
-\itemize{
-\item "pars": parameter estimates and standard errors
-\item "betas"/"betas-lm": coefficients for linear model interpretation
-\item "betas-pca": coefficients for PCA interpretation
-\item "ratios": mean ratios between dimensions
-\item "isometric-pca": isometry test results
-\item "isometric-pca-boot": bootstrapped isometry test results
-}}
+\item{type}{A character string specifying type of summary. Either
+\code{"pars"} (the default), \code{"betas"} \code{"betas-lm"}, \code{"betas-pca"},
+"\code{isometric-pca}", or \code{"isometric-pca-boot"}. See 'Details' for
+further information.}
 
-\item{y.dim}{Integer specifying which dimension to predict (for beta coefficients)}
+\item{y.dim}{An integer specifying the response dimension for when
+\code{type} is \code{"betas"}, \code{"betas-lm"}, or \code{"betas-pca"}.}
 
-\item{x.dim}{Integer vector specifying predictor dimensions (for beta coefficients)}
+\item{x.dim}{An integer vector specifying the explanatory
+dimensions for when \code{type} is \code{"betas"}, \code{"betas-lm"}, or
+\code{"betas-pca"}.}
 
-\item{B}{Number of bootstrap iterations for isometric-pca-boot}
-
-\item{boot.invert}{Logical; whether to invert bootstrap distribution}
+\item{B}{Number of bootstrap iterations for when \code{type} is
+\code{"isometric-pca-boot"}.}
 }
 \value{
-A matrix or data frame containing the requested summary statistics
+A matrix or data frame containing the requested summary.
 }
 \description{
-Creates summaries of fitted morphometric models. Can provide different types of
-summaries including parameter estimates, beta coefficients, and isometry tests.
+An S3 method that creates summaries of fitted
+morphometric models. This function can provide different types
+of summaries including parameter estimates, beta coefficients,
+and tests for isometry.
+}
+\details{
+The following summaries are available with this method,
+controlled by the \code{type} argument:
+
+\describe{
+
+\item{\code{type = "pars"}}{Estimates and standard errors for the model
+parameters, including the vectors \eqn{\mu}
+for the means of the true dimension sizes,
+\eqn{\sigma} for the standard deviations for
+true dimension sizes, \eqn{\rho} for the
+correlations between true dimension sizes,
+\eqn{\psi} for the standard deviations in
+measurement errors for the dimensions, and
+\eqn{\phi} for the correlations between
+measurement errors for all pairs of
+dimensions.}
+
+\item{\code{type = "betas"} or \code{type = "betas-lm"}}{Estimates and
+standard errors for
+coefficients of a
+linear combination
+that provides the
+expected value of
+one dimension
+(specified by
+\code{y.dim}) using any
+subset of the
+remaining dimensions
+(specified in the
+vector \code{x.dim}).}
+
+\item{\code{type = "betas-pca"}}{An estimated intercept and slope for
+the reduced major axis (or principal
+component axis) summarising the
+relationship between the true values of
+dimensions specified by \code{y.dim} and
+\code{x.dim}.}
+
+\item{\code{type = "isometric-pca"}}{Results for tests of the null
+hypotheses of isometric
+relationships between all pairs of
+dimensions. The p-values are
+obtained using normal
+approximations for the test
+statistics.}
+
+\item{\code{type = "isometric-pca-boot"}}{The same as
+\code{"isometric-pca"}, except a
+bootstrap is used to obtain
+p-values. The normal
+approximation and bootstrap
+typically provide very similar
+results.}
+
+}
+}
+\examples{
+## Fitting model to manta ray data.
+fit <- fit.morph(manta)
+## Parameter estimates and standard errors.
+summary(fit)
+## Estimated coefficients for the linear combination that provides
+## the expected value of the first dimension from only the second.
+summary(fit, type = "betas-lm", y.dim = 1, x.dim = 2)
+## Estimated coefficients for the linear combination that provides
+## the expected value of the second dimension from both the first
+## and third.
+summary(fit, type = "betas-lm", y.dim = 2, x.dim = c(1, 3))
+## Estimated intercept and slope for the reduced major axis (or
+## pricipal component axis) summarising the relationship between
+## the first and second dimensions.
+summary(fit, type = "betas-pca", y.dim = 1, x.dim = 2)
+## Tests for isometry between all pairs of dimensions.
+summary(fit, type = "isometric-pca")
 }

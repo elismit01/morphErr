@@ -15,7 +15,7 @@ A list containing:
 \item{varcov}{Variance-covariance matrix}
 }
 \description{
-S3 method for extracting both parameter estimates and their
+An S3 method for extracting both parameter estimates and their
 variance-covariance matrix from a fitted morphometric model.
 }
 \keyword{internal}
