@@ -2,7 +2,7 @@
 #
 # This file contains functions for making predictions from fitted models:
 # - predict.lme.morph(): Predicts measurements from fitted models using true measurements
-# - predict.obs(): Predicts measurements from fitted models using observed measurements
+# - predictblup(): Predicts measurements from fitted models using observed measurements
 
 
 # -------------------------------------------------------------------------------------------------------
@@ -215,19 +215,58 @@ calc.betas <- function(fit, est = NULL, stders = TRUE, y.dim, x.dim,
 
 #' Predict Measurements from True Values
 #'
-#' @description
-#' Makes predictions for one dimension based on true measurements of other dimensions.
-#' Can handle multiple predictions simultaneously.
+#' @description Calculates model predictions for the true size of a
+#'     dimension based on true values for any subset of the remaining
+#'     dimensions. Predictions for multiple individuals are available
+#'     from a single call to the function.
 #'
-#' @param object A fitted model object from fit.morph()
+#' @details This function computes estimated coefficients for the
+#'     appropriate linear function (as per [`summary.lme.morph()`]
+#'     with `type = "betas-lm"` or `type = "betas-pca"`), and then
+#'     evaluates the function for the provided `newdata`. For `type =
+#'     "pca"`, only a single column can be provided in `newdata`.
+#'
+#' @section Prediction functions in `morphErr`:
+#' 
+#' There are three key differences between [`predict.lme.morph()`] and [`predictblup()`].
+#'
+#' * [`predict.lme.morph()`] only generates estimates for one
+#' dimension based on true values for other dimensions, whereas
+#' [`predictblup()`] can generate estimates from true values, observed
+#' values (i.e., subject to measurement error), or a combination of
+#' both.
+#'
+#' * [`predict.lme.morph()`] can generate estimates for multiple
+#' individuals, whereas [`predictblup()`] only provides estimates for
+#' a single individual.
+#'
+#' * [`predict.lme.morph()`] provides standard errors, but
+#' [`predictblup()`] does not.
+#'
 #' @param y.dim Integer specifying which dimension to predict
-#' @param newdata A data frame of other dimensions to use for prediction. Column names
-#'        must be of the form "dimX" where X is the dimension number. Can contain
-#'        multiple rows for multiple predictions.
-#' @param type Either "lm" or "pca" for prediction type
+#' @param newdata A data frame of other dimensions to use for
+#'     prediction. Column names must be of the form "dimX" where X is
+#'     the dimension number.
+#' @param type Either `"lm"` or `"pca"` for the type of prediction.
 #' @param ... Additional arguments passed to methods
+#' @inheritParams summary.lme.morph
+#' @seealso [`predictblup()`]
+#' @return A matrix with estimated true sizes and standard
+#'     errors. Note that these are standard errors, not prediction
+#'     errors.
 #'
-#' @return A matrix with Estimate and Std.Error columns for each prediction
+#' @examples
+#' ## Fitting model to manta ray data.
+#' fit <- fit.morph(manta)
+#' ## Predicting dimension 2 for a single individual with a true value
+#' ## of 90 for dimension 3.
+#' predict(fit, y.dim = 2, newdata = data.frame(dim3 = 90))
+#' ## Predicting dimension 1 from dimensions 2 and 3 for two
+#' ## individuals, one with true values of 130 and 60 for dimensions 2
+#' ## and 3, respectively, and one with true values of 140 and 70.
+#' predict(fit, y.dim = 1, newdata = data.frame(dim2 = c(130, 140),
+#'                                              dim3 = c(60, 70)))
+#' 
 #' @export
 predict.lme.morph <- function(object, y.dim, newdata = NULL, type = c("lm", "pca"), ...) {
   # Input validation
@@ -296,44 +335,48 @@ predict.lme.morph <- function(object, y.dim, newdata = NULL, type = c("lm", "pca
 
 #' Predict from Observed Measurements
 #'
-#' @description
-#' Makes predictions by combining prior information with observed measurements that contain error.
+#' @description Makes predictions for a single individual using the
+#'     best linear unbiased predictor (BLUP).
 #'
-#' @param object A fitted model object from fit.morph()
-#' @param ... Additional arguments:
-#'        \itemize{
-#'          \item true: A vector of true dimension measurements. Set elements to NA for dimensions to predict
-#'          \item obs: A matrix of observed measurements with error, where each row represents measurements
-#'                from one photograph. NA values allowed for missing measurements.
-#'        }
+#' @details This function uses a BLUP to compute estimated true values
+#'     for a single individual. A BLUP is computed by finding the mode
+#'     of the multivariate probability density function of the true
+#'     values, conditional on any provided values for true dimension
+#'     sizes, dimension measurements observed with error, or a
+#'     combination of both.
 #'
-#' @return A numeric vector of predictions for all dimensions
+#' @param true A vector of true dimension measurements, if
+#'     available. Use `NA` for dimensions with unknown true
+#'     measurements.
+#' @param obs A matrix of measurements observed with error, where each
+#'     row represents measurements from one photograph. Use `NA` for
+#'     dimensions with measurements that were not taken from a photo.
+#' @inheritParams summary.lme.morph
+#' @inheritSection predict.lme.morph Prediction functions in
+#'     `morphErr`
+#' 
+#' @seealso [`predict.lme.morph()`]
+#' @return A numeric vector of predictions for all dimensions.
+#'
+#' @examples
+#' ## Fitting model to manta ray data.
+#' fit <- fit.morph(manta)
+#' ## Estimates for the true dimension sizes of an individual with a
+#' ## known true value for dimension 2 of 130, and observed 
+#' ## measurements subject to error from two photographs. The first 
+#' ## photograph has # observed measurements of 300 and 135 for 
+#' ## dimensions 1 and 2, respectively, while the second photograph 
+#' ## has observed # measurements of 290 and 140, respectively.
+#' ## Dimension 3 is not observed in any photograph.
+#' predictblup(fit, true = c(NA, 130, NA), obs = rbind(c(300, 135, NA),
+#'                                                     c(290, 140, NA)))
+#' 
 #' @export
-predict.obs <- function(object, ...) {
-  # Extract arguments from ...
-  args <- list(...)
-
-  # If first argument isn't named, assume it's 'true'
-  if (length(args) > 0 && is.null(names(args)[1])) {
-    true <- args[[1]]
-  } else {
-    true <- args$true
-  }
-
-  # If second argument isn't named, assume it's 'obs'
-  if (length(args) > 1 && is.null(names(args)[2])) {
-    obs <- args[[2]]
-  } else {
-    obs <- args$obs
-  }
+predictblup <- function(object, true = NULL, obs = NULL) {
 
   # Input validation
   if (!inherits(object, "lme.morph")) {
     stop("Invalid model object. Input must be a fitted model of class 'lme.morph'")
-  }
-
-  if (is.null(true)) {
-    stop("'true' argument must be provided")
   }
 
   # Rest of function remains the same...
@@ -343,12 +386,17 @@ predict.obs <- function(object, ...) {
   m <- length(levels(object$data$dim))
   pars <- organise.pars(est, n.animals = 1, n.photos = 1, m = m, block.only = TRUE)
 
+  if (is.null(true)) {
+    true <- rep(NA, m)
+  }
+    
   # Validate tru vector length
   if (length(true) != m) {
     stop(
       "Length of 'true' must match number of dimensions in model"
     )
   }
+
 
   # Handle observations
   if (!is.null(obs)) {
