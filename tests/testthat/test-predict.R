@@ -232,9 +232,9 @@ test_that("predict.lme.morph handles edge cases in multiple predictions", {
 
 # -------------------------------------------------------------------------------------------------------
 
-# predict.obs() tests
+# predictblup() tests
 
-test_that("predict.obs handles input validation correctly", {
+test_that("predictblup handles input validation correctly", {
   # Setup
   set.seed(1234)
   pars = c(315, 150, 100,    # means
@@ -249,24 +249,24 @@ test_that("predict.obs handles input validation correctly", {
   invalid_obj <- list()
   class(invalid_obj) <- "invalid"
   expect_error(
-    predict.obs(invalid_obj, true = c(NA, 130, 75)),
+    predictblup(invalid_obj, true = c(NA, 130, 75)),
     "Invalid model object"
   )
 
   # Test invalid true vecter length
   expect_error(
-    predict.obs(fit, true = c(NA, 130)),
+    predictblup(fit, true = c(NA, 130)),
     "Length of 'true' must match"
   )
 
   # Test no dims to pred
   expect_error(
-    predict.obs(fit, true = c(315, 150, 100)),
+    predictblup(fit, true = c(315, 150, 100)),
     "No dimensions to predict"
   )
 })
 
-test_that("predict.obs handles predictions correctly", {
+test_that("predictblup handles predictions correctly", {
   # Setup
   set.seed(1234)
   pars = c(315, 150, 100,    # means
@@ -280,10 +280,10 @@ test_that("predict.obs handles predictions correctly", {
   # Test with named params
   true <- c(NA, 130, 75)
   obs <- matrix(c(285, 128, 73), nrow = 1)
-  result1 <- predict.obs(fit, true = true, obs = obs)
+  result1 <- predictblup(fit, true = true, obs = obs)
 
   # Test with unnamed params
-  result2 <- predict.obs(fit, true, obs)
+  result2 <- predictblup(fit, true, obs)
 
   # Check both method give same result
   expect_equal(result1, result2)
