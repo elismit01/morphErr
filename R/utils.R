@@ -10,7 +10,7 @@
 
 #' Extract Variance-Covariance Matrix from Morphometric Model
 #'
-#' S3 method for extracting both parameter estimates and their
+#' An S3 method for extracting both parameter estimates and their
 #' variance-covariance matrix from a fitted morphometric model.
 #'
 #' @param object A fitted model of class "lme.morph"
@@ -138,29 +138,105 @@ print.summary.lme.morph <- function(x, ...) {
 
 # -------------------------------------------------------------------------------------------------------
 
-#' Summary Method for Morphometric Models
+#' Summarising Morphometric Model Fits
 #'
-#' @description
-#' Creates summaries of fitted morphometric models. Can provide different types of
-#' summaries including parameter estimates, beta coefficients, and isometry tests.
+#' @description An S3 method that creates summaries of fitted
+#'     morphometric models. This function can provide different types
+#'     of summaries including parameter estimates, beta coefficients,
+#'     and tests for isometry.
 #'
-#' @param object A fitted model of class "lme.morph"
-#' @param ... Additional arguments passed to methods
-#' @param type Character string specifying type of summary:
-#'   - "pars": parameter estimates and standard errors
-#'   - "betas"/"betas-lm": coefficients for linear model interpretation
-#'   - "betas-pca": coefficients for PCA interpretation
-#'   - "ratios": mean ratios between dimensions
-#'   - "isometric-pca": isometry test results
-#'   - "isometric-pca-boot": bootstrapped isometry test results
-#' @param y.dim Integer specifying which dimension to predict (for beta coefficients)
-#' @param x.dim Integer vector specifying predictor dimensions (for beta coefficients)
-#' @param B Number of bootstrap iterations for isometric-pca-boot
-#' @param boot.invert Logical; whether to invert bootstrap distribution
+#' @details The following summaries are available with this method,
+#'     controlled by the `type` argument:
 #'
-#' @return A matrix or data frame containing the requested summary statistics
+#' \describe{
+#' 
+#' \item{`type = "pars"`}{Estimates and standard errors for the model
+#'                        parameters, including the vectors \eqn{\mu}
+#'                        for the means of the true dimension sizes,
+#'                        \eqn{\sigma} for the standard deviations for
+#'                        true dimension sizes, \eqn{\rho} for the
+#'                        correlations between true dimension sizes,
+#'                        \eqn{\psi} for the standard deviations in
+#'                        measurement errors for the dimensions, and
+#'                        \eqn{\phi} for the correlations between
+#'                        measurement errors for all pairs of
+#'                        dimensions.}
+#' 
+#' \item{`type = "betas"` or `type = "betas-lm"`}{Estimates and
+#'                                                standard errors for
+#'                                                coefficients of a
+#'                                                linear combination
+#'                                                that provides the
+#'                                                expected value of
+#'                                                one dimension
+#'                                                (specified by
+#'                                                `y.dim`) using any
+#'                                                subset of the
+#'                                                remaining dimensions
+#'                                                (specified in the
+#'                                                vector `x.dim`).}
+#'
+#' \item{`type = "betas-pca"`}{An estimated intercept and slope for
+#'                             the reduced major axis (or principal
+#'                             component axis) summarising the
+#'                             relationship between the true values of
+#'                             dimensions specified by `y.dim` and
+#'                             `x.dim`.}
+#'
+#' \item{`type = "isometric-pca"`}{Results for tests of the null
+#'                                 hypotheses of isometric
+#'                                 relationships between all pairs of
+#'                                 dimensions. The p-values are
+#'                                 obtained using normal
+#'                                 approximations for the test
+#'                                 statistics.}
+#'
+#' \item{`type = "isometric-pca-boot"`}{The same as
+#'                                      `"isometric-pca"`, except a
+#'                                      bootstrap is used to obtain
+#'                                      p-values. The normal
+#'                                      approximation and bootstrap
+#'                                      typically provide very similar
+#'                                      results.}
+#' 
+#' }
+#'
+#' @param object An object of class `lme.morph`, returned by
+#'     [`fit.morph()`].
+#' @param ... Other parameters (for S3 generic compatibility).
+#' @param type A character string specifying type of summary. Either
+#'     `"pars"` (the default), `"betas"` `"betas-lm"`, `"betas-pca"`,
+#'     "`isometric-pca`", or `"isometric-pca-boot"`. See 'Details' for
+#'     further information.
+#' @param y.dim An integer specifying the response dimension for when
+#'     `type` is `"betas"`, `"betas-lm"`, or `"betas-pca"`.
+#' @param x.dim An integer vector specifying the explanatory
+#'     dimensions for when `type` is `"betas"`, `"betas-lm"`, or
+#'     `"betas-pca"`.
+#' @param B Number of bootstrap iterations for when `type` is
+#'     `"isometric-pca-boot"`.
+#'
+#' @return A matrix or data frame containing the requested summary.
+#' @examples
+#' ## Fitting model to manta ray data.
+#' fit <- fit.morph(manta)
+#' ## Parameter estimates and standard errors.
+#' summary(fit)
+#' ## Estimated coefficients for the linear combination that provides
+#' ## the expected value of the first dimension from only the second.
+#' summary(fit, type = "betas-lm", y.dim = 1, x.dim = 2)
+#' ## Estimated coefficients for the linear combination that provides
+#' ## the expected value of the second dimension from both the first
+#' ## and third.
+#' summary(fit, type = "betas-lm", y.dim = 2, x.dim = c(1, 3))
+#' ## Estimated intercept and slope for the reduced major axis (or
+#' ## pricipal component axis) summarising the relationship between
+#' ## the first and second dimensions.
+#' summary(fit, type = "betas-pca", y.dim = 1, x.dim = 2)
+#' ## Tests for isometry between all pairs of dimensions.
+#' summary(fit, type = "isometric-pca")
 #' @export
-summary.lme.morph <- function(object, ..., type = "pars", y.dim, x.dim, B = 1000, boot.invert = FALSE) {
+summary.lme.morph <- function(object, ..., type = "pars", y.dim, x.dim, B = 1000){
   # Valid types
   valid_types <- c(
     "pars",   # Param estimates
@@ -213,10 +289,6 @@ summary.lme.morph <- function(object, ..., type = "pars", y.dim, x.dim, B = 1000
           out.names[k] <- paste0("dim", i, " vs dim", j)
           if (type == "isometric-pca-boot") {
             betas.boot <- apply(boots, 1, function(x) calc.betas(est = x, stders = FALSE, y.dim = j, x.dim = i, type = "pca"))[1, ]
-            ## The ol' flipperooni
-            if (boot.invert) {
-              betas.boot <- 2*out[k, 1] - betas.boot
-            }
             p.val.onesided <- mean(betas.boot >= 0)
             p.val.onesided <- min(c(p.val.onesided, 1 - p.val.onesided))
             p.val[k] <- 2*p.val.onesided
