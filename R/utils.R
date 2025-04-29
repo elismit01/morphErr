@@ -138,7 +138,7 @@ print.summary.lme.morph <- function(x, ...) {
 
 # -------------------------------------------------------------------------------------------------------
 
-#' Summarising Morphometric Model Fits
+#' Summarise Morphometric Model Fits
 #'
 #' @description An S3 method that creates summaries of fitted
 #'     morphometric models. This function can provide different types
