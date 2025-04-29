@@ -140,12 +140,11 @@ construct.varcov <- function(sds, cors, n.blocks, m, block.only){
 #' availble via `nlme`, such as [`nlme::coef.lme()`].
 #'
 #' @examples
-#' \dontrun{
 #' ## Fitting model to manta ray data.
 #' fit <- fit.morph(manta)
 #' ## Using maximum likelihood instead of REML.
 #' fit <- fit.morph(manta, method = "ML")
-#' }
+#' 
 #' @inheritSection plotmorph The `data` argument
 #' @inheritParams plotmorph
 #' @export
