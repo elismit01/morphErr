@@ -174,7 +174,8 @@ plotmorph <- function(data, dims = c(1, 2), plot.data = TRUE, ratios = FALSE,
 #' Plot Morphometric Data and Estimated Relationships
 #'
 #' An S3 method that plots morphometric data, estimated relationships
-#' between dimensions, or both, from a fitted model object.
+#' between dimensions, or both, from a fitted model object returned by
+#' [`fit.morph()`].
 #'
 #' @param x An object of class `lme.morph`, returned by
 #'     [`fit.morph()`].
@@ -201,6 +202,22 @@ plotmorph <- function(data, dims = c(1, 2), plot.data = TRUE, ratios = FALSE,
 #'     fitted lines.
 #'
 #' @inheritParams plotmorph
+#' @examples
+#' ## Fitting model to manta ray data.
+#' fit <- fit.morph(manta)
+#' ## Plotting dimensions 1 and 2 with a fitted linear regression
+#' ## line.
+#' plot(fit)
+#' ## Same again, but plotting the reduced major axis (or principal
+#' ## component axis) for dimensions 1 and 3.
+#' plot(fit, dims = c(1, 3), line.type = "pca")
+#' ## A plot showing how the ratio between dimensions 2 and 3 changes
+#' ## with the size of dimension 3. Because the line is quite flat,
+#' ## it's plausible the relationship is isometric.
+#' plot(fit, dims = c(3, 2), type = "ratio", line.type = "pca")
+#' ## On the other hand, the relationship between dimensions 1 and 2
+#' ## is clearly allometric.
+#' plot(fit, dims = c(3, 1), type = "ratio", line.type = "pca")
 #' @export
 plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
                            line.type = "lm", confints = !add,
