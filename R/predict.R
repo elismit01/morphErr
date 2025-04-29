@@ -352,8 +352,8 @@ predict.lme.morph <- function(object, y.dim, newdata = NULL, type = c("lm", "pca
 #'     row represents measurements from one photograph. Use `NA` for
 #'     dimensions with measurements that were not taken from a photo.
 #' @inheritParams summary.lme.morph
-#' @inheritSection predict.lme.morph Prediction functions in
-#'     `morphErr`
+#' 
+#' @inheritSection predict.lme.morph Prediction functions in `morphErr`
 #' 
 #' @seealso [`predict.lme.morph()`]
 #' @return A numeric vector of predictions for all dimensions.
