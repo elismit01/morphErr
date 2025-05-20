@@ -1,0 +1,16 @@
+Version 1.0.0
+-------------
+
+- Initial release.
+
+- Includes model fitting function `fit.morph()`; plotting function
+  `plotmorph()`; simulation functions `sim.measurements()`,
+  `sim.morph()`, and `extract.sim.morph()`; prediction function
+  `predictblup()`; and S3 methods `plot.lme.morph()`,
+  `predict.lme.morph()`, `summary.lme.morph()`.
+
+- A manuscript describing the statistical method is available as a
+  vignette via `vignette("model")`.
+
+- The data analysed in the manuscript are available as the exported
+  object `manta`.
