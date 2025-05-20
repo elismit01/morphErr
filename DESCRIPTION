@@ -1,5 +1,5 @@
 Package: morphErr
-Title: Measurement error model 
+Title: Measurement error models for morphometric data
 Version: 0.0.0.9000
 Authors@R: 
     c(
