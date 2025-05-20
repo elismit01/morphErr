@@ -99,17 +99,12 @@ format.p <- function(p, digits = 2, threshold = 0.01) ifelse(p < threshold, past
 %% ORCID can be inserted by command:         %%
 %% \orcid{0000-0000-0000-0000}               %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \author[A]{\fnms{Ben C.}~\snm{Stevenson}\ead[label=e1]{ben.stevenson@auckland.ac.nz}},
-  \author[B]{\fnms{Elizabeth}~\snm{Smit}\ead[label=e2]{esmi468@aucklanduni.ac.nz}},
-  \and
-  \author[C]{\fnms{Edy}~\snm{Setyawan}\ead[label=e3]{edy@elasmobranchinstitute.id}}
+  \author[A]{\fnms{Ben C.}~\snm{Stevenson}\ead[label=e1]{ben.stevenson@auckland.ac.nz}}, \author[B]{\fnms{Elizabeth}~\snm{Smit}\ead[label=e2]{esmi468@aucklanduni.ac.nz}}, \and \author[C]{\fnms{Edy}~\snm{Setyawan}\ead[label=e3]{edy@elasmobranchinstitute.id}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Addresses                                %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \address[A]{Department of Statistics, University of Auckland\printead[presep={,\ }]{e1}}
-  \address[B]{Department of Statistics, University of Auckland\printead[presep={,\ }]{e2}}
-  \address[C]{Elasmobranch Institute Indonesia\printead[presep={,\ }]{e3}}
+  \address[A]{Department of Statistics, University of Auckland\printead[presep={,\ }]{e1}} \address[B]{Department of Statistics, University of Auckland\printead[presep={,\ }]{e2}} \address[C]{Elasmobranch Institute Indonesia\printead[presep={,\ }]{e3}}
 
 \end{aug}
 
@@ -118,20 +113,20 @@ format.p <- function(p, digits = 2, threshold = 0.01) ifelse(p < threshold, past
   relationships between different dimensions, is critical for
   monitoring the status and the health of a wildlife
   population. Morphometric data have traditionally been collected by
-  physically handling and measuring individual animals. However,
-  recent technological advancements allow researchers to deploy
-  sophisticated but affordable instruments like drones and camera
-  traps to take photos of individual animals, from which morphometric
-  measurements are extracted. However, morphometric data obtained from
-  photographs can be less accurate than those from direct
-  measurement. In this paper, we describe a new method to analyse
-  morphometric data that are subject to non-negligible measurement
-  error. Our method can be used to estimate relationships between
-  dimensions, to predict the measurement of any one dimension from any
-  subset of other dimensions, to make inference on allometry,
-  including testing for allometric growth. We demonstrate the use of
-  our method with an application to morphometric data of the reef
-  manta ray {\it Mobula alfredi} collected by drones.
+  physically handling and measuring individual animals, but recent
+  technological advancements allow researchers to deploy sophisticated
+  but affordable instruments like drones and camera traps to take
+  photos of individual animals, from which morphometric measurements
+  are extracted. However, morphometric data obtained from photographs
+  can be less accurate than those from direct measurement. In this
+  paper, we describe a new method to analyse morphometric data that
+  are subject to non-negligible measurement error. Our method can be
+  used to estimate relationships between dimensions, to predict the
+  measurement of any one dimension from any subset of other
+  dimensions, to make inference on allometry, including testing for
+  allometric growth. We demonstrate the use of our method with an
+  application to morphometric data of the reef manta ray {\it Mobula
+    alfredi} collected by drones.
 
 \end{abstract}
 
@@ -280,9 +275,9 @@ methods-of-moments approaches.
 Because our model accounts for measurement error and provides fitted
 relationships with either linear regression or RMA interpretations, we
 isolate the issue of measurement error from the type of inference
-desired. Researchers can choose the type of inference based on their
-research question, rather than the magnitude of measurement error in
-their data.
+desired. After fitting our model, researchers can choose the type of
+inference based on their research question, rather than the magnitude
+of measurement error in their data.
 
 We describe our model in Section \ref{sec:model} and demonstrate that
 it can be formulated as a linear mixed-effects model in Section
@@ -1008,9 +1003,9 @@ measurement. Estimated coefficients and standard errors for each of
 these three equations are provided in Table \ref{tab:lm-ests}.
 
 <<lm-estimates, echo = FALSE, results = "asis">>=
-lm.ests1 <- summary(fit, type = "betas", y.dim = 2, x.dim = 1)
-lm.ests2 <- summary(fit, type = "betas", y.dim = 2, x.dim = 3)
-lm.ests3 <- summary(fit, type = "betas", y.dim = 2, x.dim = c(1, 3))
+lm.ests1 <- summary(fit, type = "betas", y.dim = 1, x.dim = 2)
+lm.ests2 <- summary(fit, type = "betas", y.dim = 1, x.dim = 3)
+lm.ests3 <- summary(fit, type = "betas", y.dim = 1, x.dim = c(2, 3))
 lm.ests <- c(lm.ests1[, 1], lm.ests2[, 1], lm.ests3[, 1])
 lm.ses <- c(lm.ests1[, 2], lm.ests2[, 2], lm.ests3[, 2])
 preds <- c("DL", "", "CW","", "DL, CW", rep("", 2))
@@ -1099,7 +1094,7 @@ against the null hypothesis of isometric growth between disc length
 and cranial width ($p$-value \Sexpr{format.p(iso.p.dl.cw)}).
 
 In Figures \ref{fig:data-plots}(d)--(f), we plot
-$r_{pq}^{(RMA)}(t_q)$, the estimated function describing how the
+$r_{pq}^{\text{(RMA)}}(t_q)$, the estimated function describing how the
 expected ratio between each pair of dimensions varies with respect to
 the denominator under fitted model (Eq \eqref{eq:ratio-rma}). As manta
 rays grow, we estimate the disc width decreases relative to both the
@@ -1230,6 +1225,8 @@ lims.mat <- cbind(mus - 2*sigmas, mus + 2*sigmas)
 labs <- c("DW", "DL", "CW")
 plot.labs <- c("(a)", "(b)", "(c)", "(d)", "(e)", "(f)")
 ii <- 1
+## Number of lines to include in the plot.
+n.lines <- 250 
 ## For the top row.
 for (i in 1:2){
     for (j in (i + 1):3){
@@ -1250,8 +1247,8 @@ for (i in 1:2){
         est.rho.ij <- ests[paste0("rho", i, ",", j), ]
         coefs <- rbind(est.mu.i - est.mu.j*est.sigma.i/est.sigma.j,
                        sign(est.rho.ij)*est.sigma.i/est.sigma.j)
-        for (k in 1:ncol(coefs)){
-            abline(coefs[1, k], coefs[2, k], col = rgb(0, 0, 0, alpha = 15/ncol(coefs)))
+        for (k in 1:n.lines){
+            abline(coefs[1, k], coefs[2, k], col = rgb(0, 0, 0, alpha = 15/n.lines))
         }
         ## Mean line.
         abline(mean(coefs[1, ]), mean(coefs[2, ]), col = "red", lwd = 2)
@@ -1288,8 +1285,8 @@ for (i in 1:2){
             axis(1)
         }
         axis(2)
-        for (k in 1:ncol(ests)){
-            lines(xx, ratio.mat[k, ], col = rgb(0, 0, 0, alpha = 15/ncol(coefs)))
+        for (k in 1:n.lines){
+            lines(xx, ratio.mat[k, ], col = rgb(0, 0, 0, alpha = 15/n.lines))
         }
         ## Mean line.
         lines(xx, apply(ratio.mat, 2, mean), col = "red", lwd = 2)
@@ -1406,10 +1403,10 @@ dimensions, and testing the null hypothesis that it is equal to 1.
 However, \citet{Warton2006} also highlight that ``it may not be
 considered desirable to log-transform''. So far, we have only
 considered modelling untransformed measurements---an approach that is
-suitable for the reef manta ray data we have considered. Nevertheless,
-our model still provides suitable inference when $\bm{Y}$ is
-considered to be the log-transformed observed measurements, under the
-following adjustments:
+appropriate for the reef manta ray data we have
+considered. Nevertheless, our model still provides suitable inference
+when $\bm{Y}$ is considered to be the log-transformed observed
+measurements, under the following adjustments:
 \begin{enumerate}
 \item Instead of assuming that the observed measurements are unbiased
   with respect to the true measurements, we assume that the
