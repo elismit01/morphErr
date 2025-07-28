@@ -119,7 +119,9 @@ construct.varcov <- function(sds, cors, n.blocks, m, block.only){
 #' This is a special case of a linear mixed-effects model, and is
 #' fitted via a call to [`nlme::lme()`]. Some arguments of
 #' `fit.morph()` are directly passed to [`nlme::lme()`].
-#' 
+#'
+#' @param log.transform Logical. If `TRUE`, the data are
+#'     log-transformed prior to model fitting.
 #' @param method A character string indicating the objective function
 #'     used to fit the model. Either `"ML"` for maximum likelihood or
 #'     `"REML"` for restricted maximum likelihood.
@@ -139,6 +141,16 @@ construct.varcov <- function(sds, cors, n.blocks, m, block.only){
 #' `plot()`, and `predict()`. Other S3 methods for the `lme` class are
 #' availble via `nlme`, such as [`nlme::coef.lme()`].
 #'
+#' @section Log transformations:
+#'
+#' To fit a model to log-transformed measurement data, provide the
+#' untransformed measurements in the `data` argument and specify
+#' `log.transform = TRUE`. This will allow the S3 method
+#' [`plot.lme.morph()`] to plot the original data with
+#' back-transformed estimates, and the S3 method
+#' [`summary.lme.morph()`] to carry out the correct test for isometric
+#' growth.
+#' 
 #' @examples
 #' ## Fitting model to manta ray data.
 #' fit <- fit.morph(manta)
@@ -146,9 +158,12 @@ construct.varcov <- function(sds, cors, n.blocks, m, block.only){
 #' fit <- fit.morph(manta, method = "ML")
 #' 
 #' @inheritSection plotmorph The `data` argument
+#'
+#' 
 #' @inheritParams plotmorph
 #' @export
-fit.morph <- function(data, method = "REML",
+fit.morph <- function(data, log.transform = FALSE,
+                      method = "REML",
                       control = list(maxIter = 100000,
                                      msMaxIter = 100000)){
   # Ensure inputs are factors.
@@ -162,13 +177,18 @@ fit.morph <- function(data, method = "REML",
   # parameterisation of the variance model in nlme uses whichever
   # dimension appears first in the data as the baseline.
   data <- data[order(data$dim), ]
+
+  # Log transforming, if necessary.
+  if (log.transform){
+    data$measurement <- log(data$measurement)
+  }
     
   # Set up groups
   gdata <- groupedData(measurement ~ 1 | animal.id / photo.id, data = data)
 
   # Set up fixed effects formula
   fixed.arg <- measurement ~ 0 + dim
-
+    
   # Fit model
   fit <- lme(fixed = fixed.arg,
              random = ~ 0 + dim | animal.id,
@@ -182,6 +202,6 @@ fit.morph <- function(data, method = "REML",
   fit$intercept <- FALSE
   class(fit) <- c("lme.morph", class(fit))
   fit$vcov <- vcov(fit)
-
+  fit$log.transform <- log.transform
   return(fit)
 }
