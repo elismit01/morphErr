@@ -4,7 +4,7 @@ Morphometric data collected on animal populations can be subject to measurement 
 
 ## Installation
 
-After installing the `remotes` package, `morphErr` can be installed using the following line of code:
+After loading the `remotes` package, `morphErr` can be installed using the following line of code:
 
 ```R
 install_github("elismit01/morphErr")
