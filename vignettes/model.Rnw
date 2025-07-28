@@ -17,6 +17,14 @@
 %\VignetteEncoding{UTF-8}
 %\VignetteIndexEntry{A manuscript describing the model fitted by the functions in `morphErr`}
 
+%% Also needed for the R package vignette.
+<<load-models, echo = FALSE>>=
+library(morphErr)
+data <- manta
+fit <- fit.morph(data)
+fit.log <- fit.morph(data, log.transform = TRUE)
+@ 
+
 <<setup, echo = FALSE>>=
 round0 <- function(x, digits = 2) format(round(x, digits), nsmall = digits)
 format.p <- function(p, digits = 2, threshold = 0.01) ifelse(p < threshold, paste("<" , threshold), paste("=", round0(p, digits)))
@@ -886,7 +894,6 @@ C.
 
 <<echo = FALSE>>=
 library(morphErr)
-load("manta-fit.RData")
 s <- summary(fit)
 mu.est <- s[1:3, 1]
 sigma.est <- s[4:6, 1]
