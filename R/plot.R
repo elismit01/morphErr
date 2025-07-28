@@ -195,7 +195,9 @@ plotmorph <- function(data, dims = c(1, 2), plot.data = TRUE, ratios = FALSE,
 #' @param reverse.axes Logical. If `TRUE`, then a line of type `"lm"`
 #'     will provide the expected value of the x-axis variable
 #'     conditional on the y-axis variable, rather than the other way
-#'     around.
+#'     around. Only use `reverse.axes = TRUE` to add to an existing
+#'     plot. For a new plot, simply reverse the order of the elements
+#'     in `dims`.
 #' @param plot.data Logical. If `FALSE` then the data are not plotted.
 #' @param ... Additional arguments passed to [`graphics::abline()`]
 #'     and [`graphics::lines()`] to modify the appearance of the
@@ -240,9 +242,19 @@ plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
     )
   }
 
+  if (reverse.axes & !add){
+    stop("Only use 'reverse.axes = TRUE' if 'add = TRUE'. To create a new plot with reversed axes, simply switch the order of the elements in 'dims'.")
+  }
+    
   # Get data
   data <- getData(x)
 
+  # Back-transforming, if the model has log-transformed data.  
+  log.transform <- x$log.transform
+  if (log.transform){
+    data$measurement <- exp(data$measurement)
+  }
+    
   # Basic data plot if requested
   if (type == "data") {
     if (!add) {
@@ -273,34 +285,68 @@ plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
       # Draw line (if coefs valid)
       if (!is.na(betas[1,1]) && !is.na(betas[2,1]) && betas[2,1] != 0) {
         # First main line
-        if (reverse.axes) {
-          abline(-betas[1, 1]/betas[2, 1], 1/betas[2, 1], ...)
-        } else {
-          abline(betas[1:2, 1], ...)
-        }
-
-        # Add confidence intervals if request
-        if (confints) {
-          # Sequence of x values
+        if (x$log.transform) {
           dim1.xx <- seq(xlim[1], xlim[2], length.out = 1000)
-
-          # Prediction data frame
-          newdata <- data.frame(x = dim1.xx)
-          names(newdata) <- paste0("dim", dims[1])
-
-          # Get preds
-          preds <- if (line.type == "lm") {
-            predict(x, y.dim = dims[2], newdata = newdata)
+          log.dim1.xx <- log(dim1.xx)
+          log.dim2.yy <- betas[1, 1] + betas[2, 1]*log.dim1.xx
+          dim2.yy <- exp(log.dim2.yy)
+          if (reverse.axes) {
+            lines(dim2.yy, dim1.xx)
+            confints <- FALSE
           } else {
-            predict(x, y.dim = dims[2], newdata = newdata, type = "pca")
+            lines(dim1.xx, dim2.yy)
           }
+          if (confints) {
+            # Prediction data frame
+            newdata <- data.frame(x = log.dim1.xx)
+            names(newdata) <- paste0("dim", dims[1])
 
-          # Only add lines if gt valid preds
-          if (is.matrix(preds) && nrow(preds) == length(dim1.xx)) {
-            preds.upper <- preds[, 1] + qnorm(0.975)*preds[, 2]
-            preds.lower <- preds[, 1] - qnorm(0.975)*preds[, 2]
-            lines(dim1.xx, preds.upper, lty = "dotted")
-            lines(dim1.xx, preds.lower, lty = "dotted")
+            # Get preds
+            preds <- if (line.type == "lm") {
+              predict(x, y.dim = dims[2], newdata = newdata)
+            } else {
+              predict(x, y.dim = dims[2], newdata = newdata, type = "pca")
+            }
+            # Only add lines if gt valid preds
+            if (is.matrix(preds) && nrow(preds) == length(dim1.xx)) {
+              log.preds.upper <- preds[, 1] + qnorm(0.975)*preds[, 2]
+              log.preds.lower <- preds[, 1] - qnorm(0.975)*preds[, 2]
+              preds.upper <- exp(log.preds.upper)
+              preds.lower <- exp(log.preds.lower)
+              lines(dim1.xx, preds.upper, lty = "dotted")
+              lines(dim1.xx, preds.lower, lty = "dotted")
+            }
+          }
+        } else {
+          if (reverse.axes) {
+            abline(-betas[1, 1]/betas[2, 1], 1/betas[2, 1], ...)
+            confints <- FALSE
+          } else {
+            abline(betas[1:2, 1], ...)
+          }
+          # Add confidence intervals if request
+          if (confints) {
+            # Sequence of x values
+            dim1.xx <- seq(xlim[1], xlim[2], length.out = 1000)
+
+            # Prediction data frame
+            newdata <- data.frame(x = dim1.xx)
+            names(newdata) <- paste0("dim", dims[1])
+
+            # Get preds
+            preds <- if (line.type == "lm") {
+              predict(x, y.dim = dims[2], newdata = newdata)
+            } else {
+              predict(x, y.dim = dims[2], newdata = newdata, type = "pca")
+            }
+
+            # Only add lines if gt valid preds
+            if (is.matrix(preds) && nrow(preds) == length(dim1.xx)) {
+              preds.upper <- preds[, 1] + qnorm(0.975)*preds[, 2]
+              preds.lower <- preds[, 1] - qnorm(0.975)*preds[, 2]
+              lines(dim1.xx, preds.upper, lty = "dotted")
+              lines(dim1.xx, preds.lower, lty = "dotted")
+            }
           }
         }
       }
