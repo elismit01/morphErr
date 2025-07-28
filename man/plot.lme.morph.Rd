@@ -47,7 +47,9 @@ existing plot.}
 \item{reverse.axes}{Logical. If \code{TRUE}, then a line of type \code{"lm"}
 will provide the expected value of the x-axis variable
 conditional on the y-axis variable, rather than the other way
-around.}
+around. Only use \code{reverse.axes = TRUE} to add to an existing
+plot. For a new plot, simply reverse the order of the elements
+in \code{dims}.}
 
 \item{plot.data}{Logical. If \code{FALSE} then the data are not plotted.}
 

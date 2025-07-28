@@ -6,6 +6,7 @@
 \usage{
 fit.morph(
   data,
+  log.transform = FALSE,
   method = "REML",
   control = list(maxIter = 1e+05, msMaxIter = 1e+05)
 )
@@ -13,6 +14,9 @@ fit.morph(
 \arguments{
 \item{data}{A data frame containing the morphometric data. See the
 section below on the correct formatting of this argument.}
+
+\item{log.transform}{Logical. If \code{TRUE}, the data are
+log-transformed prior to model fitting.}
 
 \item{method}{A character string indicating the objective function
 used to fit the model. Either \code{"ML"} for maximum likelihood or
@@ -44,6 +48,18 @@ This is a special case of a linear mixed-effects model, and is
 fitted via a call to \code{\link[nlme:lme]{nlme::lme()}}. Some arguments of
 \code{fit.morph()} are directly passed to \code{\link[nlme:lme]{nlme::lme()}}.
 }
+\section{Log transformations}{
+
+
+To fit a model to log-transformed measurement data, provide the
+untransformed measurements in the \code{data} argument and specify
+\code{log.transform = TRUE}. This will allow the S3 method
+\code{\link[=plot.lme.morph]{plot.lme.morph()}} to plot the original data with
+back-transformed estimates, and the S3 method
+\code{\link[=summary.lme.morph]{summary.lme.morph()}} to carry out the correct test for isometric
+growth.
+}
+
 \section{The \code{data} argument}{
 
 
