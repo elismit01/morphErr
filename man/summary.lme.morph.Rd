@@ -42,54 +42,59 @@ controlled by the \code{type} argument:
 
 \describe{
 
-\item{\code{type = "pars"}}{Estimates and standard errors for the model
-parameters, including the vectors \eqn{\mu}
-for the means of the true dimension sizes,
-\eqn{\sigma} for the standard deviations for
-true dimension sizes, \eqn{\rho} for the
-correlations between true dimension sizes,
-\eqn{\psi} for the standard deviations in
-measurement errors for the dimensions, and
-\eqn{\phi} for the correlations between
-measurement errors for all pairs of
-dimensions.}
+\item{\code{type = "pars"}}{
+Estimates and standard errors for the model parameters, including
+the vectors \eqn{\mu} for the means of the true dimension sizes,
+\eqn{\sigma} for the standard deviations for true dimension sizes,
+\eqn{\rho} for the correlations between true dimension sizes,
+\eqn{\psi} for the standard deviations in measurement errors for
+the dimensions, and \eqn{\phi} for the correlations between
+measurement errors for all pairs of dimensions.
+}
 
-\item{\code{type = "betas"} or \code{type = "betas-lm"}}{Estimates and
-standard errors for
-coefficients of a
-linear combination
-that provides the
-expected value of
-one dimension
-(specified by
-\code{y.dim}) using any
-subset of the
-remaining dimensions
-(specified in the
-vector \code{x.dim}).}
+\item{\code{type = "betas"} or \code{type = "betas-lm"}}{
+Estimates and standard errors for coefficients of a linear
+combination that provides the expected value of one dimension
+(specified by \code{y.dim}) using any subset of the remaining dimensions
+(specified in the vector \code{x.dim}).
+}
 
-\item{\code{type = "betas-pca"}}{An estimated intercept and slope for
-the reduced major axis (or principal
-component axis) summarising the
-relationship between the true values of
-dimensions specified by \code{y.dim} and
-\code{x.dim}.}
+\item{\code{type = "betas-pca"}}{
+An estimated intercept and slope for the reduced major axis (or
+principal component axis) summarising the relationship between the
+true values of dimensions specified by \code{y.dim} and \code{x.dim}.
+}
 
-\item{\code{type = "isometric-pca"}}{Results for tests of the null
-hypotheses of isometric
-relationships between all pairs of
-dimensions. The p-values are
-obtained using normal
-approximations for the test
-statistics.}
+\item{\code{type = "isometric-pca"}}{
+Results for tests of the null hypotheses of isometric relationships
+between all pairs of dimensions. The p-values are obtained using
+normal approximations for the test statistics.
 
-\item{\code{type = "isometric-pca-boot"}}{The same as
-\code{"isometric-pca"}, except a
-bootstrap is used to obtain
-p-values. The normal
-approximation and bootstrap
-typically provide very similar
-results.}
+For models with \code{log.transform = FALSE}, the test statistic to test
+for isometric growth between dimensions \eqn{p} and \eqn{q} is
+\eqn{\mu_p\sigma_q - \mu_q\sigma_p}, which is equal to \eqn{0}
+under the null hypothesis.
+
+For models with \code{log.transform = TRUE}, the test statistic is the
+slope for the reduced major axis (or principal component axis)
+summarising the relationship between the two dimensions, which is
+equal to \eqn{1} under the null hypothesis.  }
+
+\item{\code{type = "isometric-pca-boot"}}{
+The same as \code{"isometric-pca"}, except a bootstrap is used to obtain
+p-values. The normal approximation and bootstrap typically provide
+very similar results.
+
+For models with \code{log.transform = FALSE}, the test statistic is the
+intercept for the reduced major axis (or principal component axis)
+summarising the relationship between the two dimensions, which is
+equal to \eqn{0} under the null hypothesis. This approach yields
+the same p-values as using a bootstrap with the test statistic
+\eqn{\mu_p\sigma_q - \mu_q\sigma_p}.
+
+For models with \code{log.transform = TRUE}, the test statistic is the
+same as for \code{type = "isometric-pca"}.
+}
 
 }
 }
