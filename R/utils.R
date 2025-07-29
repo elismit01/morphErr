@@ -253,6 +253,9 @@ summary.lme.morph <- function(object, ..., type = "pars", y.dim, x.dim, B = 1000
     )
   }
 
+  ## Indicator for whether the model involved a log transformation.
+  log.transform <- object$log.transform
+    
   vcov.obj <- object$vcov
   ## Get estimates
   est <- vcov.obj$est
@@ -284,42 +287,58 @@ summary.lme.morph <- function(object, ..., type = "pars", y.dim, x.dim, B = 1000
     for (i in 1:m) {
       for (j in 1:m) {
         if (i != j) {
-          ## Extracting beta0.
-          out[k, ] <- calc.betas(fit = object, est = est, y.dim = j, x.dim = i, type = "pca")[1, ]
           out.names[k] <- paste0("dim", i, " vs dim", j)
-          if (type == "isometric-pca-boot") {
-            betas.boot <- apply(boots, 1, function(x) calc.betas(est = x, stders = FALSE, y.dim = j, x.dim = i, type = "pca"))[1, ]
-            p.val.onesided <- mean(betas.boot >= 0)
-            p.val.onesided <- min(c(p.val.onesided, 1 - p.val.onesided))
-            p.val[k] <- 2*p.val.onesided
+          if (type == "isometric-pca-boot") {        
+            betas.boot <- apply(boots, 1, function(x)
+                calc.betas(est = x, stders = FALSE, y.dim = j,
+                           x.dim = i, type = "pca"))
+            if (log.transform) {
+              betas.boot <- betas.boot[2, ]
+              out[k, ] <- calc.betas(fit = object, est = est, y.dim = j, x.dim = i, type = "pca")[2, ]        
+              p.val.onesided <- mean(betas.boot >= 1)
+              p.val.onesided <- min(c(p.val.onesided, 1 - p.val.onesided))
+              p.val[k] <- 2*p.val.onesided
+            } else {
+              betas.boot <- betas.boot[1, ]
+              out[k, ] <- calc.betas(fit = object, est = est, y.dim = j, x.dim = i, type = "pca")[1, ]  
+              p.val.onesided <- mean(betas.boot >= 0)
+              p.val.onesided <- min(c(p.val.onesided, 1 - p.val.onesided))
+              p.val[k] <- 2*p.val.onesided
+            }
           } else if (type == "isometric-pca") {
-            ## Using the distribution of alpha0
-            mu.mean <- vcov.obj$est[paste0("mu", c(j, i))]
-            mu.varcov <- vcov.obj$varcov[paste0("mu", c(j, i)), paste0("mu", c(j, i))]
-            sigma.mean <- vcov.obj$est[paste0("sigma", c(j, i))]
-            sigma.varcov <- vcov.obj$varcov[paste0("sigma", c(j, i)), paste0("sigma", c(j, i))]
-            ## Calculating this product thing, which
-            ## has a true value of zero under
-            ## isometric growth.
-            out[k, 1] <- mu.mean[1]*sigma.mean[2] - mu.mean[2]*sigma.mean[1]
-            ## Getting relevant parameter names and
-            ## positions in the estimates vector.
-            par.names <- names(vcov.obj$est)
-            par.name.mu1 <- paste0("mu", j)
-            which.par.name.mu1 <- which(par.names == par.name.mu1)
-            par.name.mu2 <- paste0("mu", i)
-            which.par.name.mu2 <- which(par.names == par.name.mu2)
-            par.name.sigma1 <- paste0("sigma", j)
-            which.par.name.sigma1 <- which(par.names == par.name.sigma1)
-            par.name.sigma2 <- paste0("sigma", i)
-            which.par.name.sigma2 <- which(par.names == par.name.sigma2)
-            ## Setting up the expression for the deltamethod() function.
-            g <- reformulate(paste0("x", which.par.name.mu1, " * x", which.par.name.sigma2,
-                                    " - x", which.par.name.mu2, " * x", which.par.name.sigma1))
-            ## Doing the delta method to get a standard error.
-            out[k, 2] <- deltamethod(g, vcov.obj$est, vcov.obj$varcov)
-            p.val.lower <- pnorm(out[k, 1], sd = out[k, 2])
-            p.val[k] <- 2*min(c(p.val.lower, 1 - p.val.lower))
+            if (log.transform){
+              out[k, ] <- calc.betas(fit = object, est = est, y.dim = j, x.dim = i, type = "pca")[2, ]
+              z <- (out[k, 1] - 1)/out[k, 2]
+              p.val[k] <- 2*pnorm(-abs(z))
+            } else {
+              ## Using the distribution of alpha0.
+              mu.mean <- vcov.obj$est[paste0("mu", c(j, i))]
+              mu.varcov <- vcov.obj$varcov[paste0("mu", c(j, i)), paste0("mu", c(j, i))]
+              sigma.mean <- vcov.obj$est[paste0("sigma", c(j, i))]
+              sigma.varcov <- vcov.obj$varcov[paste0("sigma", c(j, i)), paste0("sigma", c(j, i))]
+              ## Calculating this product thing, which
+              ## has a true value of zero under
+              ## isometric growth.
+              out[k, 1] <- mu.mean[1]*sigma.mean[2] - mu.mean[2]*sigma.mean[1]
+              ## Getting relevant parameter names and
+              ## positions in the estimates vector.
+              par.names <- names(vcov.obj$est)
+              par.name.mu1 <- paste0("mu", j)
+              which.par.name.mu1 <- which(par.names == par.name.mu1)
+              par.name.mu2 <- paste0("mu", i)
+              which.par.name.mu2 <- which(par.names == par.name.mu2)
+              par.name.sigma1 <- paste0("sigma", j)
+              which.par.name.sigma1 <- which(par.names == par.name.sigma1)
+              par.name.sigma2 <- paste0("sigma", i)
+              which.par.name.sigma2 <- which(par.names == par.name.sigma2)
+              ## Setting up the expression for the deltamethod() function.
+              g <- reformulate(paste0("x", which.par.name.mu1, " * x", which.par.name.sigma2,
+                                      " - x", which.par.name.mu2, " * x", which.par.name.sigma1))
+              ## Doing the delta method to get a standard error.
+              out[k, 2] <- deltamethod(g, vcov.obj$est, vcov.obj$varcov)
+              p.val.lower <- pnorm(out[k, 1], sd = out[k, 2])
+              p.val[k] <- 2*min(c(p.val.lower, 1 - p.val.lower))
+            }
           }
           k <- k + 1
         }
