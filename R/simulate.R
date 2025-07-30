@@ -85,7 +85,7 @@
 #'
 #' @export
 sim.measurements <- function(n.animals, n.photos, m, mus, sigmas,
-                             rhos, psis, phis){
+                             rhos, psis, phis, log.transform = FALSE){
   # If n.photos is scalar, repliicate for all animals
   if (length(n.photos) == 1){
     n.photos <- rep(n.photos, n.animals)
@@ -169,7 +169,7 @@ sim.measurements <- function(n.animals, n.photos, m, mus, sigmas,
 #'
 #' @export
 sim.morph <- function(n.sims, n.animals, n.photos, mus, sigmas, rhos, psis, phis,
-                      method = "REML", progressbar = TRUE, n.cores = 1){
+                      log.transform = FALSE, method = "REML", progressbar = TRUE, n.cores = 1){
   # If n.photos is scalar, then apply it to all individuals
   if (length(n.photos) == 1){
     n.photos <- rep(n.photos, n.animals)
@@ -200,9 +200,10 @@ sim.morph <- function(n.sims, n.animals, n.photos, mus, sigmas, rhos, psis, phis
   pars <- c(mus, sigmas, rhos, psis, phis)
 
   # Function for parallel processing
-  sim_one <- function(x, n.animals, n.photos, m, pars, method){
-    data <- sim.measurements(n.animals, n.photos, m, mus, sigmas, rhos, psis, phis)
-    try(fit.morph(data, method = method), silent = TRUE)
+  sim_one <- function(x, n.animals, n.photos, m, pars, log.transform, method){
+    data <- sim.measurements(n.animals, n.photos, m, mus, sigmas, rhos, psis, phis,
+                             log.transform = log.transform)
+    try(fit.morph(data, log.transform = log.transform, method = method), silent = TRUE)
   }
 
   # Running simulations
@@ -213,7 +214,7 @@ sim.morph <- function(n.sims, n.animals, n.photos, mus, sigmas, rhos, psis, phis
       pb <- txtProgressBar(min = 0, max = n.sims, style = 3)
     }
     for (i in 1:n.sims){
-      fits[[i]] <- sim_one(i, n.animals, n.photos, m, pars, method)
+      fits[[i]] <- sim_one(i, n.animals, n.photos, m, pars, log.transform, method)
       if (progressbar){
         setTxtProgressBar(pb, i)
       }
@@ -226,7 +227,7 @@ sim.morph <- function(n.sims, n.animals, n.photos, mus, sigmas, rhos, psis, phis
     cl <- makeCluster(n.cores)
     on.exit(stopCluster(cl))
     fits <- pblapply(1:n.sims, sim_one, n.animals, n.photos, m, pars,
-                     method, cl = cl)
+                     log.transform, method, cl = cl)
   }
 
   # Preparing output
@@ -239,6 +240,7 @@ sim.morph <- function(n.sims, n.animals, n.photos, mus, sigmas, rhos, psis, phis
     rhos = rhos,
     psis = psis,
     phis = phis,
+    log.transform = log.transform,
     method = method
   )
   converged <- sapply(fits, function(x) class(x)[1] != "try-error")
