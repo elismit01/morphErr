@@ -45,6 +45,10 @@
 #'     providing the pairwise correlations between measurement errors
 #'     for the dimensions. See 'Details' for the correct order for the
 #'     correlations.
+#' @param log.transform Logical. If `TRUE`, the parameters are
+#'     considered to correspond to a model where the response was
+#'     log-transformed. The data frame returned by this function will
+#'     contain the back-transformed measurments.
 #'
 #' @seealso [`sim.morph()`] to conduct a simulation study by
 #'     simulating multiple data sets and fitting a model to each one.
@@ -113,12 +117,15 @@ sim.measurements <- function(n.animals, n.photos, m, mus, sigmas,
                                    function(x) 1:x),
                             function(x) rep(x, each = m)))
   dim <- rep(1:m, sum(n.photos))
-
+  measurement <- unlist(lapply(drone.measurements, function(x) c(t(x))))
+  if (log.transform){
+    measurement <- exp(measurement)
+  }      
   data.frame(
     animal.id = factor(animal.id),
     photo.id = factor(photo.id),
     dim = factor(dim),
-    measurement = unlist(lapply(drone.measurements, function(x) c(t(x))))
+    measurement = measurement
   )
 }
 
