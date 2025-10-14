@@ -13,6 +13,7 @@ sim.morph(
   rhos,
   psis,
   phis,
+  log.transform = FALSE,
   method = "REML",
   progressbar = TRUE,
   n.cores = 1
@@ -46,6 +47,11 @@ deviations of measurement errors for the dimensions.}
 providing the pairwise correlations between measurement errors
 for the dimensions. See 'Details' for the correct order for the
 correlations.}
+
+\item{log.transform}{Logical. If \code{TRUE}, the parameters are
+considered to correspond to a model where the response was
+log-transformed. The data frame returned by this function will
+contain the back-transformed measurments.}
 
 \item{method}{A character string indicating the objective function
 used to fit the model. Either \code{"ML"} for maximum likelihood or

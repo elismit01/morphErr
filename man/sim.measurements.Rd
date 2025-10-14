@@ -4,7 +4,17 @@
 \alias{sim.measurements}
 \title{Simulate Morphometric Measurements}
 \usage{
-sim.measurements(n.animals, n.photos, m, mus, sigmas, rhos, psis, phis)
+sim.measurements(
+  n.animals,
+  n.photos,
+  m,
+  mus,
+  sigmas,
+  rhos,
+  psis,
+  phis,
+  log.transform = FALSE
+)
 }
 \arguments{
 \item{n.animals}{Integer. The number of animals in the sample.}
@@ -34,6 +44,11 @@ deviations of measurement errors for the dimensions.}
 providing the pairwise correlations between measurement errors
 for the dimensions. See 'Details' for the correct order for the
 correlations.}
+
+\item{log.transform}{Logical. If \code{TRUE}, the parameters are
+considered to correspond to a model where the response was
+log-transformed. The data frame returned by this function will
+contain the back-transformed measurments.}
 }
 \value{
 A data frame with four columns:
