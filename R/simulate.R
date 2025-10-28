@@ -186,7 +186,8 @@ sim.measurements <- function(n.animals = NULL, n.photos = NULL,
         full.measurement <- exp(full.measurement)
     }
     ## Putting together the full data frame.
-    out <- cbind(data, measurement = full.measurement[keep])
+    out <- data.frame(animal.id = factor(data$animal.id), photo.id = factor(data$photo.id),
+                      dim = factor(data$dim), measurement = full.measurement[keep])
 }
 
 
