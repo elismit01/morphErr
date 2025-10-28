@@ -216,14 +216,16 @@ fit.morph <- function(data, log.transform = FALSE,
 #' asymptotic approximations.
 #' 
 #' @param B An integer, providing the number of bootstrap resamples.
-#' @inheritParams summary.lme.morph sim.morph control
+#' @inheritParams fit.morph
+#' @inheritParams summary.lme.morph
+#' @inheritParams sim.morph
 #'
 #' @return The original object, with additional bootstrapping
 #'     information that can be used by [`summary.lme.morph()`] and
 #'     [`plot.lme.morph()`]
 #' @export
 boot.morph <- function(object, B = 1000, control = NULL,
-                       progressbar = TRUE, n.cores = 1,){
+                       progressbar = TRUE, n.cores = 1){
     ## Extracting data.
     data <- object$data
     ## Extracting the first three columns.
