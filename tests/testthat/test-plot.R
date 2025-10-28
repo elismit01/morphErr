@@ -4,7 +4,6 @@ create_test_data <- function() {
   sim.measurements(
     n.animals = 10,
     n.photos = 3,
-    m = 3,
     mus = c(315, 150, 100),
     sigmas = c(25, 15, 10),
     rhos = c(0.85, 0.80, 0.75),

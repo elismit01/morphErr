@@ -7,7 +7,6 @@ test_that("calc.conditional.ratio produces expected results", {
   test_data <- sim.measurements(
     n.animals = 50,
     n.photos = rep(10, 50),
-    m = 3,
     mus = c(315, 150, 100),
     sigmas = c(25, 15, 10),
     rhos = c(0.85, 0.80, 0.75),
@@ -73,7 +72,6 @@ test_that("calc.conditional.ratio handles edge cases", {
   test_data <- sim.measurements(
     n.animals = 5,         # More animals for better convergence
     n.photos = rep(3, 5),  # More pics per animal
-    m = 3,
     mus = c(150, 100, 50), #Smaller means
     sigmas = c(30, 20, 10),  # Smaller SDs
     rhos = c(0.5, 0.5, 0.5), # Correlations
