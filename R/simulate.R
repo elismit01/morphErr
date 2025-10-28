@@ -1,11 +1,3 @@
-# Simulation Functions for morphErr
-#
-# This file contains functions for simulating morphometric data:
-# - sim.measurements(): Simulates measurement data from a survey
-# - sim.morph(): Simulates multiple datasets and fits models
-# - extract.sim.morph(): Extracts results from simulation studies
-
-
 #' Simulate Morphometric Measurements
 #'
 #' Simulates morphometric data from a photogrammetry survey, with
@@ -191,7 +183,7 @@ sim.measurements <- function(n.animals = NULL, n.photos = NULL,
 }
 
 
-# -------------------------------------------------------------------------------------------------------
+                                        # -------------------------------------------------------------------------------------------------------
 
 #' Conduct a Simulation Study for Morphometric Models
 #'
@@ -237,74 +229,72 @@ sim.morph <- function(n.sims, n.animals = NULL, n.photos = NULL,
                                      msMaxIter = 100000),
                       progressbar = TRUE, n.cores = 1){
 
-  # Number of dimensions
-  m <- length(mus)
+    ## Number of dimensions
+    m <- length(mus)
 
-  # Combine parameters into vector
-  pars <- c(mus, sigmas, rhos, psis, phis)
+    ## Combine parameters into vector
+    pars <- c(mus, sigmas, rhos, psis, phis)
 
-  # Function for parallel processing
-  sim_one <- function(x, n.animals, n.photos, data,  mus, sigmas, rhos, psis, phis,
-                      log.transform, method, control){
-      data <- sim.measurements(n.animals = n.animals, n.photos = n.photos, data = data,
-                               mus = mus, sigmas = sigmas, rhos = rhos, psis = psis,
-                               phis = phis, log.transform = log.transform)
-      try(fit.morph(data, log.transform = log.transform, method = method, control = control),
-          silent = TRUE)
-  }
-
-  # Running simulations
-  if (n.cores == 1){
-    # Sequential processing with optional progress bar
-    fits <- vector(mode = "list", length = n.sims)
-    if (progressbar){
-      pb <- txtProgressBar(min = 0, max = n.sims, style = 3)
+    ## Function for parallel processing
+    sim_one <- function(x, n.animals, n.photos, data,  mus, sigmas, rhos, psis, phis,
+                        log.transform, method, control){
+        data <- sim.measurements(n.animals = n.animals, n.photos = n.photos, data = data,
+                                 mus = mus, sigmas = sigmas, rhos = rhos, psis = psis,
+                                 phis = phis, log.transform = log.transform)
+        try(fit.morph(data, log.transform = log.transform, method = method, control = control),
+            silent = TRUE)
     }
-    for (i in 1:n.sims){
-      fits[[i]] <- sim_one(i, n.animals, n.photos, data, mus, sigmas, rhos, psis, phis,
-                           log.transform, method, control)
-      if (progressbar){
-        setTxtProgressBar(pb, i)
-      }
-    }
-    if (progressbar){
-      close(pb)
-    }
-  } else {
-    # Paralllel processing
-    cl <- makeCluster(n.cores)
-    on.exit(stopCluster(cl))
-    fits <- pblapply(1:n.sims, sim_one, n.animals, n.photos, data, mus, sigmas, rhos, psis, phis,
-                     log.transform, method, control, cl = cl)
-  }
 
-  # Preparing output
-  settings <- list(
-    n.sims = n.sims,
-    n.animals = n.animals,
-    n.photos = n.photos,
-    data = data,
-    mus = mus,
-    sigmas = sigmas,
-    rhos = rhos,
-    psis = psis,
-    phis = phis,
-    log.transform = log.transform,
-    method = method,
-    control = control
-  )
-  converged <- sapply(fits, function(x) class(x)[1] != "try-error")
-  n.not.converged <- sum(!converged)
-  if (n.not.converged > 0){
-      warning(paste0("A total of ", n.not.converged, " model ", ifelse(n.not.converged == 1, "fit", "fits"), " did not converge and ", ifelse(n.not.converged == 1, "has", "have"), " been omitted from the simulation results."))
-      fits <- fits[converged]
-  }
-  out <- list(settings = settings, fits = fits)
-  class(out) <- "lme.morph.sim"
-  out
+    ## Running simulations
+    if (n.cores == 1){
+        ## Sequential processing with optional progress bar
+        fits <- vector(mode = "list", length = n.sims)
+        if (progressbar){
+            pb <- txtProgressBar(min = 0, max = n.sims, style = 3)
+        }
+        for (i in 1:n.sims){
+            fits[[i]] <- sim_one(i, n.animals, n.photos, data, mus, sigmas, rhos, psis, phis,
+                                 log.transform, method, control)
+            if (progressbar){
+                setTxtProgressBar(pb, i)
+            }
+        }
+        if (progressbar){
+            close(pb)
+        }
+    } else {
+        ## Paralllel processing
+        cl <- makeCluster(n.cores)
+        on.exit(stopCluster(cl))
+        fits <- pblapply(1:n.sims, sim_one, n.animals, n.photos, data, mus, sigmas, rhos, psis, phis,
+                         log.transform, method, control, cl = cl)
+    }
+
+    ## Preparing output
+    settings <- list(
+        n.sims = n.sims,
+        n.animals = n.animals,
+        n.photos = n.photos,
+        data = data,
+        mus = mus,
+        sigmas = sigmas,
+        rhos = rhos,
+        psis = psis,
+        phis = phis,
+        log.transform = log.transform,
+        method = method,
+        control = control
+    )
+    converged <- sapply(fits, function(x) class(x)[1] != "try-error")
+    n.not.converged <- sum(!converged)
+    if (n.not.converged > 0){
+        warning(paste0("A total of ", n.not.converged, " model ", ifelse(n.not.converged == 1, "fit", "fits"), " did not converge and ", ifelse(n.not.converged == 1, "has", "have"), " been omitted from the simulation results."))
+        fits <- fits[converged]
+    }
+    out <- list(settings = settings, fits = fits)
+    class(out) <- "lme.morph.sim"
+    out
 }
-
-# -------------------------------------------------------------------------------------------------------
 
 #' Extract Results from a Morphometric Simulation Study
 #'
@@ -325,24 +315,24 @@ sim.morph <- function(n.sims, n.animals = NULL, n.photos = NULL,
 #'
 #' @export
 extract.sim.morph <- function(sim.res, FUN = summary, n.cores = 1){
-  if (!inherits(sim.res, "lme.morph.sim")) {
-    stop("'sim.res' must be an object of class 'lme.morph.sim'")
-  }
+    if (!inherits(sim.res, "lme.morph.sim")) {
+        stop("'sim.res' must be an object of class 'lme.morph.sim'")
+    }
 
-  if (n.cores > 1) {
-    # Parallel processing
-    cl <- makeCluster(n.cores)
-    on.exit(stopCluster(cl))
+    if (n.cores > 1) {
+        ## Parallel processing
+        cl <- makeCluster(n.cores)
+        on.exit(stopCluster(cl))
 
-    # Export necesssary functions
-    clusterExport(cl, "FUN", envir = environment())
+        ## Export necesssary functions
+        clusterExport(cl, "FUN", envir = environment())
 
-    # Apply function to all fits
-    out <- simplify2array(pblapply(sim.res$fits, FUN, cl = cl))
-  } else {
-    # Sequential processing
-    out <- simplify2array(lapply(sim.res$fits, FUN))
-  }
+        ## Apply function to all fits
+        out <- simplify2array(pblapply(sim.res$fits, FUN, cl = cl))
+    } else {
+        ## Sequential processing
+        out <- simplify2array(lapply(sim.res$fits, FUN))
+    }
 
-  out
+    out
 }

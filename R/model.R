@@ -1,11 +1,3 @@
-# Model Fitting Functions for morphErr
-#
-# This file contains the main model fitting functions for morphometric analysis:
-# - fit.morph(): Main function for fitting morphometric models
-# - organise.pars(): Organises parameter vectors into lists
-# - construct.varcov(): Constructs variance-covariance matrices
-
-
 #' Organise Parameter Vector into Components
 #'
 #' Takes a vector of parameters and organises it into separate objects
@@ -26,47 +18,45 @@
 #' @keywords internal
 #'
 organise.pars <- function(pars, n.animals, n.photos, m, block.only = FALSE) {
-  n.pars <- length(pars)
-  n.mus <- m
-  n.sigmas <- m
-  n.rhos <- sum(1:(m - 1))
-  n.psis <- m
-  n.phis <- sum(1:(m - 1))
-  if (n.pars != sum(n.mus + n.sigmas + n.rhos + n.psis + n.phis)){
-    stop("Incorrect number of elements in pars.")
-  }
-  mus <- numeric(n.mus)
-  k <- 1
-  for (i in 1:n.mus){
-    mus[i] <- pars[k]
-    k <- k + 1
-  }
-  sigmas <- numeric(n.sigmas)
-  for (i in 1:n.sigmas){
-    sigmas[i] <- pars[k]
-    k <- k + 1
-  }
-  rhos <- numeric(n.rhos)
-  for (i in 1:n.rhos){
-    rhos[i] <- pars[k]
-    k <- k + 1
-  }
-  psis <- numeric(n.psis)
-  for (i in 1:n.psis){
-    psis[i] <- pars[k]
-    k <- k + 1
-  }
-  phis <- numeric(n.phis)
-  for (i in 1:n.phis){
-    phis[i] <- pars[k]
-    k <- k + 1
-  }
-  sigma.mat <- construct.varcov(sigmas, rhos, n.animals, m, block.only)
-  xi.mat <- construct.varcov(psis, phis, sum(n.photos), m, block.only)
-  list(mus = mus, sigma = sigma.mat, xi = xi.mat)
+    n.pars <- length(pars)
+    n.mus <- m
+    n.sigmas <- m
+    n.rhos <- sum(1:(m - 1))
+    n.psis <- m
+    n.phis <- sum(1:(m - 1))
+    if (n.pars != sum(n.mus + n.sigmas + n.rhos + n.psis + n.phis)){
+        stop("Incorrect number of elements in pars.")
+    }
+    mus <- numeric(n.mus)
+    k <- 1
+    for (i in 1:n.mus){
+        mus[i] <- pars[k]
+        k <- k + 1
+    }
+    sigmas <- numeric(n.sigmas)
+    for (i in 1:n.sigmas){
+        sigmas[i] <- pars[k]
+        k <- k + 1
+    }
+    rhos <- numeric(n.rhos)
+    for (i in 1:n.rhos){
+        rhos[i] <- pars[k]
+        k <- k + 1
+    }
+    psis <- numeric(n.psis)
+    for (i in 1:n.psis){
+        psis[i] <- pars[k]
+        k <- k + 1
+    }
+    phis <- numeric(n.phis)
+    for (i in 1:n.phis){
+        phis[i] <- pars[k]
+        k <- k + 1
+    }
+    sigma.mat <- construct.varcov(sigmas, rhos, n.animals, m, block.only)
+    xi.mat <- construct.varcov(psis, phis, sum(n.photos), m, block.only)
+    list(mus = mus, sigma = sigma.mat, xi = xi.mat)
 }
-
-# -------------------------------------------------------------------------------------------------------
 
 #' Construct Variance-Covariance Matrix
 #'
@@ -84,30 +74,28 @@ organise.pars <- function(pars, n.animals, n.photos, m, block.only = FALSE) {
 #' @keywords internal
 #'
 construct.varcov <- function(sds, cors, n.blocks, m, block.only){
-  block <- matrix(0, nrow = m, ncol = m)
-  for (i in 1:m){
-    block[i, i] <- sds[i]^2
-  }
-  k <- 1
-  for (i in 1:(m - 1)){
-    for (j in (i + 1):m){
-      block[i, j] <- block[j, i] <- cors[k]*sds[i]*sds[j]
-      k <- k + 1
+    block <- matrix(0, nrow = m, ncol = m)
+    for (i in 1:m){
+        block[i, i] <- sds[i]^2
     }
-  }
-  if (block.only){
-    out <- block
-  } else {
-    out <- matrix(0, nrow = m*n.blocks, ncol = m*n.blocks)
-    for (i in 1:n.blocks){
-      out[((i - 1)*m + 1):((i - 1)*m + m),
-          ((i - 1)*m + 1):((i - 1)*m + m)] <- block
+    k <- 1
+    for (i in 1:(m - 1)){
+        for (j in (i + 1):m){
+            block[i, j] <- block[j, i] <- cors[k]*sds[i]*sds[j]
+            k <- k + 1
+        }
     }
-  }
-  out
+    if (block.only){
+        out <- block
+    } else {
+        out <- matrix(0, nrow = m*n.blocks, ncol = m*n.blocks)
+        for (i in 1:n.blocks){
+            out[((i - 1)*m + 1):((i - 1)*m + m),
+            ((i - 1)*m + 1):((i - 1)*m + m)] <- block
+        }
+    }
+    out
 }
-
-# -------------------------------------------------------------------------------------------------------
 
 #' Fit Morphometric Model
 #'
@@ -166,46 +154,46 @@ fit.morph <- function(data, log.transform = FALSE,
                       method = "REML",
                       control = list(maxIter = 100000,
                                      msMaxIter = 100000)){
-  # Ensure inputs are factors.
-  for (i in c("animal.id", "photo.id", "dim")){
-    if (!is.factor(data[, i])){
-      data[, i] <- factor(data[, i])
+    ## Ensure inputs are factors.
+    for (i in c("animal.id", "photo.id", "dim")){
+        if (!is.factor(data[, i])){
+            data[, i] <- factor(data[, i])
+        }
     }
-  }
 
-  # Reordering the data because (believe it or not) the
-  # parameterisation of the variance model in nlme uses whichever
-  # dimension appears first in the data as the baseline.
-  data <- data[order(data$dim), ]
+    ## Reordering the data because (believe it or not) the
+    ## parameterisation of the variance model in nlme uses whichever
+    ## dimension appears first in the data as the baseline.
+    data <- data[order(data$dim), ]
 
-  # Log transforming, if necessary.
-  if (log.transform){
-    data$measurement <- log(data$measurement)
-  }
+    ## Log-transforming, if necessary.
+    if (log.transform){
+        data$measurement <- log(data$measurement)
+    }
     
-  # Set up groups
-  gdata <- groupedData(measurement ~ 1 | animal.id / photo.id, data = data)
+    ## Set up groups
+    gdata <- groupedData(measurement ~ 1 | animal.id / photo.id, data = data)
 
-  # Set up fixed effects formula
-  fixed.arg <- measurement ~ 0 + dim
+    ## Set up fixed effects formula
+    fixed.arg <- measurement ~ 0 + dim
     
-  # Fit model
-  fit <- lme(fixed = fixed.arg,
-             random = ~ 0 + dim | animal.id,
-             correlation = corSymm(form = ~ 1 | animal.id / photo.id),
-             weights = varIdent(form = ~ 1 | dim),
-             data = gdata,
-             control = control,
-             method = method)
+    ## Fit model
+    fit <- lme(fixed = fixed.arg,
+               random = ~ 0 + dim | animal.id,
+               correlation = corSymm(form = ~ 1 | animal.id / photo.id),
+               weights = varIdent(form = ~ 1 | dim),
+               data = gdata,
+               control = control,
+               method = method)
 
-  # Add additional attributes
-  fit$intercept <- FALSE
-  class(fit) <- c("lme.morph", class(fit))
-  fit$vcov <- vcov(fit)
-  fit$log.transform <- log.transform
-  fit$control <- control
-  fit$boot <- FALSE
-  return(fit)
+    ## Add additional attributes
+    fit$intercept <- FALSE
+    class(fit) <- c("lme.morph", class(fit))
+    fit$vcov <- vcov(fit)
+    fit$log.transform <- log.transform
+    fit$control <- control
+    fit$boot <- FALSE
+    return(fit)
 }
 
 #' Bootstrapping for a Morphometric Model

@@ -1,13 +1,3 @@
-# Utility Functions for morphErr
-#
-# This file contains helper functions and utilities:
-# - print.summary.lme.morph(): Prints model summaries
-# - summary.lme.morph(): Creates model summaries
-# - smooth.indicator(): Helper function for smooth approximations
-
-
-# -------------------------------------------------------------------------------------------------------
-
 #' Extract Variance-Covariance Matrix from Morphometric Model
 #'
 #' An S3 method for extracting both parameter estimates and their
@@ -124,19 +114,15 @@ vcov.lme.morph <- function(object) {
     list(est = est, varcov = varcov)
 }
 
-# -------------------------------------------------------------------------------------------------------
-
 #' @export
 print.summary.lme.morph <- function(x, ...) {
-  class(x) <- "matrix"
-  x <- as.data.frame(x)
-  if (any(names(x) == "P-value")) {
-    x["P-value"] <- format.pval(x["P-value"])
-  }
-  print(x)
+    class(x) <- "matrix"
+    x <- as.data.frame(x)
+    if (any(names(x) == "P-value")) {
+        x["P-value"] <- format.pval(x["P-value"])
+    }
+    print(x)
 }
-
-# -------------------------------------------------------------------------------------------------------
 
 #' Summarise Morphometric Model Fits
 #'
@@ -242,121 +228,121 @@ print.summary.lme.morph <- function(x, ...) {
 #' summary(fit, type = "isometric-pca")
 #' @export
 summary.lme.morph <- function(object, ..., type = "pars", y.dim, x.dim, B = 1000){
-  # Valid types
-  valid_types <- c(
-    "pars",   # Param estimates
-    "betas", "betas-lm",  # lm coefficients
-    "betas-pca",   # PCA interpretaton
-    "isometric-pca",  # Isometry test results
-    "isometric-pca-boot"  # Bootstrapped isometry test results
-  )
-
-  # Check if type is valid
-  if (!type %in% valid_types) {
-    stop(
-      "Invalid type argument. See ?summary.lme.morph for possible selections."
+                                        # Valid types
+    valid_types <- c(
+        "pars",   # Param estimates
+        "betas", "betas-lm",  # lm coefficients
+        "betas-pca",   # PCA interpretaton
+        "isometric-pca",  # Isometry test results
+        "isometric-pca-boot"  # Bootstrapped isometry test results
     )
-  }
 
-  ## Indicator for whether the model involved a log transformation.
-  log.transform <- object$log.transform
-  ## Indicator for whether or not we have bootstrapping.
-  boot <- object$boot
+                                        # Check if type is valid
+    if (!type %in% valid_types) {
+        stop(
+            "Invalid type argument. See ?summary.lme.morph for possible selections."
+        )
+    }
+
+    ## Indicator for whether the model involved a log transformation.
+    log.transform <- object$log.transform
+    ## Indicator for whether or not we have bootstrapping.
+    boot <- object$boot
     
-  vcov.obj <- object$vcov
-  ## Get estimates
-  est <- vcov.obj$est
-  if (type == "pars") {
-    ## Extracting SEs
-    ses <- sqrt(diag(vcov.obj$varcov))
-    ##  Estimates and ses for model parameters
-    out <- cbind(est, ses)
-    colnames(out) <- c("Estimate", "Std. Error")
-  } else if (type == "betas" | type == "betas-lm") {
-    ## Beta parameters for predicting y.dim from x.dims
-    out <- calc.betas(fit = object, est = est, y.dim = y.dim, x.dim = x.dim)
-  } else if (type == "betas-pca") {
-    ## Beta parameters for the first PC between y.dim and x.dim
-    out <- calc.betas(fit = object, est = est, y.dim = y.dim, x.dim = x.dim, type = "pca")
-  } else if (type == "isometric-pca" | type == "isometric-pca-boot") {
-    data <- getData(object)
-    ## num of dimensions
-    m <- length(unique(data$dim))
-    ## Tests for isometric growth between all dimensions
-    n.comparisons <- 2*choose(m, 2)
-    out <- matrix(0, nrow = n.comparisons, ncol = 2)
-    out.names <- character(n.comparisons)
-    if (type == "isometric-pca-boot") {
-      boots <- rmvnorm(B, est, vcov.obj$varcov)
-    }
-    p.val <- numeric(n.comparisons)
-    k <- 1
-    for (i in 1:m) {
-      for (j in 1:m) {
-        if (i != j) {
-          out.names[k] <- paste0("dim", i, " vs dim", j)
-          if (type == "isometric-pca-boot") {        
-            betas.boot <- apply(boots, 1, function(x)
-                calc.betas(est = x, stders = FALSE, y.dim = j,
-                           x.dim = i, type = "pca"))
-            if (log.transform) {
-              betas.boot <- betas.boot[2, ]
-              out[k, ] <- calc.betas(fit = object, est = est, y.dim = j, x.dim = i, type = "pca")[2, ]        
-              p.val.onesided <- mean(betas.boot >= 1)
-              p.val.onesided <- min(c(p.val.onesided, 1 - p.val.onesided))
-              p.val[k] <- 2*p.val.onesided
-            } else {
-              betas.boot <- betas.boot[1, ]
-              out[k, ] <- calc.betas(fit = object, est = est, y.dim = j, x.dim = i, type = "pca")[1, ]  
-              p.val.onesided <- mean(betas.boot >= 0)
-              p.val.onesided <- min(c(p.val.onesided, 1 - p.val.onesided))
-              p.val[k] <- 2*p.val.onesided
-            }
-          } else if (type == "isometric-pca") {
-            if (log.transform){
-              out[k, ] <- calc.betas(fit = object, est = est, y.dim = j, x.dim = i, type = "pca")[2, ]
-              z <- (out[k, 1] - 1)/out[k, 2]
-              p.val[k] <- 2*pnorm(-abs(z))
-            } else {
-              ## Using the distribution of alpha0.
-              mu.mean <- vcov.obj$est[paste0("mu", c(j, i))]
-              mu.varcov <- vcov.obj$varcov[paste0("mu", c(j, i)), paste0("mu", c(j, i))]
-              sigma.mean <- vcov.obj$est[paste0("sigma", c(j, i))]
-              sigma.varcov <- vcov.obj$varcov[paste0("sigma", c(j, i)), paste0("sigma", c(j, i))]
-              ## Calculating this product thing, which
-              ## has a true value of zero under
-              ## isometric growth.
-              out[k, 1] <- mu.mean[1]*sigma.mean[2] - mu.mean[2]*sigma.mean[1]
-              ## Getting relevant parameter names and
-              ## positions in the estimates vector.
-              par.names <- names(vcov.obj$est)
-              par.name.mu1 <- paste0("mu", j)
-              which.par.name.mu1 <- which(par.names == par.name.mu1)
-              par.name.mu2 <- paste0("mu", i)
-              which.par.name.mu2 <- which(par.names == par.name.mu2)
-              par.name.sigma1 <- paste0("sigma", j)
-              which.par.name.sigma1 <- which(par.names == par.name.sigma1)
-              par.name.sigma2 <- paste0("sigma", i)
-              which.par.name.sigma2 <- which(par.names == par.name.sigma2)
-              ## Setting up the expression for the deltamethod() function.
-              g <- reformulate(paste0("x", which.par.name.mu1, " * x", which.par.name.sigma2,
-                                      " - x", which.par.name.mu2, " * x", which.par.name.sigma1))
-              ## Doing the delta method to get a standard error.
-              out[k, 2] <- deltamethod(g, vcov.obj$est, vcov.obj$varcov)
-              p.val.lower <- pnorm(out[k, 1], sd = out[k, 2])
-              p.val[k] <- 2*min(c(p.val.lower, 1 - p.val.lower))
-            }
-          }
-          k <- k + 1
+    vcov.obj <- object$vcov
+    ## Get estimates
+    est <- vcov.obj$est
+    if (type == "pars") {
+        ## Extracting SEs
+        ses <- sqrt(diag(vcov.obj$varcov))
+        ##  Estimates and ses for model parameters
+        out <- cbind(est, ses)
+        colnames(out) <- c("Estimate", "Std. Error")
+    } else if (type == "betas" | type == "betas-lm") {
+        ## Beta parameters for predicting y.dim from x.dims
+        out <- calc.betas(fit = object, est = est, y.dim = y.dim, x.dim = x.dim)
+    } else if (type == "betas-pca") {
+        ## Beta parameters for the first PC between y.dim and x.dim
+        out <- calc.betas(fit = object, est = est, y.dim = y.dim, x.dim = x.dim, type = "pca")
+    } else if (type == "isometric-pca" | type == "isometric-pca-boot") {
+        data <- getData(object)
+        ## num of dimensions
+        m <- length(unique(data$dim))
+        ## Tests for isometric growth between all dimensions
+        n.comparisons <- 2*choose(m, 2)
+        out <- matrix(0, nrow = n.comparisons, ncol = 2)
+        out.names <- character(n.comparisons)
+        if (type == "isometric-pca-boot") {
+            boots <- rmvnorm(B, est, vcov.obj$varcov)
         }
-      }
+        p.val <- numeric(n.comparisons)
+        k <- 1
+        for (i in 1:m) {
+            for (j in 1:m) {
+                if (i != j) {
+                    out.names[k] <- paste0("dim", i, " vs dim", j)
+                    if (type == "isometric-pca-boot") {        
+                        betas.boot <- apply(boots, 1, function(x)
+                            calc.betas(est = x, stders = FALSE, y.dim = j,
+                                       x.dim = i, type = "pca"))
+                        if (log.transform) {
+                            betas.boot <- betas.boot[2, ]
+                            out[k, ] <- calc.betas(fit = object, est = est, y.dim = j, x.dim = i, type = "pca")[2, ]        
+                            p.val.onesided <- mean(betas.boot >= 1)
+                            p.val.onesided <- min(c(p.val.onesided, 1 - p.val.onesided))
+                            p.val[k] <- 2*p.val.onesided
+                        } else {
+                            betas.boot <- betas.boot[1, ]
+                            out[k, ] <- calc.betas(fit = object, est = est, y.dim = j, x.dim = i, type = "pca")[1, ]  
+                            p.val.onesided <- mean(betas.boot >= 0)
+                            p.val.onesided <- min(c(p.val.onesided, 1 - p.val.onesided))
+                            p.val[k] <- 2*p.val.onesided
+                        }
+                    } else if (type == "isometric-pca") {
+                        if (log.transform){
+                            out[k, ] <- calc.betas(fit = object, est = est, y.dim = j, x.dim = i, type = "pca")[2, ]
+                            z <- (out[k, 1] - 1)/out[k, 2]
+                            p.val[k] <- 2*pnorm(-abs(z))
+                        } else {
+                            ## Using the distribution of alpha0.
+                            mu.mean <- vcov.obj$est[paste0("mu", c(j, i))]
+                            mu.varcov <- vcov.obj$varcov[paste0("mu", c(j, i)), paste0("mu", c(j, i))]
+                            sigma.mean <- vcov.obj$est[paste0("sigma", c(j, i))]
+                            sigma.varcov <- vcov.obj$varcov[paste0("sigma", c(j, i)), paste0("sigma", c(j, i))]
+                            ## Calculating this product thing, which
+                            ## has a true value of zero under
+                            ## isometric growth.
+                            out[k, 1] <- mu.mean[1]*sigma.mean[2] - mu.mean[2]*sigma.mean[1]
+                            ## Getting relevant parameter names and
+                            ## positions in the estimates vector.
+                            par.names <- names(vcov.obj$est)
+                            par.name.mu1 <- paste0("mu", j)
+                            which.par.name.mu1 <- which(par.names == par.name.mu1)
+                            par.name.mu2 <- paste0("mu", i)
+                            which.par.name.mu2 <- which(par.names == par.name.mu2)
+                            par.name.sigma1 <- paste0("sigma", j)
+                            which.par.name.sigma1 <- which(par.names == par.name.sigma1)
+                            par.name.sigma2 <- paste0("sigma", i)
+                            which.par.name.sigma2 <- which(par.names == par.name.sigma2)
+                            ## Setting up the expression for the deltamethod() function.
+                            g <- reformulate(paste0("x", which.par.name.mu1, " * x", which.par.name.sigma2,
+                                                    " - x", which.par.name.mu2, " * x", which.par.name.sigma1))
+                            ## Doing the delta method to get a standard error.
+                            out[k, 2] <- deltamethod(g, vcov.obj$est, vcov.obj$varcov)
+                            p.val.lower <- pnorm(out[k, 1], sd = out[k, 2])
+                            p.val[k] <- 2*min(c(p.val.lower, 1 - p.val.lower))
+                        }
+                    }
+                    k <- k + 1
+                }
+            }
+        }
+        out <- cbind(out, p.val)
+        rownames(out) <- out.names
+        colnames(out) <- c("Estimate", "Std. Error", "P-value")
     }
-    out <- cbind(out, p.val)
-    rownames(out) <- out.names
-    colnames(out) <- c("Estimate", "Std. Error", "P-value")
-  }
-  class(out) <- "summary.lme.morph"
-  out
+    class(out) <- "summary.lme.morph"
+    out
 }
 
 

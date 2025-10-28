@@ -1,12 +1,3 @@
-# Prediction Functions for morphErr
-#
-# This file contains functions for making predictions from fitted models:
-# - predict.lme.morph(): Predicts measurements from fitted models using true measurements
-# - predictblup(): Predicts measurements from fitted models using observed measurements
-
-
-# -------------------------------------------------------------------------------------------------------
-
 #' Calculate Beta Coefficients for Predictions
 #'
 #' @description
@@ -29,7 +20,7 @@
 #' @keywords internal
 calc.betas <- function(fit, est = NULL, stders = TRUE, y.dim, x.dim,
                        type = "lm", vcov = FALSE) {
-                                        ## Check type for PCA case
+    ## Check type for PCA case
     if (type == "pca" && length(x.dim) > 1) {
         stop("Type 'pca' is only available for single predictor relationships")
     }
@@ -75,12 +66,12 @@ calc.betas <- function(fit, est = NULL, stders = TRUE, y.dim, x.dim,
         beta0 <- mus[y.dim] - sum(beta.dims * mus[x.dim])
         betas.est <- c(beta0, beta.dims)
     } else {
-                                        ## PCA/RMA interpretation (to fix error it now uses sigmas directly)
+        ## PCA/RMA interpretation (to fix error it now uses sigmas directly)
         betas.est <- c(mus[y.dim] - sigmas[y.dim]/sigmas[x.dim] * mus[x.dim],
                        sigmas[y.dim]/sigmas[x.dim])
     }
 
-  ## Handle ses if requested
+    ## Handle ses if requested
     if (stders) {
         ## Delta method for se
         if (type == "lm") {
@@ -211,8 +202,6 @@ calc.betas <- function(fit, est = NULL, stders = TRUE, y.dim, x.dim,
     out
 }
 
-# -------------------------------------------------------------------------------------------------------
-
 #' Predict Measurements from True Values
 #'
 #' @description Calculates model predictions for the true size of a
@@ -269,69 +258,67 @@ calc.betas <- function(fit, est = NULL, stders = TRUE, y.dim, x.dim,
 #' 
 #' @export
 predict.lme.morph <- function(object, y.dim, newdata = NULL, type = c("lm", "pca"), ...) {
-  # Input validation
-  if (!inherits(object, "lme.morph")) {
-    stop("Invalid model object. Input must be a fitted model of class 'lme.morph'")
-  }
+    ## Input validation
+    if (!inherits(object, "lme.morph")) {
+        stop("Invalid model object. Input must be a fitted model of class 'lme.morph'")
+    }
 
-  # Valid types
-  valid_types <- c("lm", "pca")
-  if (!type[1] %in% valid_types) {
-    stop(
-      "Invalid type argument. See ?predict.lme.morph for possible selections."
-    )
-  }
-  type <- match.arg(type)
+    ## Valid types
+    valid_types <- c("lm", "pca")
+    if (!type[1] %in% valid_types) {
+        stop(
+            "Invalid type argument. See ?predict.lme.morph for possible selections."
+        )
+    }
+    type <- match.arg(type)
 
-  # If no measurements, return pop means with se
-  if (is.null(newdata)) {
-    vcov.obj <- object$vcov
-    est <- vcov.obj$est
-    mus <- est[substr(names(est), 1, 2) == "mu"]
-    pred.est <- mus[y.dim]
-    pred.se <- sqrt(diag(vcov.obj$varcov))[paste0("mu", y.dim)]
+    ## If no measurements, return pop means with se
+    if (is.null(newdata)) {
+        vcov.obj <- object$vcov
+        est <- vcov.obj$est
+        mus <- est[substr(names(est), 1, 2) == "mu"]
+        pred.est <- mus[y.dim]
+        pred.se <- sqrt(diag(vcov.obj$varcov))[paste0("mu", y.dim)]
 
-    result <- matrix(c(pred.est, pred.se), nrow = 1)
+        result <- matrix(c(pred.est, pred.se), nrow = 1)
+        colnames(result) <- c("Estimate", "Std. Error")
+        return(result)
+    }
+
+    ## Validate newdata
+    if (!is.data.frame(newdata)) {
+        stop("'newdata' must be a data frame with columns named 'dimX' where X is the dimension number")
+    }
+
+    ## Check for NA values
+    if (any(sapply(newdata, function(x) any(is.na(x))))) {
+        stop("newdata cannot contain missing values (NA)")
+    }
+
+    ## Get predictor dims
+    x.dim <- as.numeric(sapply(strsplit(colnames(newdata), "dim"), function(x) x[2]))
+
+    ## Get coeficients and vcov matrix
+    betas <- calc.betas(fit = object, y.dim = y.dim, x.dim = x.dim, type = type, vcov = FALSE)
+    vcov.obj <- calc.betas(fit = object, y.dim = y.dim, x.dim = x.dim, type = type, vcov = TRUE)
+    vcov.mat <- vcov.obj$varcov
+
+    ## Create design matrix for all preds
+    n_preds <- nrow(newdata)
+    X <- cbind(1, as.matrix(newdata))
+
+    ## Calculate preds for all rows
+    pred.est <- X %*% betas[,"Estimate"]
+
+    ## Calculate se for all predictions
+    pred.se <- sqrt(diag(X %*% vcov.mat %*% t(X)))
+
+    ## Combine
+    result <- cbind(pred.est, pred.se)
     colnames(result) <- c("Estimate", "Std. Error")
+
     return(result)
-  }
-
-  # Validate newdata
-  if (!is.data.frame(newdata)) {
-    stop("'newdata' must be a data frame with columns named 'dimX' where X is the dimension number")
-  }
-
-  # Check for NA values
-  if (any(sapply(newdata, function(x) any(is.na(x))))) {
-    stop("newdata cannot contain missing values (NA)")
-  }
-
-  # Get predictor dims
-  x.dim <- as.numeric(sapply(strsplit(colnames(newdata), "dim"), function(x) x[2]))
-
-  # Get coeficients and vcov matrix
-  betas <- calc.betas(fit = object, y.dim = y.dim, x.dim = x.dim, type = type, vcov = FALSE)
-  vcov.obj <- calc.betas(fit = object, y.dim = y.dim, x.dim = x.dim, type = type, vcov = TRUE)
-  vcov.mat <- vcov.obj$varcov
-
-  # Create design matrix for all preds
-  n_preds <- nrow(newdata)
-  X <- cbind(1, as.matrix(newdata))
-
-  # Calculate preds for all rows
-  pred.est <- X %*% betas[,"Estimate"]
-
-  # Calculate se for all predictions
-  pred.se <- sqrt(diag(X %*% vcov.mat %*% t(X)))
-
-  # Combine
-  result <- cbind(pred.est, pred.se)
-  colnames(result) <- c("Estimate", "Std. Error")
-
-  return(result)
 }
-
-# -------------------------------------------------------------------------------------------------------
 
 #' Predict from Observed Measurements
 #'
@@ -374,82 +361,82 @@ predict.lme.morph <- function(object, y.dim, newdata = NULL, type = c("lm", "pca
 #' @export
 predictblup <- function(object, true = NULL, obs = NULL) {
 
-  # Input validation
-  if (!inherits(object, "lme.morph")) {
-    stop("Invalid model object. Input must be a fitted model of class 'lme.morph'")
-  }
+    ## Input validation
+    if (!inherits(object, "lme.morph")) {
+        stop("Invalid model object. Input must be a fitted model of class 'lme.morph'")
+    }
 
-  # Rest of function remains the same...
-  # Get params
-  vcov.obj <- object$vcov
-  est <- vcov.obj$est
-  m <- length(levels(object$data$dim))
-  pars <- organise.pars(est, n.animals = 1, n.photos = 1, m = m, block.only = TRUE)
+    ## Rest of function remains the same...
+    ## Get params
+    vcov.obj <- object$vcov
+    est <- vcov.obj$est
+    m <- length(levels(object$data$dim))
+    pars <- organise.pars(est, n.animals = 1, n.photos = 1, m = m, block.only = TRUE)
 
-  if (is.null(true)) {
-    true <- rep(NA, m)
-  }
+    if (is.null(true)) {
+        true <- rep(NA, m)
+    }
     
-  # Validate tru vector length
-  if (length(true) != m) {
-    stop(
-      "Length of 'true' must match number of dimensions in model"
-    )
-  }
-
-
-  # Handle observations
-  if (!is.null(obs)) {
-    if (is.vector(obs)) {
-      obs <- matrix(obs, nrow = 1)
-    }
-    if (ncol(obs) != m) {
-      stop(
-        "Number of columns in 'obs' must match number of dimensions in model"
-      )
-    }
-  } else {
-    obs <- matrix(nrow = 0, ncol = m)
-  }
-
-  # Determine which dims to predict
-  dims.to.predict <- which(is.na(true))
-  if (length(dims.to.predict) == 0) {
-    stop("No dimensions to predict (no NA values in 'true' vector)")
-  }
-
-  # Optimisation function
-  djoint <- function(t.to.predict) {
-    t <- true
-    t[dims.to.predict] <- t.to.predict
-    out <- 0
-
-    # Add observation likelihood if ther are obs
-    if (nrow(obs) > 0) {
-      for (j in 1:nrow(obs)) {
-        obs.dims <- !is.na(obs[j, ])
-        out <- out + dmvnorm(obs[j, obs.dims],
-                             mean = t[obs.dims],
-                             sigma = pars$xi[obs.dims, obs.dims, drop = FALSE],
-                                      log = TRUE)
-      }
+    ## Validate tru vector length
+    if (length(true) != m) {
+        stop(
+            "Length of 'true' must match number of dimensions in model"
+        )
     }
 
-    # Add prior
-    out <- out + dmvnorm(t, mean = pars$mus, sigma = pars$sigma, log = TRUE)
-    -out
-  }
 
-  # Optimise
-  preds <- nlminb(pars$mus[dims.to.predict], djoint)
+    ## Handle observations
+    if (!is.null(obs)) {
+        if (is.vector(obs)) {
+            obs <- matrix(obs, nrow = 1)
+        }
+        if (ncol(obs) != m) {
+            stop(
+                "Number of columns in 'obs' must match number of dimensions in model"
+            )
+        }
+    } else {
+        obs <- matrix(nrow = 0, ncol = m)
+    }
 
-  # Prepare output
-  # Start with true vals:
-  out <- true
-  # Fill in preds:
-  out[dims.to.predict] <- preds$par
+    ## Determine which dims to predict
+    dims.to.predict <- which(is.na(true))
+    if (length(dims.to.predict) == 0) {
+        stop("No dimensions to predict (no NA values in 'true' vector)")
+    }
 
-  return(out)
+    ## Optimisation function
+    djoint <- function(t.to.predict) {
+        t <- true
+        t[dims.to.predict] <- t.to.predict
+        out <- 0
+
+        ## Add observation likelihood if ther are obs
+        if (nrow(obs) > 0) {
+            for (j in 1:nrow(obs)) {
+                obs.dims <- !is.na(obs[j, ])
+                out <- out + dmvnorm(obs[j, obs.dims],
+                                     mean = t[obs.dims],
+                                     sigma = pars$xi[obs.dims, obs.dims, drop = FALSE],
+                                     log = TRUE)
+            }
+        }
+
+        ## Add prior
+        out <- out + dmvnorm(t, mean = pars$mus, sigma = pars$sigma, log = TRUE)
+        -out
+    }
+
+    ## Optimise
+    preds <- nlminb(pars$mus[dims.to.predict], djoint)
+
+    ## Prepare output
+    ## Start with true vals:
+    out <- true
+    ## Fill in preds:
+    out[dims.to.predict] <- preds$par
+
+    return(out)
 }
 
 ## A function to grab a correlation parameter from a named vector.
