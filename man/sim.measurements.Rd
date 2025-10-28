@@ -7,12 +7,13 @@
 sim.measurements(
   n.animals,
   n.photos,
-  m,
   mus,
   sigmas,
   rhos,
   psis,
   phis,
+  photo.prob.missing = rep(0, length(mus)),
+  individual.prob.missing = rep(0, length(mus)),
   log.transform = FALSE
 )
 }
@@ -24,26 +25,34 @@ each one specifies the number of photos for an individual. If
 there is one element, then that number of photos is used for
 all animals.}
 
-\item{m}{Integer. The number of dimensions.}
+\item{mus}{A vector with an element for each dimension, providing
+the means of the true dimension sizes in the population.}
 
-\item{mus}{A vector with \code{m} elements providing the means of the
-true dimension sizes in the population.}
-
-\item{sigmas}{A vector with \code{m} elements providing the standard
-deviations for true dimension sizes in the population.}
+\item{sigmas}{A vector with an element for each dimension,
+providing the standard deviations for true dimension sizes in
+the population.}
 
 \item{rhos}{A vector, with one element for each pair of dimensions,
 providing the pairwise correlations between true dimension
 sizes in the population. See 'Details' for the correct order
 for the correlations.}
 
-\item{psis}{A vector with \code{m} elements, providing the standard
-deviations of measurement errors for the dimensions.}
+\item{psis}{A vector with an element for each dimension, providing
+the standard deviations of measurement errors for the
+dimensions.}
 
 \item{phis}{A vector, with one element for each pair of dimensions,
 providing the pairwise correlations between measurement errors
 for the dimensions. See 'Details' for the correct order for the
 correlations.}
+
+\item{photo.prob.missing}{A vector, with one element for each
+dimension, providing the probablility that its measurement is
+missing from a photograph.}
+
+\item{individual.prob.missing}{A vector, with one element for each
+dimension, providing the probability that its measurement will
+be missing from all photographs from an individual animal.}
 
 \item{log.transform}{Logical. If \code{TRUE}, the parameters are
 considered to correspond to a model where the response was
@@ -91,7 +100,7 @@ is the correlation between dimension 3 and 4.
 \examples{
 ## Simulating data for ten animals, with two photos each, measuring
 ## three dimensions.
-data <- sim.measurements(n.animals = 10, n.photos = 2, m = 3,
+data <- sim.measurements(n.animals = 10, n.photos = 2,
                          mus = c(315, 150, 100),
                          sigmas = c(25, 15, 10),
                          rhos = c(0.85, 0.80, 0.75),
