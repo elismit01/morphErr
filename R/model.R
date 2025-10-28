@@ -203,5 +203,49 @@ fit.morph <- function(data, log.transform = FALSE,
   class(fit) <- c("lme.morph", class(fit))
   fit$vcov <- vcov(fit)
   fit$log.transform <- log.transform
+  fit$control <- control
   return(fit)
+}
+
+#' Bootstrapping for a Morphometric Model
+#'
+#' Simulates bootstrap resamples and re-fits the original morphometric model
+#' to each one. The resulting object can be used as an argument for
+#' [`summary.lme.morph()`] and [`plot.lme.morph()`] to provide standard errors,
+#' confidence intervals, and p-values based on bootstrapping rather than
+#' asymptotic approximations.
+#' 
+#' @param B An integer, providing the number of bootstrap resamples.
+#' @inheritParams summary.lme.morph sim.morph control
+#'
+#' @return The original object, with additional bootstrapping
+#'     information that can be used by [`summary.lme.morph()`] and
+#'     [`plot.lme.morph()`]
+#' @export
+boot.morph <- function(object, B = 1000, control = NULL,
+                       progressbar = TRUE, n.cores = 1,){
+    ## Extracting data.
+    data <- object$data
+    ## Extracting the first three columns.
+    data.design <- data.frame(data$animal.id, data$photo.id, data$dim)
+    ## Extracting estimates.
+    est <- object$vcov$est
+    mus <- est[substr(names(est), 1, 2) == "mu"]
+    sigmas <- est[substr(names(est), 1, 5) == "sigma"]
+    rhos <- est[substr(names(est), 1, 3) == "rho"]
+    psis <- est[substr(names(est), 1, 3) == "psi"]
+    phis <- est[substr(names(est), 1, 3) == "phi"]
+    ## If not provided, using the control argument from the original
+    ## model.
+    if (is.null(control)){
+        control <- object$control
+    }
+    ## Simulating data and fitting models.
+    sim.obj <- sim.morph(n.sims = B, data = data.design,
+                         mus = mus, sigmas = sigmas, rhos = rhos,
+                         psis = psis, phis = phis,
+                         log.transform = object$log.transform,
+                         method = object$method,
+                         control = control)
+    sim.obj
 }
