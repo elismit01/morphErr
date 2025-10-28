@@ -30,21 +30,28 @@
 #'     each one specifies the number of photos for an individual. If
 #'     there is one element, then that number of photos is used for
 #'     all animals.
-#' @param m Integer. The number of dimensions.
-#' @param mus A vector with `m` elements providing the means of the
-#'     true dimension sizes in the population.
-#' @param sigmas A vector with `m` elements providing the standard
-#'     deviations for true dimension sizes in the population.
+#' @param mus A vector with an element for each dimension, providing
+#'     the means of the true dimension sizes in the population.
+#' @param sigmas A vector with an element for each dimension,
+#'     providing the standard deviations for true dimension sizes in
+#'     the population.
 #' @param rhos A vector, with one element for each pair of dimensions,
 #'     providing the pairwise correlations between true dimension
 #'     sizes in the population. See 'Details' for the correct order
 #'     for the correlations.
-#' @param psis A vector with `m` elements, providing the standard
-#'     deviations of measurement errors for the dimensions.
+#' @param psis A vector with an element for each dimension, providing
+#'     the standard deviations of measurement errors for the
+#'     dimensions.
 #' @param phis A vector, with one element for each pair of dimensions,
 #'     providing the pairwise correlations between measurement errors
 #'     for the dimensions. See 'Details' for the correct order for the
 #'     correlations.
+#' @param photo.prob.missing A vector, with one element for each
+#'     dimension, providing the probablility that its measurement is
+#'     missing from a photograph.
+#' @param individual.prob.missing A vector, with one element for each
+#'     dimension, providing the probability that its measurement will
+#'     be missing from all photographs from an individual animal.
 #' @param log.transform Logical. If `TRUE`, the parameters are
 #'     considered to correspond to a model where the response was
 #'     log-transformed. The data frame returned by this function will
@@ -75,7 +82,7 @@
 #' @examples
 #' ## Simulating data for ten animals, with two photos each, measuring
 #' ## three dimensions.
-#' data <- sim.measurements(n.animals = 10, n.photos = 2, m = 3,
+#' data <- sim.measurements(n.animals = 10, n.photos = 2,
 #'                          mus = c(315, 150, 100),
 #'                          sigmas = c(25, 15, 10),
 #'                          rhos = c(0.85, 0.80, 0.75),
@@ -84,9 +91,14 @@
 #' head(data)
 #'
 #' @export
-sim.measurements <- function(n.animals, n.photos, m, mus, sigmas,
-                             rhos, psis, phis, log.transform = FALSE){
-  # If n.photos is scalar, repliicate for all animals
+sim.measurements <- function(n.animals, n.photos, mus, sigmas, rhos,
+                             psis, phis,
+                             photo.prob.missing = rep(0, length(mus)),
+                             individual.prob.missing = rep(0, length(mus)),
+                             log.transform = FALSE){
+  ## Number of dimensions.
+  m <- length(mus)
+  ## If n.photos is scalar, repliicate for all animals
   if (length(n.photos) == 1){
     n.photos <- rep(n.photos, n.animals)
   } else {
@@ -97,13 +109,13 @@ sim.measurements <- function(n.animals, n.photos, m, mus, sigmas,
 
   pars <- c(mus, sigmas, rhos, psis, phis)
 
-  # Organise parameters into useful components
+  ## Organise parameters into useful components
   par.list <- organise.pars(pars, n.animals, n.photos, m, block.only = TRUE)
 
-  # Simulate true measurements for each animal
+  ## Simulate true measurements for each animal
   true.measurements <- rmvnorm(n.animals, par.list$mus, par.list$sigma)
 
-  # Simulate drone measurements for each photo
+  ## Simulate drone measurements for each photo
   drone.measurements <- vector("list", n.animals)
   for (i in 1:n.animals){
     drone.measurements[[i]] <- rmvnorm(n.photos[i],
@@ -111,7 +123,7 @@ sim.measurements <- function(n.animals, n.photos, m, mus, sigmas,
                                        par.list$xi)
   }
 
-  # Output data frame
+  ## Output data frame
   animal.id <- rep(rep(1:n.animals, n.photos), each = m)
   photo.id <- unlist(lapply(lapply(n.photos,
                                    function(x) 1:x),
@@ -121,12 +133,26 @@ sim.measurements <- function(n.animals, n.photos, m, mus, sigmas,
   if (log.transform){
     measurement <- exp(measurement)
   }      
-  data.frame(
-    animal.id = factor(animal.id),
-    photo.id = factor(photo.id),
-    dim = factor(dim),
-    measurement = measurement
-  )
+  out <- data.frame(animal.id = factor(animal.id), photo.id = factor(photo.id),
+                    dim = factor(dim), measurement = measurement)
+  ## Deleting measurements according to photo.prob.missing.
+  if (any(photo.prob.missing > 0)){  
+      keep <- rbinom(nrow(out), size = 1, prob = 1 - photo.prob.missing[dim])
+      out <- out[keep == 1, ]
+  }
+  ## Deleting meaurements according to individual.prob.missing.
+  if (any(individual.prob.missing > 0)){
+      keep <- rep(0, nrow(out))
+      for (i in unique(out$animal.id)){
+          for (j in 1:m){
+              if (rbinom(1, size = 1, prob = 1 - individual.prob.missing[j]) == 1){
+                  keep[out$animal.id == i & out$dim == levels(out$dim)[j]] <- 1
+              }
+          }
+      }
+      out <- out[keep == 1, ]
+  }
+  out
 }
 
 # -------------------------------------------------------------------------------------------------------
@@ -169,7 +195,10 @@ sim.measurements <- function(n.animals, n.photos, m, mus, sigmas,
 #'
 #' @export
 sim.morph <- function(n.sims, n.animals, n.photos, mus, sigmas, rhos, psis, phis,
-                      log.transform = FALSE, method = "REML", progressbar = TRUE, n.cores = 1){
+                      photo.prob.missing = rep(0, length(mus)),
+                      individual.prob.missing = rep(0, length(mus)),
+                      log.transform = FALSE, method = "REML", progressbar = TRUE,
+                      n.cores = 1){
   # If n.photos is scalar, then apply it to all individuals
   if (length(n.photos) == 1){
     n.photos <- rep(n.photos, n.animals)
@@ -200,8 +229,11 @@ sim.morph <- function(n.sims, n.animals, n.photos, mus, sigmas, rhos, psis, phis
   pars <- c(mus, sigmas, rhos, psis, phis)
 
   # Function for parallel processing
-  sim_one <- function(x, n.animals, n.photos, m, pars, log.transform, method){
-    data <- sim.measurements(n.animals, n.photos, m, mus, sigmas, rhos, psis, phis,
+  sim_one <- function(x, n.animals, n.photos, mus, sigmas, rhos, psis, phis,
+                      photo.prob.missing, individual.prob.missing, log.transform, method){
+    data <- sim.measurements(n.animals, n.photos, mus, sigmas, rhos, psis, phis,
+                             photo.prob.missing = photo.prob.missing,
+                             individual.prob.missing = individual.prob.missing,
                              log.transform = log.transform)
     try(fit.morph(data, log.transform = log.transform, method = method), silent = TRUE)
   }
@@ -214,7 +246,8 @@ sim.morph <- function(n.sims, n.animals, n.photos, mus, sigmas, rhos, psis, phis
       pb <- txtProgressBar(min = 0, max = n.sims, style = 3)
     }
     for (i in 1:n.sims){
-      fits[[i]] <- sim_one(i, n.animals, n.photos, m, pars, log.transform, method)
+      fits[[i]] <- sim_one(i, n.animals, n.photos, mus, sigmas, rhos, psis, phis,
+                           photo.prob.missing, individual.prob.missing, log.transform, method)
       if (progressbar){
         setTxtProgressBar(pb, i)
       }
@@ -226,8 +259,8 @@ sim.morph <- function(n.sims, n.animals, n.photos, mus, sigmas, rhos, psis, phis
     # Paralllel processing
     cl <- makeCluster(n.cores)
     on.exit(stopCluster(cl))
-    fits <- pblapply(1:n.sims, sim_one, n.animals, n.photos, m, pars,
-                     log.transform, method, cl = cl)
+    fits <- pblapply(1:n.sims, sim_one, n.animals, n.photos, mus, sigmas, rhos, psis, phis,
+                     photo.prob.missing, individual.prob.missing, log.transform, method, cl = cl)
   }
 
   # Preparing output
