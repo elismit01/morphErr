@@ -6,17 +6,17 @@
 \usage{
 sim.morph(
   n.sims,
-  n.animals,
-  n.photos,
+  n.animals = NULL,
+  n.photos = NULL,
+  data = NULL,
   mus,
   sigmas,
   rhos,
   psis,
   phis,
-  photo.prob.missing = rep(0, length(mus)),
-  individual.prob.missing = rep(0, length(mus)),
   log.transform = FALSE,
   method = "REML",
+  control = list(maxIter = 1e+05, msMaxIter = 1e+05),
   progressbar = TRUE,
   n.cores = 1
 )
@@ -30,6 +30,11 @@ sim.morph(
 each one specifies the number of photos for an individual. If
 there is one element, then that number of photos is used for
 all animals.}
+
+\item{data}{A data frame with columns \code{animal.id}, \code{photo.id}, and
+\code{dim}, provided instead of \code{n.animals} and \code{n.photos}. This
+provides the user with full control over which dimensions are
+measured in which photos from which animals.}
 
 \item{mus}{A vector with an element for each dimension, providing
 the means of the true dimension sizes in the population.}
@@ -52,14 +57,6 @@ providing the pairwise correlations between measurement errors
 for the dimensions. See 'Details' for the correct order for the
 correlations.}
 
-\item{photo.prob.missing}{A vector, with one element for each
-dimension, providing the probablility that its measurement is
-missing from a photograph.}
-
-\item{individual.prob.missing}{A vector, with one element for each
-dimension, providing the probability that its measurement will
-be missing from all photographs from an individual animal.}
-
 \item{log.transform}{Logical. If \code{TRUE}, the parameters are
 considered to correspond to a model where the response was
 log-transformed. The data frame returned by this function will
@@ -68,6 +65,10 @@ contain the back-transformed measurments.}
 \item{method}{A character string indicating the objective function
 used to fit the model. Either \code{"ML"} for maximum likelihood or
 \code{"REML"} for restricted maximum likelihood.}
+
+\item{control}{A list of control values for the estimation
+algorithm to replace the default values returned by the
+function \code{\link[nlme:lmeControl]{nlme::lmeControl()}}.}
 
 \item{progressbar}{Logical. If \code{TRUE} a progress bar will be
 displayed.}

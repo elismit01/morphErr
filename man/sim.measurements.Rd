@@ -5,15 +5,14 @@
 \title{Simulate Morphometric Measurements}
 \usage{
 sim.measurements(
-  n.animals,
-  n.photos,
+  n.animals = NULL,
+  n.photos = NULL,
+  data = NULL,
   mus,
   sigmas,
   rhos,
   psis,
   phis,
-  photo.prob.missing = rep(0, length(mus)),
-  individual.prob.missing = rep(0, length(mus)),
   log.transform = FALSE
 )
 }
@@ -24,6 +23,11 @@ sim.measurements(
 each one specifies the number of photos for an individual. If
 there is one element, then that number of photos is used for
 all animals.}
+
+\item{data}{A data frame with columns \code{animal.id}, \code{photo.id}, and
+\code{dim}, provided instead of \code{n.animals} and \code{n.photos}. This
+provides the user with full control over which dimensions are
+measured in which photos from which animals.}
 
 \item{mus}{A vector with an element for each dimension, providing
 the means of the true dimension sizes in the population.}
@@ -45,14 +49,6 @@ dimensions.}
 providing the pairwise correlations between measurement errors
 for the dimensions. See 'Details' for the correct order for the
 correlations.}
-
-\item{photo.prob.missing}{A vector, with one element for each
-dimension, providing the probablility that its measurement is
-missing from a photograph.}
-
-\item{individual.prob.missing}{A vector, with one element for each
-dimension, providing the probability that its measurement will
-be missing from all photographs from an individual animal.}
 
 \item{log.transform}{Logical. If \code{TRUE}, the parameters are
 considered to correspond to a model where the response was
@@ -89,9 +85,9 @@ For arguments \code{rhos} and \code{phis}, the elements must be
 ordered so that all \eqn{m - 1} correlations involving
 dimension 1 appear first in ascending numerical order, followed
 by all remaining \eqn{m - 2} correlations involving dimension
-2, and so on.
+2, and so on, where \verb{eqn\{m\}} is the number of dimensions.
 
-For example, if \code{m = 4}, then the first three elements are the
+For example, if \eqn{m = 4}, then the first three elements are the
 correlations between dimension 1 and dimensions 2, 3, and 4,
 respectively. The following two elements are correlations between
 dimension 2 and dimensions 3 and 4, respectively. The final element
@@ -100,13 +96,27 @@ is the correlation between dimension 3 and 4.
 \examples{
 ## Simulating data for ten animals, with two photos each, measuring
 ## three dimensions.
-data <- sim.measurements(n.animals = 10, n.photos = 2,
-                         mus = c(315, 150, 100),
-                         sigmas = c(25, 15, 10),
-                         rhos = c(0.85, 0.80, 0.75),
-                         psis = c(10, 6, 4),
-                         phis = c(0.5, 0.4, 0.3))
-head(data)
+sim.data <- sim.measurements(n.animals = 10, n.photos = 2,
+                             mus = c(315, 150, 100),
+                             sigmas = c(25, 15, 10),
+                             rhos = c(0.85, 0.80, 0.75),
+                             psis = c(10, 6, 4),
+                             phis = c(0.5, 0.4, 0.3))
+head(sim.data)
+
+## Simulating data for two animals, with different numbers of
+## photos for each, and different measurements available from
+## different photos.
+data <- data.frame(animal.id = c(1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2),
+                   photo.id = c(1, 1, 2, 2, 2, 1, 2, 3, 3, 4, 4),
+                   dim = c(1, 3, 1, 2, 3, 1, 1, 1, 3, 2, 3))
+sim.data <- sim.measurements(data = data,
+                             mus = c(315, 150, 100),
+                             sigmas = c(25, 15, 10),
+                             rhos = c(0.85, 0.80, 0.75),
+                             psis = c(10, 6, 4),
+                             phis = c(0.5, 0.4, 0.3))
+sim.data
 
 }
 \seealso{
