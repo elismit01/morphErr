@@ -108,6 +108,21 @@ sim.measurements <- function(n.animals = NULL, n.photos = NULL,
                              phis, log.transform = FALSE){
     ## Number of dimensions.
     m <- length(mus)
+
+    ## Parameter validation
+    if (length(sigmas) != m){
+        stop("The 'sigmas' argument must have an element for each dimension.")
+    }
+    if (length(psis) != m){
+        stop("The 'psis' argument must have an element for each dimension.")
+    }
+    if (length(rhos) != sum(1:(m - 1))){
+        stop("The 'rhos' argument must have an element for each pair of dimensions.")
+    }
+    if (length(phis) != sum(1:(m - 1))){
+        stop("The 'phis' argument must have an element for each pair of dimensions.")
+    }
+    
     ## Sorting out data structure.
     if (is.null(data)){
         if (is.null(n.animals) | is.null(n.photos)){
@@ -214,42 +229,21 @@ sim.measurements <- function(n.animals = NULL, n.photos = NULL,
 #' extract.sim.morph(sim.fits, FUN = iso.p)
 #'
 #' @export
-sim.morph <- function(n.sims, n.animals, n.photos, mus, sigmas, rhos, psis, phis,
-                      log.transform = FALSE, method = "REML", progressbar = TRUE,
-                      n.cores = 1){
-  # If n.photos is scalar, then apply it to all individuals
-  if (length(n.photos) == 1){
-    n.photos <- rep(n.photos, n.animals)
-  } else {
-    if (length(n.photos) != n.animals){
-      stop("The length of 'n.photos' should be equal to 'n.animals'.")
-    }
-  }
+sim.morph <- function(n.sims, n.animals = NULL, n.photos = NULL,
+                      data = NULL, mus, sigmas, rhos, psis, phis,
+                      log.transform = FALSE, method = "REML",
+                      progressbar = TRUE, n.cores = 1){
 
   # Number of dimensions
   m <- length(mus)
-
-  # Parameter validation
-  if (length(sigmas) != m){
-    stop("The 'sigmas' argument must have an element for each dimension.")
-  }
-  if (length(psis) != m){
-    stop("The 'psis' argument must have an element for each dimension.")
-  }
-  if (length(rhos) != sum(1:(m - 1))){
-    stop("The 'rhos' argument must have an element for each pair of dimensions.")
-  }
-  if (length(phis) != sum(1:(m - 1))){
-    stop("The 'phis' argument must have an element for each pair of dimensions.")
-  }
 
   # Combine parameters into vector
   pars <- c(mus, sigmas, rhos, psis, phis)
 
   # Function for parallel processing
-  sim_one <- function(x, n.animals, n.photos, mus, sigmas, rhos, psis, phis,
+  sim_one <- function(x, n.animals, n.photos, data,  mus, sigmas, rhos, psis, phis,
                       log.transform, method){
-    data <- sim.measurements(n.animals, n.photos, mus, sigmas, rhos, psis, phis,
+    data <- sim.measurements(n.animals, n.photos, data, mus, sigmas, rhos, psis, phis,
                              log.transform = log.transform)
     try(fit.morph(data, log.transform = log.transform, method = method), silent = TRUE)
   }
@@ -262,7 +256,7 @@ sim.morph <- function(n.sims, n.animals, n.photos, mus, sigmas, rhos, psis, phis
       pb <- txtProgressBar(min = 0, max = n.sims, style = 3)
     }
     for (i in 1:n.sims){
-      fits[[i]] <- sim_one(i, n.animals, n.photos, mus, sigmas, rhos, psis, phis,
+      fits[[i]] <- sim_one(i, n.animals, n.photos, data, mus, sigmas, rhos, psis, phis,
                            log.transform, method)
       if (progressbar){
         setTxtProgressBar(pb, i)
@@ -275,7 +269,7 @@ sim.morph <- function(n.sims, n.animals, n.photos, mus, sigmas, rhos, psis, phis
     # Paralllel processing
     cl <- makeCluster(n.cores)
     on.exit(stopCluster(cl))
-    fits <- pblapply(1:n.sims, sim_one, n.animals, n.photos, mus, sigmas, rhos, psis, phis,
+    fits <- pblapply(1:n.sims, sim_one, n.animals, n.photos, data, mus, sigmas, rhos, psis, phis,
                      log.transform, method, cl = cl)
   }
 
@@ -284,6 +278,7 @@ sim.morph <- function(n.sims, n.animals, n.photos, mus, sigmas, rhos, psis, phis
     n.sims = n.sims,
     n.animals = n.animals,
     n.photos = n.photos,
+    data = data,
     mus = mus,
     sigmas = sigmas,
     rhos = rhos,
