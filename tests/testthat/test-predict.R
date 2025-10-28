@@ -10,7 +10,9 @@ test_that("calc.betas handles input validation", {
   phis <- c(0.5, 0.4, 0.3)
   pars <- c(mus, sigmas, rhos, psis, phis)
 
-  data <- sim.measurements(10, rep(5, 10), mus, sigmas, rhos, psis, phis)
+  data <- sim.measurements(n.animals = 10, n.photos =  rep(5, 10),
+                           mus = mus, sigmas = sigmas, rhos = rhos,
+                           psis = psis, phis = phis)
   fit <- fit.morph(data)
 
   # Test PCA with multiple predicters
@@ -36,7 +38,9 @@ test_that("calc.betas handles different types correctly", {
   phis <- c(0.5, 0.4, 0.3)
   pars <- c(mus, sigmas, rhos, psis, phis)
 
-  data <- sim.measurements(10, rep(5, 10), mus, sigmas, rhos, psis, phis)
+  data <- sim.measurements(n.animals = 10, n.photos =  rep(5, 10),
+                           mus = mus, sigmas = sigmas, rhos = rhos,
+                           psis = psis, phis = phis)
   fit <- fit.morph(data)
 
   # Test lm type
@@ -64,7 +68,9 @@ test_that("predict.lme.morph handles input validation correctly", {
   phis <- c(0.5, 0.4, 0.3)
   pars <- c(mus, sigmas, rhos, psis, phis)
 
-  data <- sim.measurements(10, rep(5, 10), mus, sigmas, rhos, psis, phis)
+  data <- sim.measurements(n.animals = 10, n.photos =  rep(5, 10),
+                           mus = mus, sigmas = sigmas, rhos = rhos,
+                           psis = psis, phis = phis)
   fit <- fit.morph(data)
 
   # Test invalid object class
@@ -98,7 +104,9 @@ test_that("predict.lme.morph handles predictions correctly", {
   phis <- c(0.5, 0.4, 0.3)
   pars <- c(mus, sigmas, rhos, psis, phis)
 
-  data <- sim.measurements(10, rep(5, 10), mus, sigmas, rhos, psis, phis)
+  data <- sim.measurements(n.animals = 10, n.photos =  rep(5, 10),
+                           mus = mus, sigmas = sigmas, rhos = rhos,
+                           psis = psis, phis = phis)
   fit <- fit.morph(data)
 
   # Test pred with newdata
@@ -126,7 +134,9 @@ test_that("predict.lme.morph handles no measurements case correctly", {
   phis <- c(0.5, 0.4, 0.3)
   pars <- c(mus, sigmas, rhos, psis, phis)
 
-  data <- sim.measurements(10, rep(5, 10), mus, sigmas, rhos, psis, phis)
+  data <- sim.measurements(n.animals = 10, n.photos =  rep(5, 10),
+                           mus = mus, sigmas = sigmas, rhos = rhos,
+                           psis = psis, phis = phis)
   fit <- fit.morph(data)
 
   # Test pred with no measurements
@@ -150,7 +160,9 @@ test_that("predict.lme.morph calculates standard errors correctly", {
   phis <- c(0.5, 0.4, 0.3)
   pars <- c(mus, sigmas, rhos, psis, phis)
 
-  data <- sim.measurements(10, rep(5, 10), mus, sigmas, rhos, psis, phis)
+  data <- sim.measurements(n.animals = 10, n.photos =  rep(5, 10),
+                           mus = mus, sigmas = sigmas, rhos = rhos,
+                           psis = psis, phis = phis)
   fit <- fit.morph(data)
 
   # Test w/newdata
@@ -173,7 +185,9 @@ test_that("predict.lme.morph handles multiple predictions correctly", {
   phis <- c(0.5, 0.4, 0.3)
   pars <- c(mus, sigmas, rhos, psis, phis)
 
-  data <- sim.measurements(10, rep(5, 10), mus, sigmas, rhos, psis, phis)
+  data <- sim.measurements(n.animals = 10, n.photos =  rep(5, 10),
+                           mus = mus, sigmas = sigmas, rhos = rhos,
+                           psis = psis, phis = phis)
   fit <- fit.morph(data)
 
   # Create multiple row newdata (6 vals each)
@@ -207,7 +221,9 @@ test_that("predict.lme.morph handles edge cases in multiple predictions", {
   psis <- c(10, 6, 4)
   phis <- c(0.5, 0.4, 0.3)
   pars <- c(mus, sigmas, rhos, psis, phis)
-  data <- sim.measurements(10, rep(5, 10), mus, sigmas, rhos, psis, phis)
+  data <- sim.measurements(n.animals = 10, n.photos =  rep(5, 10),
+                           mus = mus, sigmas = sigmas, rhos = rhos,
+                           psis = psis, phis = phis)
   fit <- fit.morph(data)
 
   # Test single row newdata works same
@@ -244,7 +260,9 @@ test_that("predictblup handles input validation correctly", {
   psis <- c(10, 6, 4)
   phis <- c(0.5, 0.4, 0.3)
   pars <- c(mus, sigmas, rhos, psis, phis)
-  data <- sim.measurements(10, rep(5, 10), mus, sigmas, rhos, psis, phis)
+  data <- sim.measurements(n.animals = 10, n.photos =  rep(5, 10),
+                           mus = mus, sigmas = sigmas, rhos = rhos,
+                           psis = psis, phis = phis)
   fit <- fit.morph(data)
 
   # Test invalid model object
@@ -277,7 +295,9 @@ test_that("predictblup handles predictions correctly", {
   psis <- c(10, 6, 4)
   phis <- c(0.5, 0.4, 0.3)
   pars <- c(mus, sigmas, rhos, psis, phis)
-  data <- sim.measurements(10, rep(5, 10), mus, sigmas, rhos, psis, phis)
+  data <- sim.measurements(n.animals = 10, n.photos =  rep(5, 10),
+                           mus = mus, sigmas = sigmas, rhos = rhos,
+                           psis = psis, phis = phis)
   fit <- fit.morph(data)
 
   # Test with named params
