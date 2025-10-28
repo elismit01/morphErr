@@ -17,9 +17,9 @@
 #'     ordered so that all \eqn{m - 1} correlations involving
 #'     dimension 1 appear first in ascending numerical order, followed
 #'     by all remaining \eqn{m - 2} correlations involving dimension
-#'     2, and so on.
+#'     2, and so on, where `eqn{m}` is the number of dimensions.
 #'
-#' For example, if `m = 4`, then the first three elements are the
+#' For example, if \eqn{m = 4}, then the first three elements are the
 #' correlations between dimension 1 and dimensions 2, 3, and 4,
 #' respectively. The following two elements are correlations between
 #' dimension 2 and dimensions 3 and 4, respectively. The final element
@@ -30,6 +30,10 @@
 #'     each one specifies the number of photos for an individual. If
 #'     there is one element, then that number of photos is used for
 #'     all animals.
+#' @param data A data frame with columns `animal.id`, `photo.id`, and
+#'     `dim`, provided instead of `n.animals` and `n.photos`. This
+#'     provides the user with full control over which dimensions are
+#'     measured in which photos from which animals.
 #' @param mus A vector with an element for each dimension, providing
 #'     the means of the true dimension sizes in the population.
 #' @param sigmas A vector with an element for each dimension,
@@ -46,12 +50,6 @@
 #'     providing the pairwise correlations between measurement errors
 #'     for the dimensions. See 'Details' for the correct order for the
 #'     correlations.
-#' @param photo.prob.missing A vector, with one element for each
-#'     dimension, providing the probablility that its measurement is
-#'     missing from a photograph.
-#' @param individual.prob.missing A vector, with one element for each
-#'     dimension, providing the probability that its measurement will
-#'     be missing from all photographs from an individual animal.
 #' @param log.transform Logical. If `TRUE`, the parameters are
 #'     considered to correspond to a model where the response was
 #'     log-transformed. The data frame returned by this function will
@@ -82,78 +80,100 @@
 #' @examples
 #' ## Simulating data for ten animals, with two photos each, measuring
 #' ## three dimensions.
-#' data <- sim.measurements(n.animals = 10, n.photos = 2,
-#'                          mus = c(315, 150, 100),
-#'                          sigmas = c(25, 15, 10),
-#'                          rhos = c(0.85, 0.80, 0.75),
-#'                          psis = c(10, 6, 4),
-#'                          phis = c(0.5, 0.4, 0.3))
-#' head(data)
+#' sim.data <- sim.measurements(n.animals = 10, n.photos = 2,
+#'                              mus = c(315, 150, 100),
+#'                              sigmas = c(25, 15, 10),
+#'                              rhos = c(0.85, 0.80, 0.75),
+#'                              psis = c(10, 6, 4),
+#'                              phis = c(0.5, 0.4, 0.3))
+#' head(sim.data)
+#' 
+#' ## Simulating data for two animals, with different numbers of
+#' ## photos for each, and different measurements available from
+#' ## different photos.
+#' data <- data.frame(animal.id = c(1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2),
+#'                    photo.id = c(1, 1, 2, 2, 2, 1, 2, 3, 3, 4, 4),
+#'                    dim = c(1, 3, 1, 2, 3, 1, 1, 1, 3, 2, 3))
+#' sim.data <- sim.measurements(data = data,
+#'                              mus = c(315, 150, 100),
+#'                              sigmas = c(25, 15, 10),
+#'                              rhos = c(0.85, 0.80, 0.75),
+#'                              psis = c(10, 6, 4),
+#'                              phis = c(0.5, 0.4, 0.3))
+#' sim.data
 #'
 #' @export
-sim.measurements <- function(n.animals, n.photos, mus, sigmas, rhos,
-                             psis, phis,
-                             photo.prob.missing = rep(0, length(mus)),
-                             individual.prob.missing = rep(0, length(mus)),
-                             log.transform = FALSE){
-  ## Number of dimensions.
-  m <- length(mus)
-  ## If n.photos is scalar, repliicate for all animals
-  if (length(n.photos) == 1){
-    n.photos <- rep(n.photos, n.animals)
-  } else {
-    if (length(n.photos) != n.animals){
-      stop("The length of 'n.photos' should be equal to 'n.animals'.")
+sim.measurements <- function(n.animals = NULL, n.photos = NULL,
+                             data = NULL, mus, sigmas, rhos, psis,
+                             phis, log.transform = FALSE){
+    ## Number of dimensions.
+    m <- length(mus)
+    ## Sorting out data structure.
+    if (is.null(data)){
+        if (is.null(n.animals) | is.null(n.photos)){
+            stop("Provide either 'data', or both 'n.animals' and 'n.photos'")
+        } else {
+            ## If n.photos is scalar, replicate for all animals
+            if (length(n.photos) == 1){
+                n.photos <- rep(n.photos, n.animals)
+            } else {
+                if (length(n.photos) != n.animals){
+                    stop("The length of 'n.photos' should be equal to 'n.animals'.")
+                }
+            }
+            data <- data.frame(animal.id = rep(rep(1:n.animals, times = n.photos), each = m),
+                               photo.id = rep(sequence(n.photos), each = m),
+                               dim = rep(1:m, sum(n.photos)))
+        }
+    } else {
+        ## Overwriting animal IDs to start at 1 and increment.
+        data$animal.id <- match(data$animal.id, unique(data$animal.id))
+        ## Total number of animals.
+        n.animals <- length(unique(data$animal.id))
+        ## Overwriting photo IDs to start at 1 and increment for each animal.
+        for (i in 1:n.animals){
+            data$photo.id[data$animal.id == i] <- match(data$photo.id[data$animal.id == i],
+                                                        unique(data$photo.id[data$animal.id == i]))
+        }
+        ## Total number of photographs per animal.
+        n.photos <- aggregate(photo.id ~ animal.id, data = data, FUN = function(x) length(unique(x)))$photo.id
     }
-  }
-
-  pars <- c(mus, sigmas, rhos, psis, phis)
-
-  ## Organise parameters into useful components
-  par.list <- organise.pars(pars, n.animals, n.photos, m, block.only = TRUE)
-
-  ## Simulate true measurements for each animal
-  true.measurements <- rmvnorm(n.animals, par.list$mus, par.list$sigma)
-
-  ## Simulate drone measurements for each photo
-  drone.measurements <- vector("list", n.animals)
-  for (i in 1:n.animals){
-    drone.measurements[[i]] <- rmvnorm(n.photos[i],
-                                       true.measurements[i, ],
-                                       par.list$xi)
-  }
-
-  ## Output data frame
-  animal.id <- rep(rep(1:n.animals, n.photos), each = m)
-  photo.id <- unlist(lapply(lapply(n.photos,
-                                   function(x) 1:x),
-                            function(x) rep(x, each = m)))
-  dim <- rep(1:m, sum(n.photos))
-  measurement <- unlist(lapply(drone.measurements, function(x) c(t(x))))
-  if (log.transform){
-    measurement <- exp(measurement)
-  }      
-  out <- data.frame(animal.id = factor(animal.id), photo.id = factor(photo.id),
-                    dim = factor(dim), measurement = measurement)
-  ## Deleting measurements according to photo.prob.missing.
-  if (any(photo.prob.missing > 0)){  
-      keep <- rbinom(nrow(out), size = 1, prob = 1 - photo.prob.missing[dim])
-      out <- out[keep == 1, ]
-  }
-  ## Deleting meaurements according to individual.prob.missing.
-  if (any(individual.prob.missing > 0)){
-      keep <- rep(0, nrow(out))
-      for (i in unique(out$animal.id)){
-          for (j in 1:m){
-              if (rbinom(1, size = 1, prob = 1 - individual.prob.missing[j]) == 1){
-                  keep[out$animal.id == i & out$dim == levels(out$dim)[j]] <- 1
-              }
-          }
-      }
-      out <- out[keep == 1, ]
-  }
-  out
+    pars <- c(mus, sigmas, rhos, psis, phis)
+    
+    ## Organise parameters into useful components
+    par.list <- organise.pars(pars, n.animals, n.photos, m, block.only = TRUE)
+    
+    ## Simulate true measurements for each animal
+    true.measurements <- rmvnorm(n.animals, par.list$mus, par.list$sigma)
+    
+    ## Simulate drone measurements for each photo
+    drone.measurements <- vector("list", n.animals)
+    for (i in 1:n.animals){
+        drone.measurements[[i]] <- rmvnorm(n.photos[i],
+                                           true.measurements[i, ],
+                                           par.list$xi)
+    }
+    
+    ## Creating full data frame.
+    full.animal.id <- rep(rep(1:n.animals, n.photos), each = m)
+    full.photo.id <- unlist(lapply(lapply(n.photos,
+                                          function(x) 1:x),
+                                   function(x) rep(x, each = m)))
+    full.dim <- rep(1:m, sum(n.photos))
+    full.measurement <- unlist(lapply(drone.measurements, function(x) c(t(x))))
+    full.df <- data.frame(animal.id = full.animal.id, photo.id = full.photo.id,
+                          dim = full.dim, measurement = full.measurement)
+    ## Checking which rows are required.
+    keep <- interaction(full.df$animal.id, full.df$photo.id, full.df$dim) %in%
+        interaction(data$animal.id, data$photo.id, data$dim)
+    ## Log-transforming measurements if required.
+    if (log.transform){
+        full.measurement <- exp(full.measurement)
+    }
+    ## Putting together the full data frame.
+    out <- cbind(data, measurement = full.measurement[keep])
 }
+
 
 # -------------------------------------------------------------------------------------------------------
 
@@ -195,8 +215,6 @@ sim.measurements <- function(n.animals, n.photos, mus, sigmas, rhos,
 #'
 #' @export
 sim.morph <- function(n.sims, n.animals, n.photos, mus, sigmas, rhos, psis, phis,
-                      photo.prob.missing = rep(0, length(mus)),
-                      individual.prob.missing = rep(0, length(mus)),
                       log.transform = FALSE, method = "REML", progressbar = TRUE,
                       n.cores = 1){
   # If n.photos is scalar, then apply it to all individuals
@@ -230,10 +248,8 @@ sim.morph <- function(n.sims, n.animals, n.photos, mus, sigmas, rhos, psis, phis
 
   # Function for parallel processing
   sim_one <- function(x, n.animals, n.photos, mus, sigmas, rhos, psis, phis,
-                      photo.prob.missing, individual.prob.missing, log.transform, method){
+                      log.transform, method){
     data <- sim.measurements(n.animals, n.photos, mus, sigmas, rhos, psis, phis,
-                             photo.prob.missing = photo.prob.missing,
-                             individual.prob.missing = individual.prob.missing,
                              log.transform = log.transform)
     try(fit.morph(data, log.transform = log.transform, method = method), silent = TRUE)
   }
@@ -247,7 +263,7 @@ sim.morph <- function(n.sims, n.animals, n.photos, mus, sigmas, rhos, psis, phis
     }
     for (i in 1:n.sims){
       fits[[i]] <- sim_one(i, n.animals, n.photos, mus, sigmas, rhos, psis, phis,
-                           photo.prob.missing, individual.prob.missing, log.transform, method)
+                           log.transform, method)
       if (progressbar){
         setTxtProgressBar(pb, i)
       }
@@ -260,7 +276,7 @@ sim.morph <- function(n.sims, n.animals, n.photos, mus, sigmas, rhos, psis, phis
     cl <- makeCluster(n.cores)
     on.exit(stopCluster(cl))
     fits <- pblapply(1:n.sims, sim_one, n.animals, n.photos, mus, sigmas, rhos, psis, phis,
-                     photo.prob.missing, individual.prob.missing, log.transform, method, cl = cl)
+                     log.transform, method, cl = cl)
   }
 
   # Preparing output
