@@ -204,6 +204,7 @@ fit.morph <- function(data, log.transform = FALSE,
   fit$vcov <- vcov(fit)
   fit$log.transform <- log.transform
   fit$control <- control
+  fit$boot <- FALSE
   return(fit)
 }
 
@@ -229,7 +230,9 @@ boot.morph <- function(object, B = 1000, control = NULL,
     ## Extracting data.
     data <- object$data
     ## Extracting the first three columns.
-    data.design <- data.frame(data$animal.id, data$photo.id, data$dim)
+    data.design <- data.frame(animal.id = data$animal.id,
+                              photo.id = data$photo.id,
+                              dim = data$dim)
     ## Extracting estimates.
     est <- object$vcov$est
     mus <- est[substr(names(est), 1, 2) == "mu"]
@@ -243,11 +246,13 @@ boot.morph <- function(object, B = 1000, control = NULL,
         control <- object$control
     }
     ## Simulating data and fitting models.
-    sim.obj <- sim.morph(n.sims = B, data = data.design,
-                         mus = mus, sigmas = sigmas, rhos = rhos,
-                         psis = psis, phis = phis,
-                         log.transform = object$log.transform,
-                         method = object$method,
-                         control = control)
-    sim.obj
+    object$boot.fits <- sim.morph(n.sims = B, data = data.design,
+                                  mus = mus, sigmas = sigmas, rhos = rhos,
+                                  psis = psis, phis = phis,
+                                  log.transform = object$log.transform,
+                                  method = object$method,
+                                  control = control, progressbar = progressbar,
+                                  n.cores = n.cores)
+    object$boot <- TRUE
+    object
 }

@@ -260,6 +260,8 @@ summary.lme.morph <- function(object, ..., type = "pars", y.dim, x.dim, B = 1000
 
   ## Indicator for whether the model involved a log transformation.
   log.transform <- object$log.transform
+  ## Indicator for whether or not we have bootstrapping.
+  boot <- object$boot
     
   vcov.obj <- object$vcov
   ## Get estimates

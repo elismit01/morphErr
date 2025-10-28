@@ -179,8 +179,8 @@ sim.measurements <- function(n.animals = NULL, n.photos = NULL,
     full.df <- data.frame(animal.id = full.animal.id, photo.id = full.photo.id,
                           dim = full.dim, measurement = full.measurement)
     ## Checking which rows are required.
-    keep <- interaction(full.df$animal.id, full.df$photo.id, full.df$dim) %in%
-        interaction(data$animal.id, data$photo.id, data$dim)
+    keep <- match(interaction(data$animal.id, data$photo.id, data$dim),
+                  interaction(full.df$animal.id, full.df$photo.id, full.df$dim))
     ## Log-transforming measurements if required.
     if (log.transform){
         full.measurement <- exp(full.measurement)
@@ -246,10 +246,11 @@ sim.morph <- function(n.sims, n.animals = NULL, n.photos = NULL,
   # Function for parallel processing
   sim_one <- function(x, n.animals, n.photos, data,  mus, sigmas, rhos, psis, phis,
                       log.transform, method, control){
-    data <- sim.measurements(n.animals, n.photos, data, mus, sigmas, rhos, psis, phis,
-                             log.transform = log.transform)
-    try(fit.morph(data, log.transform = log.transform, method = method, control = control),
-        silent = TRUE)
+      data <- sim.measurements(n.animals = n.animals, n.photos = n.photos, data = data,
+                               mus = mus, sigmas = sigmas, rhos = rhos, psis = psis,
+                               phis = phis, log.transform = log.transform)
+      try(fit.morph(data, log.transform = log.transform, method = method, control = control),
+          silent = TRUE)
   }
 
   # Running simulations
