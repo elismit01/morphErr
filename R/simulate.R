@@ -232,6 +232,8 @@ sim.measurements <- function(n.animals = NULL, n.photos = NULL,
 sim.morph <- function(n.sims, n.animals = NULL, n.photos = NULL,
                       data = NULL, mus, sigmas, rhos, psis, phis,
                       log.transform = FALSE, method = "REML",
+                      control = list(maxIter = 100000,
+                                     msMaxIter = 100000),
                       progressbar = TRUE, n.cores = 1){
 
   # Number of dimensions
@@ -242,10 +244,11 @@ sim.morph <- function(n.sims, n.animals = NULL, n.photos = NULL,
 
   # Function for parallel processing
   sim_one <- function(x, n.animals, n.photos, data,  mus, sigmas, rhos, psis, phis,
-                      log.transform, method){
+                      log.transform, method, control){
     data <- sim.measurements(n.animals, n.photos, data, mus, sigmas, rhos, psis, phis,
                              log.transform = log.transform)
-    try(fit.morph(data, log.transform = log.transform, method = method), silent = TRUE)
+    try(fit.morph(data, log.transform = log.transform, method = method, control = control),
+        silent = TRUE)
   }
 
   # Running simulations
@@ -257,7 +260,7 @@ sim.morph <- function(n.sims, n.animals = NULL, n.photos = NULL,
     }
     for (i in 1:n.sims){
       fits[[i]] <- sim_one(i, n.animals, n.photos, data, mus, sigmas, rhos, psis, phis,
-                           log.transform, method)
+                           log.transform, method, control)
       if (progressbar){
         setTxtProgressBar(pb, i)
       }
@@ -270,7 +273,7 @@ sim.morph <- function(n.sims, n.animals = NULL, n.photos = NULL,
     cl <- makeCluster(n.cores)
     on.exit(stopCluster(cl))
     fits <- pblapply(1:n.sims, sim_one, n.animals, n.photos, data, mus, sigmas, rhos, psis, phis,
-                     log.transform, method, cl = cl)
+                     log.transform, method, control, cl = cl)
   }
 
   # Preparing output
@@ -285,7 +288,8 @@ sim.morph <- function(n.sims, n.animals = NULL, n.photos = NULL,
     psis = psis,
     phis = phis,
     log.transform = log.transform,
-    method = method
+    method = method,
+    control = control
   )
   converged <- sapply(fits, function(x) class(x)[1] != "try-error")
   n.not.converged <- sum(!converged)
