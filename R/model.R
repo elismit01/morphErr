@@ -240,7 +240,7 @@ boot.morph <- function(object, B = 1000, control = NULL,
                                   log.transform = object$log.transform,
                                   method = object$method,
                                   control = control, progressbar = progressbar,
-                                  n.cores = n.cores)
+                                  n.cores = n.cores)$fits
     object$boot <- TRUE
     object
 }

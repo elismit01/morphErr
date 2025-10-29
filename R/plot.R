@@ -245,6 +245,12 @@ plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
     if (log.transform){
         data$measurement <- exp(data$measurement)
     }
+
+    ## Indicator for whether or not we have bootstrapping.
+    boot <- x$boot
+    if (boot){
+        ests.boot <- sapply(x$boot.fits, function(x) x$vcov$est)
+    }
     
     ## Basic data plot if requested
     if (type == "data") {
@@ -254,10 +260,10 @@ plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
                       xlab = xlab, ylab = ylab,
                       dims = dims)
         }
-
+        
         ## Get plot limits if not provided
         xlim <- par("usr")[c(1, 2)]
-
+        
         ## Add lines if requested
         if (line.type != "none") {
             ## Get coefficients + check they exist
@@ -268,11 +274,11 @@ plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
                 betas <- summary(x, type = "betas-pca",
                                  y.dim = dims[2], x.dim = dims[1])
             }
-
+            
             if (!is.matrix(betas) || nrow(betas) < 2) {
                 return(invisible())
             }
-
+            
             ## Draw line (if coefs valid)
             if (!is.na(betas[1,1]) && !is.na(betas[2,1]) && betas[2,1] != 0) {
                 ## First main line
@@ -292,20 +298,35 @@ plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
                         newdata <- data.frame(x = log.dim1.xx)
                         names(newdata) <- paste0("dim", dims[1])
 
-                        ## Get preds
-                        preds <- if (line.type == "lm") {
-                                     predict(x, y.dim = dims[2], newdata = newdata)
-                                 } else {
-                                     predict(x, y.dim = dims[2], newdata = newdata, type = "pca")
-                                 }
-                        ## Only add lines if gt valid preds
-                        if (is.matrix(preds) && nrow(preds) == length(dim1.xx)) {
-                            log.preds.upper <- preds[, 1] + qnorm(0.975)*preds[, 2]
-                            log.preds.lower <- preds[, 1] - qnorm(0.975)*preds[, 2]
-                            preds.upper <- exp(log.preds.upper)
-                            preds.lower <- exp(log.preds.lower)
-                            lines(dim1.xx, preds.upper, lty = "dotted")
-                            lines(dim1.xx, preds.lower, lty = "dotted")
+                        if (boot){
+                            betas.boot <- apply(ests.boot, 2, function(xest){
+                                calc.betas(fit = x, est = xest, stders = FALSE,
+                                           y.dim = dims[2], x.dim = dims[1], type = line.type)
+                            })
+                            preds.boot <- exp(betas.boot[1, ] + outer(betas.boot[2, ], log.dim1.xx, `*`))
+                            level <- 0.95
+                            preds.ci <- apply(preds.boot, 2, quantile,
+                                              probs = c((1 - level)/2, 1 - (1 - level)/2))
+                            preds.lower <- preds.ci[1, ]
+                            preds.upper <- preds.ci[2, ]
+                            lines(dim1.xx, preds.upper, lty = "dotted", ...)
+                            lines(dim1.xx, preds.lower, lty = "dotted", ...)
+                        } else { 
+                            ## Get preds
+                            preds <- if (line.type == "lm") {
+                                         predict(x, y.dim = dims[2], newdata = newdata)
+                                     } else {
+                                         predict(x, y.dim = dims[2], newdata = newdata, type = "pca")
+                                     }
+                            ## Only add lines if gt valid preds
+                            if (is.matrix(preds) && nrow(preds) == length(dim1.xx)) {
+                                log.preds.upper <- preds[, 1] + qnorm(0.975)*preds[, 2]
+                                log.preds.lower <- preds[, 1] - qnorm(0.975)*preds[, 2]
+                                preds.upper <- exp(log.preds.upper)
+                                preds.lower <- exp(log.preds.lower)
+                                lines(dim1.xx, preds.upper, lty = "dotted")
+                                lines(dim1.xx, preds.lower, lty = "dotted")
+                            }
                         }
                     }
                 } else {
@@ -319,24 +340,38 @@ plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
                     if (confints) {
                         ## Sequence of x values
                         dim1.xx <- seq(xlim[1], xlim[2], length.out = 1000)
-
                         ## Prediction data frame
                         newdata <- data.frame(x = dim1.xx)
                         names(newdata) <- paste0("dim", dims[1])
-
-                        ## Get preds
-                        preds <- if (line.type == "lm") {
-                                     predict(x, y.dim = dims[2], newdata = newdata)
-                                 } else {
-                                     predict(x, y.dim = dims[2], newdata = newdata, type = "pca")
-                                 }
-
-                        ## Only add lines if gt valid preds
-                        if (is.matrix(preds) && nrow(preds) == length(dim1.xx)) {
-                            preds.upper <- preds[, 1] + qnorm(0.975)*preds[, 2]
-                            preds.lower <- preds[, 1] - qnorm(0.975)*preds[, 2]
-                            lines(dim1.xx, preds.upper, lty = "dotted")
-                            lines(dim1.xx, preds.lower, lty = "dotted")
+                        
+                        if (boot){
+                            betas.boot <- apply(ests.boot, 2, function(xest){
+                                calc.betas(fit = x, est = xest, stders = FALSE,
+                                           y.dim = dims[2], x.dim = dims[1], type = line.type)
+                            })
+                            preds.boot <- betas.boot[1, ] + outer(betas.boot[2, ], dim1.xx, `*`)
+                            level <- 0.95
+                            preds.ci <- apply(preds.boot, 2, quantile,
+                                              probs = c((1 - level)/2, 1 - (1 - level)/2))
+                            preds.lower <- preds.ci[1, ]
+                            preds.upper <- preds.ci[2, ]
+                            lines(dim1.xx, preds.upper, lty = "dotted", ...)
+                            lines(dim1.xx, preds.lower, lty = "dotted", ...)
+                        } else {               
+                            ## Get preds
+                            preds <- if (line.type == "lm") {
+                                         predict(x, y.dim = dims[2], newdata = newdata)
+                                     } else {
+                                         predict(x, y.dim = dims[2], newdata = newdata, type = "pca")
+                                     }
+                            
+                            ## Only add lines if gt valid preds
+                            if (is.matrix(preds) && nrow(preds) == length(dim1.xx)) {
+                                preds.upper <- preds[, 1] + qnorm(0.975)*preds[, 2]
+                                preds.lower <- preds[, 1] - qnorm(0.975)*preds[, 2]
+                                lines(dim1.xx, preds.upper, lty = "dotted", ...)
+                                lines(dim1.xx, preds.lower, lty = "dotted", ...)
+                            }
                         }
                     }
                 }
@@ -349,24 +384,39 @@ plot.lme.morph <- function(x, dims = c(1, 2), type = "data",
                       xlab = xlab, ylab = ylab,
                       dims = dims)
         }
-
+        
         ## plot limits if not specified
         xlim <- par("usr")[c(1, 2)]
-
+        
         if (line.type != "none") {
-            xx <- seq(xlim[1], xlim[2], length.out = 1000)
-            preds <- calc.conditional.ratio(x, y.dim = dims[2],
-                                            x.dim = dims[1],
-                                            newdata.x.dim = xx,
-                                            type = line.type)
-            if (is.matrix(preds)) {
-                lines(xx, preds[, 1], ...)
-
-                if (confints) {
-                    lines(xx, preds[, 1] + qnorm(0.975)*preds[, 2],
-                          lty = "dotted", ...)
-                    lines(xx, preds[, 1] - qnorm(0.975)*preds[, 2],
-                          lty = "dotted", ...)
+            xx <- seq(xlim[1], xlim[2], length.out = 100)
+            if (boot){
+                preds.boot <- sapply(x$boot.fits, function(x){
+                    calc.conditional.ratio(x, stders = FALSE, y.dim = dims[2],
+                                           x.dim = dims[1], newdata.x.dim = xx,
+                                           type = line.type)
+                })
+                level <- 0.95
+                preds.ci <- apply(preds.boot, 1, quantile,
+                                  probs = c((1 - level)/2, 1 - (1 - level)/2))
+                preds.lower <- preds.ci[1, ]
+                preds.upper <- preds.ci[2, ]
+                lines(xx, preds.upper, lty = "dotted", ...)
+                lines(xx, preds.lower, lty = "dotted", ...)
+            } else {
+                preds <- calc.conditional.ratio(x, y.dim = dims[2],
+                                                x.dim = dims[1],
+                                                newdata.x.dim = xx,
+                                                type = line.type)
+                if (is.matrix(preds)) {
+                    lines(xx, preds[, 1], ...)
+                    
+                    if (confints) {
+                        lines(xx, preds[, 1] + qnorm(0.975)*preds[, 2],
+                              lty = "dotted", ...)
+                        lines(xx, preds[, 1] - qnorm(0.975)*preds[, 2],
+                              lty = "dotted", ...)
+                    }
                 }
             }
         }

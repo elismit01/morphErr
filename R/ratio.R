@@ -19,7 +19,7 @@
 #' Can use either linear model or PCA interpretation for the calculations.
 #'
 #' @keywords internal
-calc.conditional.ratio <- function(fit, y.dim, x.dim, newdata.x.dim, type = "lm") {
+calc.conditional.ratio <- function(fit, stders = TRUE, y.dim, x.dim, newdata.x.dim, type = "lm") {
     ## Input validation
     if (!inherits(fit, "lme.morph")) {
         stop("'fit' must be an object of class 'lme.morph'")
@@ -45,10 +45,7 @@ calc.conditional.ratio <- function(fit, y.dim, x.dim, newdata.x.dim, type = "lm"
     par.list <- list(mus = mus, sigmas = sigmas, rhos = rhos, psis = psis, phis = phis)
     par.vec <- unlist(par.list)
 
-    ## Initialise gradient matric
-    conditional.ratios.gr <- matrix(0, nrow = length(newdata.x.dim), ncol = length(par.vec))
-
-    if (type == "lm") {
+    if (type == "lm"){
         ## Extracting the correct rho.
         rho.name <- paste0("rho", sort(c(x.dim, y.dim))[1], ",", sort(c(x.dim, y.dim))[2])
         rho <- rhos[rho.name]
@@ -56,62 +53,79 @@ calc.conditional.ratio <- function(fit, y.dim, x.dim, newdata.x.dim, type = "lm"
             ## Estimates for every x-value.
             conditional.ratios.est <- exp(mus[y.dim])*
                 exp(rho*sigmas[y.dim]*(log(newdata.x.dim) - mus[x.dim])/sigmas[x.dim])/newdata.x.dim
-            ## Gradients for every x-value.
-            conditional.ratios.gr[, names(est) == paste0("mu", y.dim)] <- conditional.ratios.est
-            conditional.ratios.gr[, names(est) == paste0("mu", x.dim)] <- -rho*sigmas[y.dim]/sigmas[x.dim]*conditional.ratios.est
-            conditional.ratios.gr[, names(est) == paste0("sigma", y.dim)] <- rho*(log(newdata.x.dim) - mus[x.dim])/sigmas[x.dim]*conditional.ratios.est
-            conditional.ratios.gr[, names(est) == paste0("sigma", x.dim)] <- -rho*sigmas[y.dim]*(log(newdata.x.dim) - mus[x.dim])/sigmas[x.dim]^2*conditional.ratios.est
-            conditional.ratios.gr[, names(est) == rho.name] <- sigmas[y.dim]*(log(newdata.x.dim) - mus[x.dim])/sigmas[x.dim]*conditional.ratios.est
         } else {
             ## Estimates for every x-value.
             conditional.ratios.est <- mus[y.dim]/newdata.x.dim +
                 rho*sigmas[y.dim]/sigmas[x.dim]*(1 - mus[x.dim]/newdata.x.dim)
-            ## Gradients for every x-value.
-            conditional.ratios.gr[, names(est) == paste0("mu", y.dim)] <- 1/newdata.x.dim
-            conditional.ratios.gr[, names(est) == paste0("mu", x.dim)] <-
-                -rho*sigmas[y.dim]/(sigmas[x.dim]*newdata.x.dim)
-            conditional.ratios.gr[, names(est) == paste0("sigma", y.dim)] <-
-                rho/sigmas[x.dim] - rho*mus[x.dim]/(sigmas[x.dim]*newdata.x.dim)
-            conditional.ratios.gr[, names(est) == paste0("sigma", x.dim)] <-
-                -rho*sigmas[y.dim]/(sigmas[x.dim]^2) +
-                rho*sigmas[y.dim]*mus[x.dim]/(sigmas[x.dim]^2*newdata.x.dim)
-            conditional.ratios.gr[, names(est) == rho.name] <-
-                sigmas[y.dim]/sigmas[x.dim] -
-                sigmas[y.dim]*mus[x.dim]/(sigmas[x.dim]*newdata.x.dim)
         }
-    } else if (type == "pca") {
+    } else if (type == "pca"){
         if (fit$log.transform){
             ## Estimates for every x-value. 
             conditional.ratios.est <- exp(mus[y.dim])*
                 exp(sigmas[y.dim]*(log(newdata.x.dim) - mus[x.dim])/sigmas[x.dim])/newdata.x.dim
-            ## Gradients for every x-value.
-            conditional.ratios.gr[, names(est) == paste0("mu", y.dim)] <- conditional.ratios.est
-            conditional.ratios.gr[, names(est) == paste0("mu", x.dim)] <- -sigmas[y.dim]/sigmas[x.dim]*conditional.ratios.est
-            conditional.ratios.gr[, names(est) == paste0("sigma", y.dim)] <- (log(newdata.x.dim) - mus[x.dim])/sigmas[x.dim]*conditional.ratios.est
-            conditional.ratios.gr[, names(est) == paste0("sigma", x.dim)] <- -sigmas[y.dim]*(log(newdata.x.dim) - mus[x.dim])/sigmas[x.dim]^2*conditional.ratios.est
         } else {
             ## Estimates for every x-value.
             conditional.ratios.est <- mus[y.dim]/newdata.x.dim +
                 sigmas[y.dim]/sigmas[x.dim]*(1 - mus[x.dim]/newdata.x.dim)
-            ## Gradients for every x-value.
-            conditional.ratios.gr[, names(est) == paste0("mu", y.dim)] <- 1/newdata.x.dim
-            conditional.ratios.gr[, names(est) == paste0("mu", x.dim)] <-
-                -sigmas[y.dim]/(sigmas[x.dim]*newdata.x.dim)
-            conditional.ratios.gr[, names(est) == paste0("sigma", y.dim)] <-
-                1/sigmas[x.dim] - mus[x.dim]/(sigmas[x.dim]*newdata.x.dim)
-            conditional.ratios.gr[, names(est) == paste0("sigma", x.dim)] <-
-                -sigmas[y.dim]/(sigmas[x.dim]^2) +
-                sigmas[y.dim]*mus[x.dim]/(sigmas[x.dim]^2*newdata.x.dim)
-        }  
+        }
     }
 
-    ## Calculate ses using delta method
-    pars.varcov <- fit$vcov$varcov
-    conditional.ratios.varcov <- conditional.ratios.gr %*% pars.varcov %*% t(conditional.ratios.gr)
-    conditional.ratios.se <- sqrt(diag(conditional.ratios.varcov))
-
-    ## Prep output
-    out <- cbind(conditional.ratios.est, conditional.ratios.se)
-    colnames(out) <- c("Estimate", "Std. Error")
+    if (stders){
+        ## Initialise gradient matric
+        conditional.ratios.gr <- matrix(0, nrow = length(newdata.x.dim), ncol = length(par.vec))
+        
+        if (type == "lm") {
+            if (fit$log.transform){
+                ## Gradients for every x-value.
+                conditional.ratios.gr[, names(est) == paste0("mu", y.dim)] <- conditional.ratios.est
+                conditional.ratios.gr[, names(est) == paste0("mu", x.dim)] <- -rho*sigmas[y.dim]/sigmas[x.dim]*conditional.ratios.est
+                conditional.ratios.gr[, names(est) == paste0("sigma", y.dim)] <- rho*(log(newdata.x.dim) - mus[x.dim])/sigmas[x.dim]*conditional.ratios.est
+                conditional.ratios.gr[, names(est) == paste0("sigma", x.dim)] <- -rho*sigmas[y.dim]*(log(newdata.x.dim) - mus[x.dim])/sigmas[x.dim]^2*conditional.ratios.est
+                conditional.ratios.gr[, names(est) == rho.name] <- sigmas[y.dim]*(log(newdata.x.dim) - mus[x.dim])/sigmas[x.dim]*conditional.ratios.est
+            } else {
+                ## Gradients for every x-value.
+                conditional.ratios.gr[, names(est) == paste0("mu", y.dim)] <- 1/newdata.x.dim
+                conditional.ratios.gr[, names(est) == paste0("mu", x.dim)] <-
+                    -rho*sigmas[y.dim]/(sigmas[x.dim]*newdata.x.dim)
+                conditional.ratios.gr[, names(est) == paste0("sigma", y.dim)] <-
+                    rho/sigmas[x.dim] - rho*mus[x.dim]/(sigmas[x.dim]*newdata.x.dim)
+                conditional.ratios.gr[, names(est) == paste0("sigma", x.dim)] <-
+                    -rho*sigmas[y.dim]/(sigmas[x.dim]^2) +
+                    rho*sigmas[y.dim]*mus[x.dim]/(sigmas[x.dim]^2*newdata.x.dim)
+                conditional.ratios.gr[, names(est) == rho.name] <-
+                    sigmas[y.dim]/sigmas[x.dim] -
+                    sigmas[y.dim]*mus[x.dim]/(sigmas[x.dim]*newdata.x.dim)
+            }
+        } else if (type == "pca") {
+            if (fit$log.transform){
+                ## Gradients for every x-value.
+                conditional.ratios.gr[, names(est) == paste0("mu", y.dim)] <- conditional.ratios.est
+                conditional.ratios.gr[, names(est) == paste0("mu", x.dim)] <- -sigmas[y.dim]/sigmas[x.dim]*conditional.ratios.est
+                conditional.ratios.gr[, names(est) == paste0("sigma", y.dim)] <- (log(newdata.x.dim) - mus[x.dim])/sigmas[x.dim]*conditional.ratios.est
+                conditional.ratios.gr[, names(est) == paste0("sigma", x.dim)] <- -sigmas[y.dim]*(log(newdata.x.dim) - mus[x.dim])/sigmas[x.dim]^2*conditional.ratios.est
+            } else {
+                ## Gradients for every x-value.
+                conditional.ratios.gr[, names(est) == paste0("mu", y.dim)] <- 1/newdata.x.dim
+                conditional.ratios.gr[, names(est) == paste0("mu", x.dim)] <-
+                    -sigmas[y.dim]/(sigmas[x.dim]*newdata.x.dim)
+                conditional.ratios.gr[, names(est) == paste0("sigma", y.dim)] <-
+                    1/sigmas[x.dim] - mus[x.dim]/(sigmas[x.dim]*newdata.x.dim)
+                conditional.ratios.gr[, names(est) == paste0("sigma", x.dim)] <-
+                    -sigmas[y.dim]/(sigmas[x.dim]^2) +
+                    sigmas[y.dim]*mus[x.dim]/(sigmas[x.dim]^2*newdata.x.dim)
+            }  
+        }
+        
+        ## Calculate ses using delta method
+        pars.varcov <- fit$vcov$varcov
+        conditional.ratios.varcov <- conditional.ratios.gr %*% pars.varcov %*% t(conditional.ratios.gr)
+        conditional.ratios.se <- sqrt(diag(conditional.ratios.varcov))
+        
+        ## Prep output
+        out <- cbind(conditional.ratios.est, conditional.ratios.se)
+        colnames(out) <- c("Estimate", "Std. Error")
+    } else {
+        out <- conditional.ratios.est
+    }
     out
 }

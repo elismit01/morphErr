@@ -197,6 +197,7 @@ calc.betas <- function(fit, est = NULL, stders = TRUE, y.dim, x.dim,
         }
     } else {
         out <- betas.est
+        names(out) <- c("beta0", paste0("beta", x.dim))
     }
     
     out
