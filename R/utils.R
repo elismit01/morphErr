@@ -188,6 +188,7 @@ print.summary.lme.morph <- function(x, ...) {
 #' @param x.dim An integer vector specifying the explanatory
 #'     dimensions for when `type` is `"betas"`, `"betas-lm"`, or
 #'     `"betas-pca"`.
+#' @param level The confidence level for any interval estimates.
 #'
 #' @return A matrix or data frame containing the requested summary.
 #' @examples
@@ -320,7 +321,7 @@ summary.lme.morph <- function(object, ..., type = "pars", y.dim,
                         z <- (out[k, 1] - 1)/out[k, 2]
                         if (boot){
                             betas.boot <- apply(ests.boot, 2, function(x){
-                                calc.betas(fit = object, est = x, stder = FALSE,
+                                calc.betas(fit = object, est = x, stders = FALSE,
                                            y.dim = j, x.dim = i, type = "pca")[2]
                             })
                             out[k, 2] <- sd(betas.boot)
