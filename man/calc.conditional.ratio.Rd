@@ -4,7 +4,14 @@
 \alias{calc.conditional.ratio}
 \title{Calculate Conditional Ratios Between Dimensions}
 \usage{
-calc.conditional.ratio(fit, y.dim, x.dim, newdata.x.dim, type = "lm")
+calc.conditional.ratio(
+  fit,
+  stders = TRUE,
+  y.dim,
+  x.dim,
+  newdata.x.dim,
+  type = "lm"
+)
 }
 \arguments{
 \item{fit}{A fitted model object of class "lme.morph"}

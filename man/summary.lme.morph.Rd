@@ -4,7 +4,7 @@
 \alias{summary.lme.morph}
 \title{Summarise Morphometric Model Fits}
 \usage{
-\method{summary}{lme.morph}(object, ..., type = "pars", y.dim, x.dim, B = 1000)
+\method{summary}{lme.morph}(object, ..., type = "pars", y.dim, x.dim, level = 0.95)
 }
 \arguments{
 \item{object}{An object of class \code{lme.morph}, returned by
@@ -14,7 +14,7 @@
 
 \item{type}{A character string specifying type of summary. Either
 \code{"pars"} (the default), \code{"betas"} \code{"betas-lm"}, \code{"betas-pca"},
-"\code{isometric-pca}", or \code{"isometric-pca-boot"}. See 'Details' for
+or "\code{isometric-pca}". See 'Details' for
 further information.}
 
 \item{y.dim}{An integer specifying the response dimension for when
@@ -24,8 +24,7 @@ further information.}
 dimensions for when \code{type} is \code{"betas"}, \code{"betas-lm"}, or
 \code{"betas-pca"}.}
 
-\item{B}{Number of bootstrap iterations for when \code{type} is
-\code{"isometric-pca-boot"}.}
+\item{level}{The confidence level for any interval estimates.}
 }
 \value{
 A matrix or data frame containing the requested summary.
@@ -79,22 +78,6 @@ For models with \code{log.transform = TRUE}, the test statistic is the
 slope for the reduced major axis (or principal component axis)
 summarising the relationship between the two dimensions, which is
 equal to \eqn{1} under the null hypothesis.  }
-
-\item{\code{type = "isometric-pca-boot"}}{
-The same as \code{"isometric-pca"}, except a bootstrap is used to obtain
-p-values. The normal approximation and bootstrap typically provide
-very similar results.
-
-For models with \code{log.transform = FALSE}, the test statistic is the
-intercept for the reduced major axis (or principal component axis)
-summarising the relationship between the two dimensions, which is
-equal to \eqn{0} under the null hypothesis. This approach yields
-the same p-values as using a bootstrap with the test statistic
-\eqn{\mu_p\sigma_q - \mu_q\sigma_p}.
-
-For models with \code{log.transform = TRUE}, the test statistic is the
-same as for \code{type = "isometric-pca"}.
-}
 
 }
 }
