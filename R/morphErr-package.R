@@ -87,7 +87,7 @@
 #' @importFrom nlme lme lmeControl getData groupedData corSymm varIdent
 #' @importFrom parallel makeCluster stopCluster clusterExport
 #' @importFrom pbapply pblapply
-#' @importFrom stats aggregate nlminb pnorm qnorm reformulate predict vcov
+#' @importFrom stats aggregate nlminb pnorm qnorm reformulate predict quantile sd vcov
 #' @importFrom utils combn setTxtProgressBar txtProgressBar
 NULL
 
