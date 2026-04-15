@@ -1,4 +1,4 @@
-#' morphErr: Measurement error models for morphometric data
+#' `morphErr`: Measurement error models for morphometric data
 #'
 #' The `morphErr` package provides functions to analyse morphometric
 #' data using the method proposed by Stevenson, Smit, and Setyawan (in
