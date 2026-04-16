@@ -1,6 +1,7 @@
 Package: morphErr
 Title: Measurement error models for morphometric data
-Version: 0.0.0.9000
+Version: 1.0.0
+Date: 2026-04-16
 Authors@R: 
     c(
     person("Ben C", "Stevenson", email = "ben.stevenson@auckland.ac.nz", role = c("aut", "cre")),
@@ -19,7 +20,7 @@ Description: Morphometric data collected on animal populations can be
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 Imports:
     graphics,
     grDevices,
