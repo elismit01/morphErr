@@ -4,10 +4,12 @@
 \alias{vcov.lme.morph}
 \title{Extract Variance-Covariance Matrix from Morphometric Model}
 \usage{
-\method{vcov}{lme.morph}(object)
+\method{vcov}{lme.morph}(object, ...)
 }
 \arguments{
 \item{object}{A fitted model of class "lme.morph"}
+
+\item{...}{Other parameters (for S3 generic compatibility).}
 }
 \value{
 A list containing:
@@ -18,4 +20,3 @@ A list containing:
 An S3 method for extracting both parameter estimates and their
 variance-covariance matrix from a fitted morphometric model.
 }
-\keyword{internal}

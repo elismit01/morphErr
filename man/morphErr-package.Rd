@@ -4,7 +4,7 @@
 \name{morphErr-package}
 \alias{morphErr}
 \alias{morphErr-package}
-\title{morphErr: Measurement error models for morphometric data}
+\title{\code{morphErr}: Measurement error models for morphometric data}
 \description{
 The \code{morphErr} package provides functions to analyse morphometric
 data using the method proposed by Stevenson, Smit, and Setyawan (in
@@ -86,6 +86,7 @@ Useful links:
 
 Authors:
 \itemize{
+  \item Ben C Stevenson \email{ben.stevenson@auckland.ac.nz}
   \item Elizabeth Smit \email{esmi468@aucklanduni.ac.nz}
 }
 

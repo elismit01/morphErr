@@ -20,7 +20,6 @@ Description: Morphometric data collected on animal populations can be
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 Imports:
     graphics,
     grDevices,
@@ -43,3 +42,4 @@ LazyData: true
 URL: https://github.com/elismit01/morphErr
 BugReports: https://github.com/elismit01/morphErr/issues
 Config/testthat/edition: 3
+Config/roxygen2/version: 8.0.0
