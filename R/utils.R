@@ -4,13 +4,14 @@
 #' variance-covariance matrix from a fitted morphometric model.
 #'
 #' @param object A fitted model of class "lme.morph"
+#' @param ... Other parameters (for S3 generic compatibility).
 #'
 #' @return A list containing:
 #'   \item{est}{Named vector of parameter estimates}
 #'   \item{varcov}{Variance-covariance matrix}
 #'
-#' @keywords internal
-vcov.lme.morph <- function(object) {
+#' @export
+vcov.lme.morph <- function(object, ...) {
     data <- getData(object)
     ## Number of dimensions.
     m <- length(unique(data$dim))
