@@ -2,8 +2,7 @@
 #'
 #' Simulates morphometric data from a photogrammetry survey, with
 #' observations subject to measurement error, under the model
-#' described by \href{../doc/model.pdf}{Stevenson, Smit, and Setyawan
-#' (in submission)}.
+#' described by Stevenson, Smit, and Setyawan (2026).
 #'
 #' @details For arguments `rhos` and `phis`, the elements must be
 #'     ordered so that all \eqn{m - 1} correlations involving

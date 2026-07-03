@@ -99,8 +99,8 @@ construct.varcov <- function(sds, cors, n.blocks, m, block.only){
 
 #' Fit Morphometric Model
 #'
-#' Fits the model described by \href{../doc/model.pdf}{Stevenson,
-#' Smit, and Setyawan (in submission)} to morphometric data.
+#' Fits the model described by Stevenson, Smit, and Setyawan (2026) to
+#' morphometric data.
 #'
 #' @details
 #' 
