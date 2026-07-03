@@ -40,8 +40,8 @@ understandable output from the object is using the S3 methods
 availble via \code{nlme}, such as \code{\link[nlme:coef.lme]{nlme::coef.lme()}}.
 }
 \description{
-Fits the model described by \href{../doc/model.pdf}{Stevenson,
-Smit, and Setyawan (in submission)} to morphometric data.
+Fits the model described by Stevenson, Smit, and Setyawan (2026) to
+morphometric data.
 }
 \details{
 This is a special case of a linear mixed-effects model, and is

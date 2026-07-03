@@ -7,17 +7,20 @@
 \title{\code{morphErr}: Measurement error models for morphometric data}
 \description{
 The \code{morphErr} package provides functions to analyse morphometric
-data using the method proposed by Stevenson, Smit, and Setyawan (in
-submission). View the manuscript \href{../doc/model.pdf}{here}.
+data using the method proposed by Stevenson, Smit, and Setyawan
+(2026).
 }
 \details{
 Two common ways of analysing morphometric data are to fit a linear
-regression models or find the reduced major axis (i.e., the
+regression model or find the reduced major axis (i.e., the
 principal component axis). However, these methods are known to
 perform poorly when observations are subject to non-negligible
 measurement error. The model implemented in this package provides
-the same inference you receive from these alternatives, but
-explicitly accounts for measurement error.
+the type of inference available from these methods, but explicitly
+accounts for measurement error. It can also handle multivariate
+data (rather than just fitting bivariate relationships), missing
+data, and accommodates dependence in measurement errors between
+dimensions.
 }
 \section{Data requirements}{
 
@@ -50,9 +53,8 @@ The key functions in \code{morphErr} are as follows:
 \itemize{
 \item \code{\link[=plotmorph]{plotmorph()}} to plot morphometric data from a photogrammetry
 survey.
-\item \code{\link[=fit.morph]{fit.morph()}} to fit the model described by
-\href{../doc/model.pdf}{Stevenson, Smit, and Setyawan (in
-submission)}.
+\item \code{\link[=fit.morph]{fit.morph()}} to fit the model described by Stevenson, Smit,
+and Setyawan (2026).
 \item \code{\link[=summary.lme.morph]{summary.lme.morph()}} with \code{type = "pars"} for parameter
 estimates and standard errors.
 \item \code{\link[=summary.lme.morph]{summary.lme.morph()}} with \code{type = "betas"} for estimated

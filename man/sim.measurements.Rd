@@ -77,8 +77,7 @@ measurement is for.}
 \description{
 Simulates morphometric data from a photogrammetry survey, with
 observations subject to measurement error, under the model
-described by \href{../doc/model.pdf}{Stevenson, Smit, and Setyawan
-(in submission)}.
+described by Stevenson, Smit, and Setyawan (2026).
 }
 \details{
 For arguments \code{rhos} and \code{phis}, the elements must be
