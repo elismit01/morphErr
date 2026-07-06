@@ -14,4 +14,4 @@ Ampat, Indonesia, are included.
 
 Stevenson, B. C., Smit, E., and Setyawan, E. (2026) Measurement error
 models for morphometric data. *Annals of Applied Statistics*, **20**:
-945--962.
+945962.
