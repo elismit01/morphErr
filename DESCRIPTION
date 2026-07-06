@@ -1,13 +1,12 @@
 Package: morphErr
 Title: Measurement error models for morphometric data
 Version: 1.0.0
-Date: 2026-04-16
+Date: 2026-07-06
 Authors@R: 
     c(
     person("Ben C", "Stevenson", email = "ben.stevenson@auckland.ac.nz", role = c("aut", "cre")),
     person("Elizabeth", "Smit", email = "esmi468@aucklanduni.ac.nz", role = "aut")
     )
-VignetteBuilder: knitr
 Description: Morphometric data collected on animal populations can be
     subject to measurement error, which leads to biased estimators
     using line-fitting techniques such as linear regression and
