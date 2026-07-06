@@ -92,3 +92,8 @@ fit <- fit.morph(manta)
 fit <- fit.morph(manta, method = "ML")
 
 }
+\references{
+Stevenson, B. C., Smit, E., and Setyawan, E. (2026)
+Measurement error models for morphometric data. \emph{Annals of
+Applied Statistics}, \strong{20}: 945--962.
+}

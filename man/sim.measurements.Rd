@@ -118,6 +118,11 @@ sim.data <- sim.measurements(data = data,
 sim.data
 
 }
+\references{
+Stevenson, B. C., Smit, E., and Setyawan, E. (2026)
+Measurement error models for morphometric data. \emph{Annals of
+Applied Statistics}, \strong{20}: 945--962.
+}
 \seealso{
 \code{\link[=sim.morph]{sim.morph()}} to conduct a simulation study by
 simulating multiple data sets and fitting a model to each one.
