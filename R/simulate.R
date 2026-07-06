@@ -93,6 +93,10 @@
 #'                              phis = c(0.5, 0.4, 0.3))
 #' sim.data
 #'
+#' @references Stevenson, B. C., Smit, E., and Setyawan, E. (2026)
+#'   Measurement error models for morphometric data. \emph{Annals of
+#'   Applied Statistics}, \strong{20}: 945--962.
+#' 
 #' @export
 sim.measurements <- function(n.animals = NULL, n.photos = NULL,
                              data = NULL, mus, sigmas, rhos, psis,

@@ -76,6 +76,10 @@
 #'
 #' * [`extract.sim.morph()`] to extract estimates from the models
 #' fitted using [`sim.morph()`].
+#'
+#' @references Stevenson, B. C., Smit, E., and Setyawan, E. (2026)
+#'   Measurement error models for morphometric data. \emph{Annals of
+#'   Applied Statistics}, \strong{20}: 945--962.
 #' 
 #' @keywords internal
 "_PACKAGE"
