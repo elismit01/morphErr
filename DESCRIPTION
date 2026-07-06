@@ -35,8 +35,6 @@ Imports:
 Depends:
     R (>= 3.5.0),
 Suggests: 
-    knitr,
-    xtable,
     testthat (>= 3.0.0)
 LazyData: true
 URL: https://github.com/elismit01/morphErr
