@@ -2,7 +2,7 @@ Version 1.0.0
 -------------
 
 - Initial release. A software implementation of the model described by
-  Stevenson, Smit, and Setyawan (2026) <DOI:10.1214/26-AOAS2164>.
+  Stevenson, Smit, and Setyawan (2026).
 
 - Includes model fitting function `fit.morph()`; plotting function
   `plotmorph()`; simulation functions `sim.measurements()`,
@@ -10,6 +10,5 @@ Version 1.0.0
   `predictblup()`; and S3 methods `plot.lme.morph()`,
   `predict.lme.morph()`, `summary.lme.morph()`.
 
-- The data analysed in Stevenson, Smit, and Setyawan (2026)
-  <DOI:10.1214/26-AOAS2164> are available as the exported object
-  `manta`.
+- The data analysed in Stevenson, Smit, and Setyawan (2026) are
+  available as the exported object `manta`.
