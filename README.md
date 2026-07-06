@@ -1,6 +1,14 @@
-# `morphErr`: Measurement error models for morphometric data
+# `morphErr`: Measurement Error Models for Morphometric Data
 
-Morphometric data collected on animal populations can be subject to measurement error, which leads to biased estimators using line-fitting techniques such as linear regression and reduced major axis. The models implemented in this package explicitly accommodate measurement error, allow for multivariate data, estimate relationships between dimensions, and provide tests for isometric relationships between dimensions. Morphometric data of the reef manta ray, collected in Raja Ampat, Indonesia, are included.
+Morphometric data collected on animal populations can be subject to
+measurement error, which leads to biased estimators using line-fitting
+techniques such as linear regression and reduced major axis. The
+models implemented in this package (Stevenson, Smit, and Setyawan,
+2026) <DOI:10.1214/26-AOAS2164> explicitly accommodate measurement
+error, allow for multivariate data, estimate relationships between
+dimensions, allow missing data and provide tests for isometric
+relationships between dimensions. Morphometric data of the reef manta
+ray, collected in Raja Ampat, Indonesia, are included.
 
 ## Installation
 
